@@ -1,6 +1,5 @@
 package com.adaptris.core.jms.solace;
 
-import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -17,7 +16,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * Solace implementation of <code>VendorImplementation</code>.
  * </p>
  * <p>
- * This vendor implementation is the minimal adapter interface to Solace,
+ * This vendor implementation is the minimal adapter interface to Solace.
  * </p>
  * <p>
  * <b>This was built against Solace 7.1.0.207</b>
@@ -38,13 +37,12 @@ public class BasicSolaceImplementation extends VendorImplementationImp {
   private String messageVpn = "default";
 
   @Override
-  public ConnectionFactory createConnectionFactory() throws JMSException {
+  public SolConnectionFactory createConnectionFactory() throws JMSException {
     try {
       SolConnectionFactory connnectionFactory = SolJmsUtility.createConnectionFactory();
       connnectionFactory.setHost(getHostname());
       connnectionFactory.setPort(getPort());
       connnectionFactory.setVPN(getMessageVpn());
-      connnectionFactory.setDirectTransport(false);
       // Username and password will be set in .connect(username, password)
       return connnectionFactory;
       

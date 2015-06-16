@@ -81,7 +81,7 @@
   <target name="javadoc" depends="prepare-ivy" description="Create javadocs">
     <adapter:ydoc-javadoc-creator sourcepath="${src.dir}" destdir="${api.doc.dir}">
       <groups>
-        <group title="Interlok HornetQ Integration" packages="com.adaptris.core.jms.solace:com.adaptris.core.jms.solace.*"/>
+        <group title="Interlok Solace Integration" packages="com.adaptris.core.jms.solace:com.adaptris.core.jms.solace.*"/>
       </groups>
     </adapter:ydoc-javadoc-creator>
   </target>
@@ -98,7 +98,7 @@
     </copy>
     <zip destfile="${dist.filename}">
       <zipfileset dir="${build.tmp.dir}/dist/lib" prefix="lib"/>
-      <zipfileset dir="${api.doc.dir}" prefix="docs/aws-sqs/api"/>
+      <zipfileset dir="${api.doc.dir}" prefix="docs/solace/api"/>
     </zip>
   </target>
 
@@ -115,12 +115,6 @@
     <property file="${test.resources.dir}/unit-tests.properties.template"/>
     <echoproperties destfile="${testclasses.build.dir}/unit-tests.properties" prefix="junit."/>
     <replace file="${testclasses.build.dir}/unit-tests.properties" token="junit." value=""/>
-    <copy tofile="${test.resources.dir}/solace-configuration.xml" file="${test.resources.dir}/solace-configuration.xml.template" filtering="true" overwrite="true">
-      <filterset>
-       <filter token="HORNETQ_DATADIR" value="${build.dir}/solace/data"/>
-      </filterset>
-    </copy>
-    <mkdir dir="${build.dir}/solace/data"/>
   </target>
 
   <target name="init.tests" depends="compile_tests">
@@ -136,12 +130,6 @@
     <delete dir="${tests.output.dir}"/>
     <delete>
       <fileset file="${coverage.metadata.file}"/>
-      <fileset dir="${basedir}">
-        <include name="transaction.log"/>
-      </fileset>
-      <fileset dir="${test.resources.dir}">
-        <include name="solace-configuration.xml"/>
-      </fileset>
     </delete>
   </target>
 
