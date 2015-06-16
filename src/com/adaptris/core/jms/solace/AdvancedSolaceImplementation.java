@@ -25,7 +25,8 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  * </p>
  * <p>
  * This vendor implementation is a more complete adapter interface to Solace, designed to
- * expose as many of the configuration properties as possible.
+ * expose as many of the configuration properties as possible. Most settings are exposed
+ * as part of parameter objects added to the "extraParameters" list.
  * </p>
  * <p>
  * <b>This was built against Solace 7.1.0.207</b>
