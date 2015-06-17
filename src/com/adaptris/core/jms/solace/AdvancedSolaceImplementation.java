@@ -38,7 +38,7 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  */
 @XStreamAlias("advanced-solace-implementation")
 public class AdvancedSolaceImplementation extends BasicSolaceImplementation {
-  private String authenticationScheme;
+  private AuthenticationSchemeEnum authenticationScheme;
   private Integer compressionLevel;
   private DeliveryModeEnum deliveryMode;
   private Boolean directOptimized;
@@ -63,7 +63,9 @@ public class AdvancedSolaceImplementation extends BasicSolaceImplementation {
     try {
       SolConnectionFactory connectionFactory = super.createConnectionFactory();
 
-      connectionFactory.setAuthenticationScheme(getAuthenticationScheme());
+      if(getAuthenticationScheme() != null) {
+        connectionFactory.setAuthenticationScheme(getAuthenticationScheme().getValue());
+      }
       connectionFactory.setCompressionLevel(getCompressionLevel());
       connectionFactory.setDeliveryMode(getDeliveryMode().getDeliveryMode());
       connectionFactory.setDirectOptimized(getDirectOptimized());
@@ -109,14 +111,14 @@ public class AdvancedSolaceImplementation extends BasicSolaceImplementation {
     return false;
   }
 
-  public String getAuthenticationScheme() {
+  public AuthenticationSchemeEnum getAuthenticationScheme() {
     return authenticationScheme;
   }
 
   /**
    * This property specifies the authentication scheme.
    */
-  public void setAuthenticationScheme(String authenticationScheme) {
+  public void setAuthenticationScheme(AuthenticationSchemeEnum authenticationScheme) {
     this.authenticationScheme = authenticationScheme;
   }
 
