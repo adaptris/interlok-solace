@@ -8,10 +8,7 @@ import javax.jms.JMSException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-
 import com.adaptris.annotation.AutoPopulated;
-import com.adaptris.core.jms.VendorImplementation;
 import com.adaptris.core.jms.solace.parameters.Parameter;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
@@ -96,19 +93,6 @@ public class AdvancedSolaceImplementation extends BasicSolaceImplementation {
   @Override
   public String retrieveBrokerDetailsForLogging() {
     return String.format("Solace host: %s; Message vpn: %s", getHostname(), getMessageVpn());
-  }
-
-  @Override
-  public boolean connectionEquals(VendorImplementation other) {
-    if (other instanceof AdvancedSolaceImplementation) {
-      AdvancedSolaceImplementation rhs = (AdvancedSolaceImplementation) other;
-      return new EqualsBuilder()
-        .append(getHostname(), rhs.getHostname())
-        .append(getPort(), rhs.getPort())
-        .append(getMessageVpn(), rhs.getMessageVpn())
-        .isEquals();
-    }
-    return false;
   }
 
   public AuthenticationSchemeEnum getAuthenticationScheme() {

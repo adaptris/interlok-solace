@@ -66,7 +66,7 @@ public class BasicSolaceImplementation extends VendorImplementationImp {
   }
 
   /**
-   * Appliance or VMR host name
+   * Appliance or VMR host name, must be prefixed with smf://
    * @param hostname
    */
   public void setHostname(String hostname) {
