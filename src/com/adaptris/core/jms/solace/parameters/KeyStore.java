@@ -1,7 +1,9 @@
 package com.adaptris.core.jms.solace.parameters;
 
 import com.adaptris.annotation.InputFieldHint;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+@XStreamAlias("solace-keystore")
 public class KeyStore {
   private String filename;
   private String format;

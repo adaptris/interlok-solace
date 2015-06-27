@@ -3,7 +3,7 @@ package com.adaptris.core.jms.solace.parameters;
 import com.solacesystems.jms.SolConnectionFactory;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-@XStreamAlias("keepalive")
+@XStreamAlias("solace-keepalive")
 public class Keepalive implements Parameter {
   private Boolean keepAlives;
   private Integer keepAliveCountMax;

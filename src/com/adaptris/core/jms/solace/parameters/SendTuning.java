@@ -3,7 +3,7 @@ package com.adaptris.core.jms.solace.parameters;
 import com.solacesystems.jms.SolConnectionFactory;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-@XStreamAlias("send-tuning")
+@XStreamAlias("solace-send-tuning")
 public class SendTuning implements Parameter {
   private Integer sendAdAckTimerInMillis;
   private Integer sendAdMaxResends;

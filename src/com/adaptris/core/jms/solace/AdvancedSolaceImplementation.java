@@ -64,7 +64,11 @@ public class AdvancedSolaceImplementation extends BasicSolaceImplementation {
         connectionFactory.setAuthenticationScheme(getAuthenticationScheme().getValue());
       }
       connectionFactory.setCompressionLevel(getCompressionLevel());
-      connectionFactory.setDeliveryMode(getDeliveryMode().getDeliveryMode());
+      
+      if(getDeliveryMode() != null) {
+        connectionFactory.setDeliveryMode(getDeliveryMode().getDeliveryMode());
+      }
+      
       connectionFactory.setDirectOptimized(getDirectOptimized());
       connectionFactory.setDirectTransport(getDirectTransport());
       connectionFactory.setDynamicDurables(getDynamicDurables());
@@ -84,9 +88,7 @@ public class AdvancedSolaceImplementation extends BasicSolaceImplementation {
     } catch (JMSException e) {
       throw e;
     } catch (Exception e) {
-      JMSException ex = new JMSException("Unexpected Exception creating Solace connectionfactory");
-      ex.setLinkedException(e);
-      throw ex;
+      throw new RuntimeException("Unexpected Exception creating Solace connectionfactory", e);
     }
   }
   

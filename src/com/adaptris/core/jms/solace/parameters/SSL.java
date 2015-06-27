@@ -4,7 +4,7 @@ import com.adaptris.annotation.InputFieldHint;
 import com.solacesystems.jms.SolConnectionFactory;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-@XStreamAlias("ssl")
+@XStreamAlias("solace-ssl")
 public class SSL implements Parameter {
   private String cipherSuites;
   

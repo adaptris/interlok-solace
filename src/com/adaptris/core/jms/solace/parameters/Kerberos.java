@@ -3,7 +3,7 @@ package com.adaptris.core.jms.solace.parameters;
 import com.solacesystems.jms.SolConnectionFactory;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-@XStreamAlias("kerberos")
+@XStreamAlias("solace-kerberos")
 public class Kerberos implements Parameter {
   protected Boolean krbMutualAuthentication;
   protected String krbServiceName;
