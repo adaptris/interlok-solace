@@ -1,8 +1,8 @@
 package com.adaptris.core.jms.solace;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import javax.jms.JMSException;
 
@@ -112,7 +112,7 @@ public class ExtraParametersTest {
   }
   
   @Test
-  public void testReceiveTuning() {
+  public void testReceiveTuning() throws Exception {
     ReceiveTuning rt = new ReceiveTuning();
     rt.setReceiveAdAckThreshold(1234);
     rt.setReceiveAdAckTimerInMillis(2345);
@@ -132,7 +132,7 @@ public class ExtraParametersTest {
   }
   
   @Test
-  public void testSendFlags() {
+  public void testSendFlags() throws Exception {
     SendFlags sf = new SendFlags();
     sf.setDmqEligible(true);
     sf.setElidingEligible(true);
@@ -148,7 +148,7 @@ public class ExtraParametersTest {
   }
   
   @Test
-  public void testSendTuning() {
+  public void testSendTuning() throws Exception {
     SendTuning st = new SendTuning();
     st.setSendAdAckTimerInMillis(1234);
     st.setSendAdMaxResends(2345);
@@ -164,7 +164,7 @@ public class ExtraParametersTest {
   }
   
   @Test
-  public void testSSL() {
+  public void testSSL() throws Exception {
     final String CIPHER_SUITES = "some_cipher,some_other_cipher";
     final String EXCLUDED_PROTOCOLS = "some_protocol,some_other_protocol";
     final String KEYSTORE_FILENAME = "keystore.p12";

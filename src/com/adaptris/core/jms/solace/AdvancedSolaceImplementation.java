@@ -9,6 +9,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.core.jms.JmsUtils;
 import com.adaptris.core.jms.solace.parameters.Parameter;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
@@ -51,15 +52,12 @@ public class AdvancedSolaceImplementation extends BasicSolaceImplementation {
   
   @NotNull
   @AutoPopulated
-  @Valid
-  @XStreamImplicit
   private KeyValuePairSet properties = new KeyValuePairSet();
 
   @Override
   public SolConnectionFactory createConnectionFactory() throws JMSException {
+    SolConnectionFactory connectionFactory = super.createConnectionFactory();
     try {
-      SolConnectionFactory connectionFactory = super.createConnectionFactory();
-
       if(getAuthenticationScheme() != null) {
         connectionFactory.setAuthenticationScheme(getAuthenticationScheme().getValue());
       }
@@ -82,14 +80,12 @@ public class AdvancedSolaceImplementation extends BasicSolaceImplementation {
         KeyValuePair kv = it.next();
         connectionFactory.setProperty(kv.getKey(), kv.getValue());
       }
-      
       // Username and password will be set in .connect(username, password)
-      return connectionFactory;
-    } catch (JMSException e) {
-      throw e;
     } catch (Exception e) {
-      throw new RuntimeException("Unexpected Exception creating Solace connectionfactory", e);
+      JmsUtils.rethrowJMSException(e);
     }
+    return connectionFactory;
+
   }
   
   @Override

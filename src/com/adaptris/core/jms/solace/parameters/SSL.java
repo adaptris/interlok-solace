@@ -1,6 +1,7 @@
 package com.adaptris.core.jms.solace.parameters;
 
 import com.adaptris.annotation.InputFieldHint;
+import com.adaptris.security.password.Password;
 import com.solacesystems.jms.SolConnectionFactory;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
@@ -28,7 +29,7 @@ public class SSL implements Parameter {
   private Boolean validateCertificateDate;
   
   @Override
-  public void apply(SolConnectionFactory cf) {
+  public void apply(SolConnectionFactory cf) throws Exception {
     if(getCipherSuites() != null) {
       cf.setSSLCipherSuites(getCipherSuites());
     }
@@ -40,9 +41,9 @@ public class SSL implements Parameter {
     if(getKeyStore() != null) {
       cf.setSSLKeyStore(getKeyStore().getFilename());
       cf.setSSLKeyStoreFormat(getKeyStore().getFormat());
-      cf.setSSLKeyStorePassword(getKeyStore().getPassword());
+      cf.setSSLKeyStorePassword(Password.decode(getKeyStore().getPassword()));
       cf.setSSLPrivateKeyAlias(getPrivateKeyAlias());
-      cf.setSSLPrivateKeyPassword(getPrivateKeyPassword());
+      cf.setSSLPrivateKeyPassword(Password.decode(getPrivateKeyPassword()));
     }
 
     if(getProtocol() != null) {
@@ -56,7 +57,7 @@ public class SSL implements Parameter {
     if(getTrustStore() != null) {
       cf.setSSLTrustStore(getTrustStore().getFilename());
       cf.setSSLTrustStoreFormat(getTrustStore().getFormat());
-      cf.setSSLTrustStorePassword(getTrustStore().getPassword());
+      cf.setSSLTrustStorePassword(Password.decode(getTrustStore().getPassword()));
     }
 
     if(getValidateCertificate() != null) {

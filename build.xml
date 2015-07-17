@@ -17,7 +17,7 @@
     <property name="src.dir" value="${basedir}/src"/>
     <property name="testsrc.dir" value="${basedir}/test/src"/>
     <property name="build.dir" value="${basedir}/build"/>
-    <property name="test.resources.dir" value="${basedir}/resources/tests"/>
+    <property name="test.resources.dir" value="${basedir}/test/resources"/>
 
     <property name="classes.build.dir" value="${build.dir}/classes"/>
     <property name="testclasses.build.dir" value="${build.dir}/testclasses"/>

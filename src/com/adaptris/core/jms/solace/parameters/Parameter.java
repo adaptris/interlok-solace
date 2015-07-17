@@ -11,6 +11,6 @@ import com.solacesystems.jms.SolConnectionFactory;
  */
 public interface Parameter {
 
-  public void apply(SolConnectionFactory cf);
+  public void apply(SolConnectionFactory cf) throws Exception;
   
 }
