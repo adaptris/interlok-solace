@@ -123,6 +123,6 @@ public class BasicSolaceImplementation extends VendorImplementationImp implement
 
   @Override
   public boolean isEnabled(License license) {
-    return license.isEnabled(LicenseType.Basic);
+    return license.isEnabled(LicenseType.Standard);
   }
 }
