@@ -5,8 +5,13 @@ import javax.jms.JMSException;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.hibernate.validator.constraints.NotBlank;
 
+import com.adaptris.core.CoreException;
 import com.adaptris.core.jms.VendorImplementation;
 import com.adaptris.core.jms.VendorImplementationImp;
+import com.adaptris.core.licensing.License;
+import com.adaptris.core.licensing.License.LicenseType;
+import com.adaptris.core.licensing.LicenseChecker;
+import com.adaptris.core.licensing.LicensedComponent;
 import com.solacesystems.jms.SolConnectionFactory;
 import com.solacesystems.jms.SolJmsUtility;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -27,7 +32,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @license BASIC
  */
 @XStreamAlias("basic-solace-implementation")
-public class BasicSolaceImplementation extends VendorImplementationImp {
+public class BasicSolaceImplementation extends VendorImplementationImp implements LicensedComponent {
   @NotBlank
   private String hostname;
   
@@ -107,5 +112,17 @@ public class BasicSolaceImplementation extends VendorImplementationImp {
         .isEquals();
     }
     return false;
+  }
+
+
+  @Override
+  public void prepare() throws CoreException {
+    LicenseChecker.newChecker().checkLicense(this);
+    super.prepare();
+  }
+
+  @Override
+  public boolean isEnabled(License license) {
+    return license.isEnabled(LicenseType.Standard);
   }
 }
