@@ -6,8 +6,8 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.hibernate.validator.constraints.NotBlank;
 
 import com.adaptris.core.CoreException;
-import com.adaptris.core.jms.VendorImplementation;
-import com.adaptris.core.jms.VendorImplementationImp;
+import com.adaptris.core.jms.UrlVendorImplementation;
+import com.adaptris.core.jms.VendorImplementationBase;
 import com.adaptris.core.licensing.License;
 import com.adaptris.core.licensing.License.LicenseType;
 import com.adaptris.core.licensing.LicenseChecker;
@@ -32,7 +32,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @license BASIC
  */
 @XStreamAlias("basic-solace-implementation")
-public class BasicSolaceImplementation extends VendorImplementationImp implements LicensedComponent {
+public class BasicSolaceImplementation extends UrlVendorImplementation implements LicensedComponent {
   @NotBlank
   private String hostname;
   
@@ -102,7 +102,7 @@ public class BasicSolaceImplementation extends VendorImplementationImp implement
   }
 
   @Override
-  public boolean connectionEquals(VendorImplementation other) {
+  public boolean connectionEquals(VendorImplementationBase other) {
     if (other instanceof BasicSolaceImplementation) {
       BasicSolaceImplementation rhs = (BasicSolaceImplementation) other;
       return new EqualsBuilder()

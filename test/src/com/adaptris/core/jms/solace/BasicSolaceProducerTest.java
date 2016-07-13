@@ -12,8 +12,6 @@ import com.adaptris.core.jms.JmsProducerExample;
 
 public class BasicSolaceProducerTest extends JmsProducerExample {
 
-  private static Logger log = LoggerFactory.getLogger(BasicSolaceProducerTest.class);
-
   public BasicSolaceProducerTest(String name) {
     super(name);
   }
@@ -53,6 +51,7 @@ public class BasicSolaceProducerTest extends JmsProducerExample {
   protected BasicSolaceImplementation createVendorImpl() {
     BasicSolaceImplementation mq = new BasicSolaceImplementation();
     mq.setHostname("smf://localhost");
+    mq.setBrokerUrl("smf://localhost");
     mq.setMessageVpn("default");
     return mq;
   }

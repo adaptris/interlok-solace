@@ -25,6 +25,7 @@ public class AdvancedSolaceConsumerTest extends BasicSolaceConsumerTest {
 
   static AdvancedSolaceImplementation configureVendor(AdvancedSolaceImplementation mq) {
     mq.setHostname("smf://localhost");
+    mq.setBrokerUrl("smf://localhost");
     mq.setMessageVpn("default");
     mq.setAuthenticationScheme(AuthenticationSchemeEnum.AUTHENTICATION_SCHEME_BASIC);
     mq.getExtraParameters().add(createTuning());
