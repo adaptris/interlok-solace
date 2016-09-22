@@ -12,7 +12,7 @@ import com.adaptris.util.KeyValuePair;
 import com.solacesystems.jms.SolConnectionFactory;
 import com.solacesystems.jms.SupportedProperty;
 
-public class AdvancedSolaceImplementationTest {
+public class AdvancedSolaceImplementationTest extends BasicSolaceImplementationTest {
 
   @Test
   public void testBasicProperties() throws JMSException {
@@ -38,9 +38,9 @@ public class AdvancedSolaceImplementationTest {
     SolConnectionFactory cf = sol.createConnectionFactory();
     System.out.println(cf.getPropertyNames());
     
-    assertEquals(HOSTNAME, cf.getHost());
+    assertEquals(HOSTNAME + ":" + PORT, cf.getHost());
     assertEquals(MESSAGE_VPN, cf.getVPN());
-    assertEquals(PORT, cf.getPort());
+    assertNull(cf.getPort());
     assertEquals(AUTHENTICATION_SCHEME.getValue(), cf.getAuthenticationScheme());
     assertEquals(COMPRESSION_LEVEL, cf.getCompressionLevel());
     assertEquals(DELIVERY_MODE.getDeliveryMode(), cf.getDeliveryMode().intValue());
