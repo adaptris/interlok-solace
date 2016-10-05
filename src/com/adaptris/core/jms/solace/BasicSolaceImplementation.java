@@ -1,5 +1,8 @@
 package com.adaptris.core.jms.solace;
 
+import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+
 import javax.jms.JMSException;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -33,20 +36,30 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  */
 @XStreamAlias("basic-solace-implementation")
 public class BasicSolaceImplementation extends UrlVendorImplementation implements LicensedComponent {
-  @NotBlank
+  
+  @Deprecated
   private String hostname;
   
+  @Deprecated
   private int port = 55555;
   
   @NotBlank
   private String messageVpn = "default";
-
+  
   @Override
   public SolConnectionFactory createConnectionFactory() throws JMSException {
+    System.out.println(getBrokerUrl());
+    System.out.println(isBlank(getBrokerUrl()));
+    System.out.println(isNotBlank(hostname));
+    
+    if(isBlank(getBrokerUrl()) && isNotBlank(hostname)) {
+      log.warn("hostname and port are deprecated for " + getClass().getSimpleName() + ", please use broker-url instead.");
+      setBrokerUrl(hostname + (port!=55555 ? ":" + port : ""));
+    }
+    
     try {
       SolConnectionFactory connnectionFactory = SolJmsUtility.createConnectionFactory();
-      connnectionFactory.setHost(getHostname());
-      connnectionFactory.setPort(getPort());
+      connnectionFactory.setHost(getBrokerUrl());
       connnectionFactory.setVPN(getMessageVpn());
       // Username and password will be set in .connect(username, password)
       return connnectionFactory;
@@ -63,9 +76,10 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
   
   @Override
   public String retrieveBrokerDetailsForLogging() {
-    return String.format("Solace host: %s; Message vpn: %s", getHostname(), getMessageVpn());
+    return String.format("Solace host: %s; Message vpn: %s", getBrokerUrl(), getMessageVpn());
   }
 
+  @Deprecated
   public String getHostname() {
     return hostname;
   }
@@ -74,10 +88,12 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
    * Appliance or VMR host name, must be prefixed with smf://
    * @param hostname
    */
+  @Deprecated
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
 
+  @Deprecated
   public int getPort() {
     return port;
   }
@@ -86,6 +102,7 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
    * Port number. Default: 55555
    * @param port
    */
+  @Deprecated
   public void setPort(int port) {
     this.port = port;
   }
@@ -106,7 +123,7 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
     if (other instanceof BasicSolaceImplementation) {
       BasicSolaceImplementation rhs = (BasicSolaceImplementation) other;
       return new EqualsBuilder()
-        .append(getHostname(), rhs.getHostname())
+        .append(getBrokerUrl(), rhs.getBrokerUrl())
         .append(getPort(), rhs.getPort())
         .append(getMessageVpn(), rhs.getMessageVpn())
         .isEquals();

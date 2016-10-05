@@ -88,11 +88,6 @@ public class AdvancedSolaceImplementation extends BasicSolaceImplementation {
 
   }
   
-  @Override
-  public String retrieveBrokerDetailsForLogging() {
-    return String.format("Solace host: %s; Message vpn: %s", getHostname(), getMessageVpn());
-  }
-
   public AuthenticationSchemeEnum getAuthenticationScheme() {
     return authenticationScheme;
   }
