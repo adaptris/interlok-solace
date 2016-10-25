@@ -48,10 +48,6 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
   
   @Override
   public SolConnectionFactory createConnectionFactory() throws JMSException {
-    System.out.println(getBrokerUrl());
-    System.out.println(isBlank(getBrokerUrl()));
-    System.out.println(isNotBlank(hostname));
-    
     if(isBlank(getBrokerUrl()) && isNotBlank(hostname)) {
       log.warn("hostname and port are deprecated for " + getClass().getSimpleName() + ", please use broker-url instead.");
       setBrokerUrl(hostname + (port!=55555 ? ":" + port : ""));
