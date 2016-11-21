@@ -8,7 +8,9 @@ import javax.jms.JMSException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.jms.JmsUtils;
 import com.adaptris.core.jms.solace.parameters.Parameter;
 import com.adaptris.util.KeyValuePair;
@@ -39,9 +41,17 @@ public class AdvancedSolaceImplementation extends BasicSolaceImplementation {
   private AuthenticationSchemeEnum authenticationScheme;
   private Integer compressionLevel;
   private DeliveryModeEnum deliveryMode;
+  @AdvancedConfig
+  @InputFieldDefault(value = "false")
   private Boolean directOptimized;
+  @AdvancedConfig
+  @InputFieldDefault(value = "false")
   private Boolean directTransport;
+  @AdvancedConfig
+  @InputFieldDefault(value = "false")
   private Boolean dynamicDurables;
+  @AdvancedConfig
+  @InputFieldDefault(value = "true")
   private Boolean respectTTL;
   
   @NotNull
@@ -67,9 +77,9 @@ public class AdvancedSolaceImplementation extends BasicSolaceImplementation {
         connectionFactory.setDeliveryMode(getDeliveryMode().getDeliveryMode());
       }
       
-      connectionFactory.setDirectOptimized(getDirectOptimized());
-      connectionFactory.setDirectTransport(getDirectTransport());
-      connectionFactory.setDynamicDurables(getDynamicDurables());
+      connectionFactory.setDirectOptimized(directOptimized());
+      connectionFactory.setDirectTransport(directTransport());
+      connectionFactory.setDynamicDurables(dynamicDurables());
       connectionFactory.setRespectTTL(getRespectTTL());
 
       for(Parameter p: getExtraParameters()) {
@@ -139,6 +149,10 @@ public class AdvancedSolaceImplementation extends BasicSolaceImplementation {
   public void setDirectOptimized(Boolean directOptimized) {
     this.directOptimized = directOptimized;
   }
+  
+  public boolean directOptimized() {
+    return this.getDirectOptimized() != null ? this.getDirectOptimized() : false;
+  }
 
   public Boolean getDirectTransport() {
     return directTransport;
@@ -149,6 +163,10 @@ public class AdvancedSolaceImplementation extends BasicSolaceImplementation {
    */
   public void setDirectTransport(Boolean directTransport) {
     this.directTransport = directTransport;
+  }
+  
+  public boolean directTransport() {
+    return this.getDirectTransport() != null ? this.getDirectTransport() : false;
   }
 
   public Boolean getDynamicDurables() {
@@ -161,6 +179,10 @@ public class AdvancedSolaceImplementation extends BasicSolaceImplementation {
   public void setDynamicDurables(Boolean dynamicDurables) {
     this.dynamicDurables = dynamicDurables;
   }
+  
+  public boolean dynamicDurables() {
+    return this.getDynamicDurables() != null ? this.getDynamicDurables() : false;
+  }
 
   public Boolean getRespectTTL() {
     return respectTTL;
@@ -171,6 +193,10 @@ public class AdvancedSolaceImplementation extends BasicSolaceImplementation {
    */
   public void setRespectTTL(Boolean respectTTL) {
     this.respectTTL = respectTTL;
+  }
+  
+  public boolean respectTTL() {
+    return this.getRespectTTL() != null ? this.getRespectTTL() : true;
   }
 
   public List<Parameter> getExtraParameters() {
