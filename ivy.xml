@@ -34,10 +34,10 @@
     <dependency org="com.adaptris" name="adp-core-apt" rev="${adp-core-version}" conf="compile->default;ant->default" changing="true"/>
 
     <dependency org="org.apache.geronimo.specs" name="geronimo-jms_1.1_spec" rev="1.1.1" conf="test->default"/>
-    <dependency org="com.solacesystems" name="sol-common" rev="7.2.1.148" conf="compile->default"/>
-    <dependency org="com.solacesystems" name="sol-jcsmp" rev="7.2.1.148" conf="compile->default"/>
-    <dependency org="com.solacesystems" name="sol-jms" rev="7.2.1.148" conf="compile->default"/>
-    <dependency org="com.solacesystems" name="solclientj" rev="7.2.1.75" conf="compile->default"/>
+    <dependency org="com.solacesystems" name="sol-common" rev="7.2.1.148" conf="provided->default"/>
+    <dependency org="com.solacesystems" name="sol-jcsmp" rev="7.2.1.148" conf="provided->default"/>
+    <dependency org="com.solacesystems" name="sol-jms" rev="7.2.1.148" conf="provided->default"/>
+    <dependency org="com.solacesystems" name="solclientj" rev="7.2.1.75" conf="provided->default"/>
     <dependency org="commons-lang" name="commons-lang" rev="2.6" conf="compile->default"/>
 
     <dependency org="org.apache.velocity" name="velocity" rev="1.7" transitive="false" conf="compile->default"/>
