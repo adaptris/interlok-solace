@@ -37,7 +37,6 @@
     <dependency org="com.solacesystems" name="sol-common" rev="7.2.1.148" conf="provided->default"/>
     <dependency org="com.solacesystems" name="sol-jcsmp" rev="7.2.1.148" conf="provided->default"/>
     <dependency org="com.solacesystems" name="sol-jms" rev="7.2.1.148" conf="provided->default"/>
-    <dependency org="com.solacesystems" name="solclientj" rev="7.2.1.75" conf="provided->default"/>
     <dependency org="commons-lang" name="commons-lang" rev="2.6" conf="compile->default"/>
 
     <dependency org="org.apache.velocity" name="velocity" rev="1.7" transitive="false" conf="compile->default"/>
