@@ -8,7 +8,7 @@ public class KeyStore {
   private String filename;
   private String format;
   
-  @InputFieldHint(style = "PASSWORD")
+  @InputFieldHint(style = "PASSWORD", external = true)
   private String password;
 
   public String getFilename() {

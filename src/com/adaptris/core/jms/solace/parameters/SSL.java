@@ -1,6 +1,7 @@
 package com.adaptris.core.jms.solace.parameters;
 
 import com.adaptris.annotation.InputFieldHint;
+import com.adaptris.interlok.resolver.ExternalResolver;
 import com.adaptris.security.password.Password;
 import com.solacesystems.jms.SolConnectionFactory;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -15,7 +16,7 @@ public class SSL implements Parameter {
   
   private String privateKeyAlias;
   
-  @InputFieldHint(style = "PASSWORD")
+  @InputFieldHint(style = "PASSWORD", external = true)
   private String privateKeyPassword;
   
   private String protocol;
@@ -41,9 +42,9 @@ public class SSL implements Parameter {
     if(getKeyStore() != null) {
       cf.setSSLKeyStore(getKeyStore().getFilename());
       cf.setSSLKeyStoreFormat(getKeyStore().getFormat());
-      cf.setSSLKeyStorePassword(Password.decode(getKeyStore().getPassword()));
+      cf.setSSLKeyStorePassword(Password.decode(ExternalResolver.resolve(getKeyStore().getPassword())));
       cf.setSSLPrivateKeyAlias(getPrivateKeyAlias());
-      cf.setSSLPrivateKeyPassword(Password.decode(getPrivateKeyPassword()));
+      cf.setSSLPrivateKeyPassword(Password.decode(ExternalResolver.resolve(getPrivateKeyPassword())));
     }
 
     if(getProtocol() != null) {
