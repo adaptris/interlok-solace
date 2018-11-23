@@ -106,8 +106,8 @@ dependencies {
   compile ("com.adaptris:interlok-core:$interlokCoreVersion") { changing= true}
   compile ("com.adaptris:interlok-common:$interlokCoreVersion") { changing= true}
   compile ("com.adaptris:interlok-licensing:$interlokCoreVersion") { changing= true}
-  
-  compile ("com.adaptris:interlok-xa:$interlokCoreVersion") { changing= true}
+
+  compile group: "com.adaptris", name: "interlok-xa", version: "$interlokCoreVersion", changing: true, optional
 
   compile "com.solacesystems:sol-common:7.2.1.148", optional
   compile "com.solacesystems:sol-jcsmp:7.2.1.148", optional
@@ -120,7 +120,6 @@ dependencies {
 
   testCompile ('junit:junit:4.12')
   testCompile ("com.adaptris:interlok-stubs:$interlokCoreVersion") { changing= true}
-  testCompile ("com.adaptris:interlok-varsub:$interlokCoreVersion") { changing= true}
   testCompile ("com.adaptris:interlok-licensing-stub:$interlokCoreVersion") { changing= true}
   testCompile ("org.apache.logging.log4j:log4j-core:$log4j2Version")
   testCompile ("org.apache.logging.log4j:log4j-1.2-api:$log4j2Version")
