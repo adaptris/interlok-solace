@@ -28,8 +28,9 @@ ext {
   componentName='Interlok/JMS - Solace'
   organizationName = "Adaptris Ltd"
   organizationUrl = "http://interlok.adaptris.net"
-  slf4jVersion = '1.7.25'
-  log4j2Version = '2.8.1'
+  slf4jVersion = '1.7.26'
+  log4j2Version = '2.11.2'
+  solaceVersion = '10.6.0'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
@@ -113,9 +114,9 @@ dependencies {
 
   compile group: "com.adaptris", name: "interlok-xa", version: "$interlokCoreVersion", changing: true, optional
 
-  compile "com.solacesystems:sol-common:7.2.1.148", optional
-  compile "com.solacesystems:sol-jcsmp:7.2.1.148", optional
-  compile "com.solacesystems:sol-jms:7.2.1.148", optional
+  compile "com.solacesystems:sol-common:$solaceVersion", optional
+  compile "com.solacesystems:sol-jcsmp:$solaceVersion", optional
+  compile "com.solacesystems:sol-jms:$solaceVersion", optional
 
   compile ("org.slf4j:slf4j-api:$slf4jVersion")
 
