@@ -1,8 +1,5 @@
 package com.adaptris.core.jms.solace;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.jms.JmsConnection;
@@ -50,8 +47,7 @@ public class BasicSolaceProducerTest extends JmsProducerExample {
 
   protected BasicSolaceImplementation createVendorImpl() {
     BasicSolaceImplementation mq = new BasicSolaceImplementation();
-    mq.setHostname("smf://localhost");
-    mq.setBrokerUrl("smf://localhost");
+    mq.setBrokerUrl("smf://localhost:55555");
     mq.setMessageVpn("default");
     return mq;
   }

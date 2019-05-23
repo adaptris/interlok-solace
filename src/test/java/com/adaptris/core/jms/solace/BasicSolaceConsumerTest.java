@@ -36,7 +36,7 @@ public class BasicSolaceConsumerTest extends JmsConsumerCase {
 
   protected BasicSolaceImplementation createVendorImpl() {
     BasicSolaceImplementation mq = new BasicSolaceImplementation();
-    mq.setHostname("smf://localhost");
+    mq.setBrokerUrl("smf://localhost:55555");
     mq.setMessageVpn("default");
     return mq;
   }
