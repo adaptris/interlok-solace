@@ -6,8 +6,12 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 import javax.jms.JMSException;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.validator.constraints.NotBlank;
 
+import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.annotation.InputFieldDefault;
+import com.adaptris.annotation.Removal;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.jms.UrlVendorImplementation;
 import com.adaptris.core.jms.VendorImplementationBase;
@@ -15,6 +19,8 @@ import com.adaptris.core.licensing.License;
 import com.adaptris.core.licensing.License.LicenseType;
 import com.adaptris.core.licensing.LicenseChecker;
 import com.adaptris.core.licensing.LicensedComponent;
+import com.adaptris.core.util.LoggingHelper;
+import com.adaptris.util.NumberUtils;
 import com.solacesystems.jms.SolConnectionFactory;
 import com.solacesystems.jms.SolJmsUtility;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -37,26 +43,34 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("basic-solace-implementation")
 public class BasicSolaceImplementation extends UrlVendorImplementation implements LicensedComponent {
   
+  private static final int DEFAULT_SMF_PORT = 55555;
+  private static boolean warningLogged = false;
   @Deprecated
+  @Removal(message = "Use broker-url instead", version = "3.11.0")
   private String hostname;
   
   @Deprecated
-  private int port = 55555;
+  @Removal(message = "Use broker-url instead", version = "3.11.0")
+  private Integer port;
   
   @NotBlank
-  private String messageVpn = "default";
+  @AutoPopulated
+  @InputFieldDefault(value = "default")
+  private String messageVpn;
   
   @Override
   public SolConnectionFactory createConnectionFactory() throws JMSException {
-    if(isBlank(getBrokerUrl()) && isNotBlank(hostname)) {
-      log.warn("hostname and port are deprecated for " + getClass().getSimpleName() + ", please use broker-url instead.");
-      setBrokerUrl(hostname + (port!=55555 ? ":" + port : ""));
+    if (isBlank(getBrokerUrl()) && isNotBlank(getHostname())) {
+      LoggingHelper.logWarning(warningLogged, () -> {
+        warningLogged = true;
+      }, "hostname and port are deprecated; please use broker-url instead");
+      setBrokerUrl(getHostname() + (configuredLegacyPort() != DEFAULT_SMF_PORT ? ":" + configuredLegacyPort() : ""));
     }
     
     try {
       SolConnectionFactory connnectionFactory = SolJmsUtility.createConnectionFactory();
       connnectionFactory.setHost(getBrokerUrl());
-      connnectionFactory.setVPN(getMessageVpn());
+      connnectionFactory.setVPN(messageVpn());
       // Username and password will be set in .connect(username, password)
       return connnectionFactory;
       
@@ -76,6 +90,7 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
   }
 
   @Deprecated
+  @Removal(message = "Use broker-url instead", version = "3.11.0")
   public String getHostname() {
     return hostname;
   }
@@ -85,22 +100,30 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
    * @param hostname
    */
   @Deprecated
+  @Removal(message = "Use broker-url instead", version = "3.11.0")
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
 
   @Deprecated
-  public int getPort() {
+  @Removal(message = "Use broker-url instead", version = "3.11.0")
+  public Integer getPort() {
     return port;
   }
 
   /**
-   * Port number. Default: 55555
+   * Port number.
+   * 
    * @param port
    */
   @Deprecated
-  public void setPort(int port) {
+  @Removal(message = "Use broker-url instead", version = "3.11.0")
+  public void setPort(Integer port) {
     this.port = port;
+  }
+
+  private int configuredLegacyPort() {
+    return NumberUtils.toIntDefaultIfNull(getPort(), DEFAULT_SMF_PORT);
   }
 
   public String getMessageVpn() {
@@ -112,6 +135,10 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
    */
   public void setMessageVpn(String messageVpn) {
     this.messageVpn = messageVpn;
+  }
+
+  private String messageVpn() {
+    return ObjectUtils.defaultIfNull(getMessageVpn(), "default");
   }
 
   @Override

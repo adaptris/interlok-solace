@@ -1,6 +1,7 @@
 package com.adaptris.core.jms.solace;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import javax.jms.JMSException;
 
@@ -27,6 +28,7 @@ public class BasicSolaceImplementationTest {
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testHostnameMigratesToBrokerUrl() throws JMSException {
     final String BROKER_URL = "tcp://hostname:12345";
     final String MESSAGE_VPN = "vpn1";
@@ -44,6 +46,7 @@ public class BasicSolaceImplementationTest {
   }
   
   @Test
+  @SuppressWarnings("deprecation")
   public void testHostnameAndPortMigratesToBrokerUrl() throws JMSException {
     final String BROKER_URL = "tcp://hostname";
     final String MESSAGE_VPN = "vpn1";

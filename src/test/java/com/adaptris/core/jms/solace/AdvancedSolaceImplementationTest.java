@@ -1,6 +1,8 @@
 package com.adaptris.core.jms.solace;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import javax.jms.JMSException;
 
@@ -10,11 +12,12 @@ import com.adaptris.core.jms.solace.parameters.Client;
 import com.adaptris.core.jms.solace.parameters.ConnectionTuning;
 import com.adaptris.util.KeyValuePair;
 import com.solacesystems.jms.SolConnectionFactory;
-import com.solacesystems.jms.SupportedProperty;
 
 public class AdvancedSolaceImplementationTest extends BasicSolaceImplementationTest {
 
+  @Override
   @Test
+  @SuppressWarnings("deprecation")
   public void testBasicProperties() throws JMSException {
     final String HOSTNAME = "tcp://hostname";
     final String MESSAGE_VPN = "vpn1";
