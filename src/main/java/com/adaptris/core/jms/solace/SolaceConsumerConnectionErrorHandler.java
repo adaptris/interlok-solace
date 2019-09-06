@@ -16,8 +16,8 @@ import com.solacesystems.jms.events.ActiveFlowIndicationEvent;
 import com.solacesystems.jms.events.SolConsumerEvent;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-//@XStreamAlias("solace-consumer-connection-error-handler")
-class SolaceConsumerConnectionErrorHandler extends JmsConnectionErrorHandler implements SolConsumerEventListener {
+@XStreamAlias("solace-consumer-connection-error-handler")
+public class SolaceConsumerConnectionErrorHandler extends JmsConnectionErrorHandler implements SolConsumerEventListener {
 
   private static final String MESSAGE_CONSUMER_FIELD_NAME = "consumer";
   
