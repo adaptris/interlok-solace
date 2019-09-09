@@ -67,6 +67,8 @@ public class ConsumerCreator {
    * @param destination
    * @param selector
    * @param noLocal
+   * @param maxRetries
+   * @param waitBetweenRetries
    * @return
    * @throws JMSException
    */
@@ -75,7 +77,7 @@ public class ConsumerCreator {
     JMSException lastException = null;
     
     int retries = 0;
-    while((returnedConsumer == null) && ((retries <= maxRetries) || (maxRetries == 0) )) {
+    while((returnedConsumer == null) && ((retries <= maxRetries) || (maxRetries <= 0) )) {
       try {
         returnedConsumer = session.createConsumer(destination, selector, noLocal);
       } catch(JMSException ex) {
