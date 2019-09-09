@@ -27,7 +27,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * Typically this might happen if a Solace queue has been shutdown.  In which case the consumer creation will fail.
  * </p>
  * <p>
- * <b>This was built against Solace 7.1.0.207</b>
+ * <b>This was built against Solace 10.6.0</b>
  * </p>
  * <p>
  * 
@@ -87,10 +87,16 @@ public class SolaceJndiVendorImplementation extends StandardJndiImplementation {
     return getCreateConsumerRetryWaitSeconds() == null? DEFAULT_CREATE_CONSUMER_RETRY_WAIT_SECONDS : getCreateConsumerRetryWaitSeconds();
   }
   
+  /**
+   * Returns the amount of time in seconds to wait before each attempt to create the message consumer.
+   */
   public Integer getCreateConsumerRetryWaitSeconds() {
     return createConsumerRetryWaitSeconds;
   }
 
+  /**
+   * Sets the amount of time in seconds to wait before each attempt to create the message consumer.
+   */
   public void setCreateConsumerRetryWaitSeconds(Integer createConsumerRetryWaitSeconds) {
     this.createConsumerRetryWaitSeconds = createConsumerRetryWaitSeconds;
   }
@@ -99,10 +105,16 @@ public class SolaceJndiVendorImplementation extends StandardJndiImplementation {
     return getCreateConsumerMaxRetries() == null? DEFAULT_CREATE_CONSUMER_RETRIES : getCreateConsumerMaxRetries();
   }
   
+  /**
+   * Returns the maximum amount of times to retry attempting to create the message consumer.
+   */
   public Integer getCreateConsumerMaxRetries() {
     return createConsumerMaxRetries;
   }
 
+  /**
+   * Sets the maximum amount of times to retry attempting to create the message consumer.
+   */
   public void setCreateConsumerMaxRetries(Integer createConsumerMaxRetries) {
     this.createConsumerMaxRetries = createConsumerMaxRetries;
   }
