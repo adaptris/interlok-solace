@@ -3,8 +3,10 @@ package com.adaptris.core.jms.solace;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 
+import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.ConsumeDestination;
 import com.adaptris.core.jms.JmsActorConfig;
@@ -18,7 +20,11 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * JNDI Solace implementation of <code>VendorImplementation</code>.
  * </p>
  * <p>
- * This vendor implementation is the minimal adapter interface to Solace.
+ * This vendor implementation allows you to configure the JNDI properties that will fetch the connection-factory from the Solace JNDI store..
+ * </p>
+ * <p>
+ * The main reason to use this JNDI implementation rather than the standard JNDI implementation, is that this one allows us retry creating the consumer should it fail.
+ * Typically this might happen if a Solace queue has been shutdown.  In which case the consumer creation will fail.
  * </p>
  * <p>
  * <b>This was built against Solace 7.1.0.207</b>
@@ -28,6 +34,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @config solace-jndi-implementation
  * @license BASIC
  */
+@AdapterComponent
+@ComponentProfile(summary = "Custom solace JNDI implementation that has consumer creation reties should it error when starting up/restarting..", tag = "consumer,jms,jndi,vendor")
 @XStreamAlias("solace-jndi-implementation")
 public class SolaceJndiVendorImplementation extends StandardJndiImplementation {
   
