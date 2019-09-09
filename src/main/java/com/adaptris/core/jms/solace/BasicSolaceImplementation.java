@@ -240,14 +240,16 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
   }
   
   /**
-   * Returns the maximum amount of times to retry attempting to create the message consumer.
+   * <p>Returns the maximum amount of times to retry attempting to create the message consumer.</p>
+   * <p>A value of zero means continue trying forever</p>
    */
   public Integer getCreateConsumerMaxRetries() {
     return createConsumerMaxRetries;
   }
 
   /**
-   * Sets the maximum amount of times to retry attempting to create the message consumer.
+   * <p>Sets the maximum amount of times to retry attempting to create the message consumer.</p>
+   * <p>A value of zero means continue trying forever</p>
    */
   public void setCreateConsumerMaxRetries(Integer createConsumerMaxRetries) {
     this.createConsumerMaxRetries = createConsumerMaxRetries;
