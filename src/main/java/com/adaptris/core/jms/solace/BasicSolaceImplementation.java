@@ -2,14 +2,9 @@ package com.adaptris.core.jms.solace;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
-import javax.jms.Queue;
-import javax.jms.Session;
-import javax.jms.Topic;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -23,7 +18,6 @@ import com.adaptris.core.ConsumeDestination;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.jms.JmsActorConfig;
 import com.adaptris.core.jms.JmsDestination;
-import com.adaptris.core.jms.JmsDestination.DestinationType;
 import com.adaptris.core.jms.UrlVendorImplementation;
 import com.adaptris.core.jms.VendorImplementation;
 import com.adaptris.core.jms.VendorImplementationBase;
@@ -84,6 +78,13 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
   @InputFieldDefault(value = "default")
   private String messageVpn;
   
+  private transient ConsumerCreator consumerCreator;
+  
+  public BasicSolaceImplementation() {
+    super();
+    consumerCreator = new ConsumerCreator();
+  }
+  
   @Override
   public SolConnectionFactory createConnectionFactory() throws JMSException {
     if (isBlank(getBrokerUrl()) && isNotBlank(getHostname())) {
@@ -125,73 +126,18 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
   @Override
   public MessageConsumer createQueueReceiver(ConsumeDestination cd, JmsActorConfig c)
       throws JMSException {
-    Session s = c.currentSession();
-    Queue q = createQueue(cd.getDestination(), c);
-    return createConsumerWithRetry(s, q, cd.getFilterExpression(), false);
+    return consumerCreator.createQueueReceiver(cd, c, createConsumerMaxRetries(), createConsumerRetryWaitSeconds());
   }
 
   @Override
   public MessageConsumer createConsumer(JmsDestination d, String selector, JmsActorConfig c) throws JMSException {
-    MessageConsumer consumer = null;
-    if (d.destinationType().equals(DestinationType.TOPIC) && !isEmpty(d.subscriptionId())) {
-      consumer = c.currentSession().createDurableSubscriber((Topic) d.getDestination(), d.subscriptionId(), selector, d.noLocal());
-    } else {
-      consumer = createConsumerWithRetry(c.currentSession(), d.getDestination(), selector, d.noLocal());
-    }
-    return consumer;
+    return consumerCreator.createConsumer(d, selector, c, createConsumerMaxRetries(), createConsumerRetryWaitSeconds());
   }
 
   @Override
   public MessageConsumer createTopicSubscriber(ConsumeDestination cd, String subscriptionId,
       JmsActorConfig c) throws JMSException {
-    Session s = c.currentSession();
-    Topic t = createTopic(cd.getDestination(), c);
-    MessageConsumer result = null;
-    if (!isEmpty(subscriptionId)) {
-      result = s.createDurableSubscriber(t, subscriptionId, cd.getFilterExpression(), false);
-    } else {
-      result = s.createConsumer(t, cd.getFilterExpression());
-    }
-    return result;
-  }
-  
-  /**
-   * With Solace you can shut a queue down, which would mean it fails to startup.
-   * So here we will retry to create the consumer as many times as configured.
-   * 
-   * @param session
-   * @param destination
-   * @param selector
-   * @param noLocal
-   * @return
-   * @throws JMSException
-   */
-  protected MessageConsumer createConsumerWithRetry(Session session, Destination destination, String selector, boolean noLocal) throws JMSException {
-    MessageConsumer returnedConsumer = null;
-    JMSException lastException = null;
-    
-    int retries = 0;
-    while((returnedConsumer == null) && ((retries <= createConsumerMaxRetries()) || (createConsumerMaxRetries() == 0) )) {
-      try {
-        returnedConsumer = session.createConsumer(destination, selector, noLocal);
-      } catch(JMSException ex) {
-        lastException = ex;
-        retries ++;
-        log.error("Failed to create consumer, will retry ({}) and after {} seconds.", retries, createConsumerRetryWaitSeconds(), ex);
-        try {
-          Thread.sleep(createConsumerRetryWaitSeconds() * 1000);
-        } catch (InterruptedException e) {
-          log.warn("Interrupted while trying to create a message consumer.  Exiting.");
-          break;
-        }
-        
-      }
-    }
-    
-    if(returnedConsumer == null)
-      throw lastException;
-    
-    return returnedConsumer;
+    return consumerCreator.createTopicSubscriber(cd, subscriptionId, c);
   }
 
   @Deprecated
