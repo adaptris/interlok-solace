@@ -2,10 +2,8 @@ package com.adaptris.core.jms.solace;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.times;
@@ -29,9 +27,8 @@ import com.adaptris.core.jms.JmsActorConfig;
 import com.adaptris.core.jms.JmsDestination;
 import com.adaptris.core.jms.JmsDestination.DestinationType;
 import com.adaptris.core.jms.jndi.StandardJndiImplementation;
-import com.solacesystems.jms.SolConnectionFactory;
 
-public class BasicSolaceImplementationTest {
+public class SolaceJndiVendorImplementationTest {
   
   @Mock private Session mockSession;
   @Mock private JmsActorConfig mockActorConfig;
@@ -41,15 +38,16 @@ public class BasicSolaceImplementationTest {
   @Mock private Topic mockTopic;
   @Mock private MessageConsumer mockMessageConsumer;
   
-  private BasicSolaceImplementation sol;
+  private SolaceJndiVendorImplementation sol;
   
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
     
-    sol = new BasicSolaceImplementation();
+    sol = new SolaceJndiVendorImplementation();
     sol.setCreateConsumerMaxRetries(5);
     sol.setCreateConsumerRetryWaitSeconds(0);
+    sol.setJndiName("MyJndiLookup");
     
     when(mockActorConfig.currentSession())
         .thenReturn(mockSession);
@@ -186,65 +184,6 @@ public class BasicSolaceImplementationTest {
     assertTrue(sol.connectionEquals(sol));
     
     assertFalse(sol.connectionEquals(new StandardJndiImplementation()));
-  }
-  
-  @Test
-  public void testBasicProperties() throws JMSException {
-    final String BROKER_URL = "tcp://hostname:12345";
-    final String MESSAGE_VPN = "vpn1";
-    
-    sol.setBrokerUrl(BROKER_URL);
-    sol.setMessageVpn(MESSAGE_VPN);
-    
-    SolConnectionFactory cf = sol.createConnectionFactory();
-    
-    assertEquals(BROKER_URL, cf.getHost());
-    assertNull(cf.getPort());
-    assertEquals(MESSAGE_VPN, cf.getVPN());
-  }
-
-  @Test
-  @SuppressWarnings("deprecation")
-  public void testHostnameMigratesToBrokerUrl() throws JMSException {
-    final String BROKER_URL = "tcp://hostname:12345";
-    final String MESSAGE_VPN = "vpn1";
-    
-    sol.setHostname(BROKER_URL);
-    sol.setMessageVpn(MESSAGE_VPN);
-    
-    SolConnectionFactory cf = sol.createConnectionFactory();
-    
-    assertEquals(BROKER_URL, sol.getBrokerUrl());
-    assertEquals(BROKER_URL, cf.getHost());
-    assertNull(cf.getPort());
-    assertEquals(MESSAGE_VPN, cf.getVPN());
-  }
-  
-  @Test
-  @SuppressWarnings("deprecation")
-  public void testHostnameAndPortMigratesToBrokerUrl() throws JMSException {
-    final String BROKER_URL = "tcp://hostname";
-    final String MESSAGE_VPN = "vpn1";
-    final Integer PORT = 12345;
-    
-    sol.setHostname(BROKER_URL);
-    sol.setPort(PORT);
-    sol.setMessageVpn(MESSAGE_VPN);
-    
-    SolConnectionFactory cf = sol.createConnectionFactory();
-    
-    assertEquals(BROKER_URL + ":" + PORT, sol.getBrokerUrl());
-    assertEquals(BROKER_URL + ":" + PORT, cf.getHost());
-    assertNull(cf.getPort());
-    assertEquals(MESSAGE_VPN, cf.getVPN());
-  }
-  
-  @Test
-  public void testBrokerDetailsForLogging() {
-    sol.setBrokerUrl("tcp://somewhere");
-    sol.setMessageVpn("somevpn");
-    
-    assertEquals("Solace host: tcp://somewhere; Message vpn: somevpn", sol.retrieveBrokerDetailsForLogging());
   }
 
 }
