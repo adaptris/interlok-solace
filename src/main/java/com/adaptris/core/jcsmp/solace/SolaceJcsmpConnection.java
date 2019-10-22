@@ -9,6 +9,7 @@ import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
+import com.adaptris.core.AdaptrisMessageConsumer;
 import com.adaptris.core.AllowsRetriesConnection;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.ExceptionHelper;
@@ -17,6 +18,7 @@ import com.adaptris.security.exc.PasswordException;
 import com.adaptris.security.password.Password;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPProperties;
+import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.Session;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
@@ -48,7 +50,7 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
   }
   
   @Override
-  public Session createSession() throws Exception {
+  public JCSMPSession createSession() throws Exception {
     return this.jcsmpFactory().createSession(this.generateJcsmpProperties());
   }
   
@@ -59,9 +61,11 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
   @Override
   protected void initConnection() throws CoreException {
     try {
+      if(this.getConnectionErrorHandler() == null)
+        this.setConnectionErrorHandler(new SolaceJcsmpConnectionErrorHandler());
       this.connect().closeSession();
     } catch (Exception e) {
-      ExceptionHelper.rethrowCoreException(e);
+      throw ExceptionHelper.wrapCoreException(e);
     }
   }
   
@@ -101,6 +105,16 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
 
   @Override
   protected void startConnection() throws CoreException {
+    // In true Adaptris style, receiving should not start until the connection has started.
+    for(AdaptrisMessageConsumer consumer : this.retrieveMessageConsumers()) {
+      if(consumer instanceof ReceiverStarter) {
+        try {
+          ((ReceiverStarter) consumer).startReceive();
+        } catch (Exception e) {
+          throw ExceptionHelper.wrapCoreException(e);
+        }
+      }
+    }
   }
 
   @Override
@@ -158,11 +172,11 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
     return ObjectUtils.defaultIfNull(this.getJcsmpFactory(), JCSMPFactory.onlyInstance());
   }
   
-  public JCSMPFactory getJcsmpFactory() {
+  JCSMPFactory getJcsmpFactory() {
     return jcsmpFactory;
   }
 
-  public void setJcsmpFactory(JCSMPFactory jcsmpFactory) {
+  void setJcsmpFactory(JCSMPFactory jcsmpFactory) {
     this.jcsmpFactory = jcsmpFactory;
   }
   
