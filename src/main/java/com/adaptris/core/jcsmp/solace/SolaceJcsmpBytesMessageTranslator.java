@@ -12,6 +12,7 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.DefaultMessageFactory;
 import com.solacesystems.jcsmp.BytesXMLMessage;
+import com.solacesystems.jcsmp.DeliveryMode;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.TextMessage;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -43,6 +44,7 @@ public class SolaceJcsmpBytesMessageTranslator implements SolaceJcsmpMessageTran
   @Override
   public BytesXMLMessage translate(AdaptrisMessage message) throws Exception {
     TextMessage textMessage = this.jcsmpFactory().createMessage(TextMessage.class);
+    textMessage.setDeliveryMode(DeliveryMode.PERSISTENT);
     textMessage.setText(message.getContent());
     
     return textMessage;

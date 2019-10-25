@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.adaptris.core.ConnectionErrorHandler;
 import com.adaptris.core.fs.FsConsumer;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.util.TimeInterval;
@@ -36,6 +37,8 @@ public class SolaceJcsmpConnectionTest {
   
   @Mock private FsConsumer mockWrongTypeConsumer;
   
+  @Mock private ConnectionErrorHandler mockConnectionErrorHandler;
+  
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
@@ -49,6 +52,7 @@ public class SolaceJcsmpConnectionTest {
     connection.setPassword("myPassword");
     connection.setVpn("myVpn");
     connection.setAdditionalDebug(true);
+    connection.setConnectionErrorHandler(mockConnectionErrorHandler);
     
     connection.prepareConnection();
     
@@ -66,6 +70,15 @@ public class SolaceJcsmpConnectionTest {
     LifecycleHelper.initAndStart(connection);
     
     assertNotNull(connection.createSession());
+  }
+  
+  @Test
+  public void testConnectionInitCreatesErrorHandler() throws Exception {
+    connection.setConnectionErrorHandler(null);
+    
+    LifecycleHelper.initAndStart(connection);
+    
+    assertNotNull(connection.getConnectionErrorHandler());
   }
   
   @Test

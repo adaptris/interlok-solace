@@ -50,6 +50,8 @@ public class SolaceJcsmpQueueConsumerTest {
   
   @Mock private ConnectionErrorHandler mockConnectionErrorHandler;
   
+  @Mock private SolaceJcsmpMessageAcker mockMessageAcker;
+  
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
@@ -61,6 +63,7 @@ public class SolaceJcsmpQueueConsumerTest {
     consumer.setMaxThreads(1);
     consumer.setMessageTranslator(mockTranslator);
     consumer.registerAdaptrisMessageListener(mockMessageListener);
+    consumer.setMessageAcker(mockMessageAcker);
     
     when(mockConnection.createSession())
         .thenReturn(mockSession);

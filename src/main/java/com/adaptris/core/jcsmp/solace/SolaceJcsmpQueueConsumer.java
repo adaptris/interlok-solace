@@ -25,7 +25,7 @@ import com.solacesystems.jcsmp.JCSMPProperties;
 import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.Queue;
 
-public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp implements ReceiverStarter {
+public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp implements SolaceJcsmpReceiverStarter {
 
   private static final int DEFAULT_MAX_THREADS = 10;
   
@@ -40,6 +40,8 @@ public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp impleme
   @AutoPopulated
   @InputFieldDefault(value = "10")
   private Integer maxThreads;
+  
+  private transient SolaceJcsmpMessageAcker messageAcker;
   
   private transient JCSMPFactory jcsmpFactory;
   
@@ -67,6 +69,7 @@ public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp impleme
       public void run() {
         try {
           AdaptrisMessage adaptrisMessage = getMessageTranslator().translate(message);
+          getMessageAcker().addUnacknowledgedMessage(message, adaptrisMessage.getUniqueId());
           
           retrieveAdaptrisMessageListener().onAdaptrisMessage(adaptrisMessage);
         } catch (Exception e) {
@@ -106,7 +109,7 @@ public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp impleme
   }
   
   @Override
-  public void prepare() throws CoreException {  
+  public void prepare() throws CoreException { 
   }
 
   private ConsumerFlowProperties createConsumerFlowProperties(Queue queue) {
@@ -188,6 +191,14 @@ public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp impleme
 
   void setExecutorService(ExecutorService executorService) {
     this.executorService = executorService;
+  }
+
+  SolaceJcsmpMessageAcker getMessageAcker() {
+    return messageAcker;
+  }
+
+  void setMessageAcker(SolaceJcsmpMessageAcker messageAcker) {
+    this.messageAcker = messageAcker;
   }
 
 }

@@ -107,9 +107,9 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
   protected void startConnection() throws CoreException {
     // In true Adaptris style, receiving should not start until the connection has started.
     for(AdaptrisMessageConsumer consumer : this.retrieveMessageConsumers()) {
-      if(consumer instanceof ReceiverStarter) {
+      if(consumer instanceof SolaceJcsmpReceiverStarter) {
         try {
-          ((ReceiverStarter) consumer).startReceive();
+          ((SolaceJcsmpReceiverStarter) consumer).startReceive();
         } catch (Exception e) {
           throw ExceptionHelper.wrapCoreException(e);
         }
