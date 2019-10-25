@@ -88,8 +88,6 @@ public class SolaceJcsmpQueueConsumerTest {
   
   @Test
   public void testReceiveStart() throws Exception {
-    consumer.startReceive();
-    
     verify(mockFlowReceiver).start();
   }
   

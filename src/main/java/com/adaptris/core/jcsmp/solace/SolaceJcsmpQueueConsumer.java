@@ -1,7 +1,7 @@
 package com.adaptris.core.jcsmp.solace;
 
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -16,6 +16,7 @@ import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageConsumerImp;
 import com.adaptris.core.CoreException;
+import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.util.NumberUtils;
 import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.ConsumerFlowProperties;
@@ -34,7 +35,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp implements SolaceJcsmpReceiverStarter {
 
   private static final int DEFAULT_MAX_THREADS = 10;
-  
+    
   @NotNull
   private String queueName;
   
@@ -98,8 +99,17 @@ public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp impleme
   }
   
   @Override
+  public void start() throws CoreException {
+    try {
+      this.startReceive();
+    } catch (Exception e) {
+      throw ExceptionHelper.wrapCoreException("JCSMP Consumer, failed to start.", e);
+    }
+  }
+  
+  @Override
   public void init() throws CoreException {
-    this.setExecutorService(new ThreadPoolExecutor(1, maxThreads(), 1, TimeUnit.MINUTES, new ArrayBlockingQueue<Runnable>(maxThreads(), true)));
+    this.setExecutorService(new ThreadPoolExecutor(1, maxThreads(), 1, TimeUnit.MINUTES, new LimitedQueue<Runnable>(maxThreads())));
   }
   
   @Override
@@ -130,9 +140,28 @@ public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp impleme
     final EndpointProperties endpointProps = new EndpointProperties();
     // set queue permissions to "consume" and access-type to "exclusive"
     endpointProps.setPermission(EndpointProperties.PERMISSION_CONSUME);
-    endpointProps.setAccessType(EndpointProperties.ACCESSTYPE_EXCLUSIVE);
+    endpointProps.setAccessType(EndpointProperties.ACCESSTYPE_NONEXCLUSIVE);
     
     return endpointProps;
+  }
+  
+  class LimitedQueue<E> extends LinkedBlockingQueue<E> {
+    private static final long serialVersionUID = -591885796518346827L;
+
+    public LimitedQueue(int maxSize) {
+      super(maxSize);
+    }
+
+    @Override
+    public boolean offer(E e) {
+      try {
+        put(e);
+        return true;
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+      }
+      return false;
+    }
   }
   
   JCSMPFactory jcsmpFactory() {

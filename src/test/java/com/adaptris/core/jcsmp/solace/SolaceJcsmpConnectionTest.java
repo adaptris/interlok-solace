@@ -1,9 +1,7 @@
 package com.adaptris.core.jcsmp.solace;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -103,39 +101,6 @@ public class SolaceJcsmpConnectionTest {
       // expected
       verify(mockJcsmpFactory, times(2)).createSession(any(JCSMPProperties.class));
     }
-  }
-  
-  @Test
-  public void testConsumerReceiverStartedOnStart() throws Exception {
-    connection.retrieveMessageConsumers().add(mockConsumer);
-    
-    LifecycleHelper.initAndStart(connection);
-    
-    verify(mockConsumer).startReceive();
-  }
-  
-  @Test
-  public void testConsumerReceiverStartFails() throws Exception {
-    connection.retrieveMessageConsumers().add(mockConsumer);
-    
-    doThrow(new Exception("Expected"))
-        .when(mockConsumer).startReceive();
-    
-    try {
-      LifecycleHelper.initAndStart(connection);
-      fail("Shuld fail to startup");
-    } catch (Exception ex) {
-      // expected
-    }
-  }
-  
-  @Test
-  public void testConsumerReceiverNotStartedWrongConsumerType() throws Exception {
-    connection.retrieveMessageConsumers().add(mockWrongTypeConsumer);
-    
-    LifecycleHelper.initAndStart(connection);
-    
-    verify(mockConsumer, times(0)).startReceive();
   }
 
 }

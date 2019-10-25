@@ -5,6 +5,8 @@ import java.util.Map;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang3.ObjectUtils;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
@@ -98,7 +100,7 @@ public class SolaceJcsmpQueueProducer extends ProduceOnlyProducerImp {
     if(this.getQueueCache().containsKey(queueName))
       return this.getQueueCache().get(queueName);
     else {
-      this.getQueueCache().put(queueName, this.getJcsmpFactory().createQueue(queueName));
+      this.getQueueCache().put(queueName, this.jcsmpFactory().createQueue(queueName));
       return this.queue(message, destination);
     }
     
@@ -120,6 +122,10 @@ public class SolaceJcsmpQueueProducer extends ProduceOnlyProducerImp {
     this.producerEventHandler = producerEventHandler;
   }
 
+  JCSMPFactory jcsmpFactory() {
+    return ObjectUtils.defaultIfNull(this.getJcsmpFactory(), JCSMPFactory.onlyInstance());
+  }
+  
   JCSMPFactory getJcsmpFactory() {
     return jcsmpFactory;
   }

@@ -9,7 +9,6 @@ import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.core.AdaptrisMessageConsumer;
 import com.adaptris.core.AllowsRetriesConnection;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.ExceptionHelper;
@@ -105,16 +104,6 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
 
   @Override
   protected void startConnection() throws CoreException {
-    // In true Adaptris style, receiving should not start until the connection has started.
-    for(AdaptrisMessageConsumer consumer : this.retrieveMessageConsumers()) {
-      if(consumer instanceof SolaceJcsmpReceiverStarter) {
-        try {
-          ((SolaceJcsmpReceiverStarter) consumer).startReceive();
-        } catch (Exception e) {
-          throw ExceptionHelper.wrapCoreException(e);
-        }
-      }
-    }
   }
 
   @Override
