@@ -5,7 +5,9 @@ import java.util.Map;
 
 import javax.validation.constraints.NotNull;
 
+import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ProduceDestination;
@@ -19,7 +21,11 @@ import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.JCSMPStreamingPublishCorrelatingEventHandler;
 import com.solacesystems.jcsmp.Queue;
 import com.solacesystems.jcsmp.XMLMessageProducer;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+@AdapterComponent
+@ComponentProfile(summary="A Solace native JCSMP component will produce your messages to the Solace VPN.", tag="queue,producer,solace,jcsmp")
+@XStreamAlias("solace-jcsmp-queue-producer")
 public class SolaceJcsmpQueueProducer extends ProduceOnlyProducerImp {
 
   @NotNull
@@ -39,6 +45,7 @@ public class SolaceJcsmpQueueProducer extends ProduceOnlyProducerImp {
   public SolaceJcsmpQueueProducer() {
     this.setMessageTranslator(new SolaceJcsmpBytesMessageTranslator());
     this.setQueueCache(new HashMap<String, Queue>());
+    this.setProducerEventHandler(new SolaceJcsmpLoggingProducerEventHandler());
   }
   
   @Override

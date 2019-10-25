@@ -1,11 +1,17 @@
 package com.adaptris.core.jcsmp.solace;
 
+import com.adaptris.annotation.AdapterComponent;
+import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.Channel;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.Workflow;
 import com.adaptris.core.WorkflowInterceptor;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+@AdapterComponent
+@ComponentProfile(summary="A Solace native JCSMP component used to acknowledge consumed messages once the workflow completes processing.", tag="ack,solace,jcsmp")
+@XStreamAlias("solace-jcsmp-workflow-message-acker")
 public class SolaceJcsmpInterceptorMessageAcker extends SolaceJcsmpBaseMessageAcker implements WorkflowInterceptor {
   
   private String uniqueId;

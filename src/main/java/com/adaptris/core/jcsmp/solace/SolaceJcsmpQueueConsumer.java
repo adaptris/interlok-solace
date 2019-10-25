@@ -9,7 +9,9 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.ObjectUtils;
 
+import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageConsumerImp;
@@ -24,7 +26,11 @@ import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPProperties;
 import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.Queue;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+@AdapterComponent
+@ComponentProfile(summary="A Solace native JCSMP component that consumes your messages from the Solace VPN.", tag="queue,consumer,solace,jcsmp")
+@XStreamAlias("solace-jcsmp-queue-consumer")
 public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp implements SolaceJcsmpReceiverStarter {
 
   private static final int DEFAULT_MAX_THREADS = 10;

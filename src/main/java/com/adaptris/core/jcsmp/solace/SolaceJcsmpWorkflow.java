@@ -1,9 +1,15 @@
 package com.adaptris.core.jcsmp.solace;
 
+import com.adaptris.annotation.AdapterComponent;
+import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.StandardWorkflow;
 import com.adaptris.core.util.LifecycleHelper;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+@AdapterComponent
+@ComponentProfile(summary="A Solace native JCSMP workflow, to be used with JCSMP consumers and producers.", tag="workflow,solace,jcsmp")
+@XStreamAlias("solace-jcsmp-workflow")
 public class SolaceJcsmpWorkflow extends StandardWorkflow {
 
   private SolaceJcsmpMessageAcker messageAcker;

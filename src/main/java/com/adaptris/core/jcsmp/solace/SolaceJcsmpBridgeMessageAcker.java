@@ -1,9 +1,15 @@
 package com.adaptris.core.jcsmp.solace;
 
+import com.adaptris.annotation.AdapterComponent;
+import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.core.CoreException;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPStreamingPublishCorrelatingEventHandler;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+@AdapterComponent
+@ComponentProfile(summary="A Solace native JCSMP component used to acknowledge consumed messages, based on produced message events.", tag="ack,solace,jcsmp")
+@XStreamAlias("solace-jcsmp-bridge-message-acker")
 public class SolaceJcsmpBridgeMessageAcker extends SolaceJcsmpBaseMessageAcker implements JCSMPStreamingPublishCorrelatingEventHandler {
 
   public SolaceJcsmpBridgeMessageAcker() {
