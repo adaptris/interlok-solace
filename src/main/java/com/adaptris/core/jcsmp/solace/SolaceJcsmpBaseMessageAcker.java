@@ -23,7 +23,7 @@ public class SolaceJcsmpBaseMessageAcker implements SolaceJcsmpMessageAcker {
   
   @Override
   public void acknowledge(String messageIdentifier) {
-    log.trace("Ack'ing message with identifier {}", messageIdentifier);
+    log.trace("Ack'ing message with identifier {} on thread {}", messageIdentifier, Thread.currentThread().getName());
     BytesXMLMessage bytesXMLMessage = this.getUnacknowledgedMessages().get(messageIdentifier);
     if(bytesXMLMessage == null)
       log.warn("Cannot Ack message; No unack'd message found with identifier {}", messageIdentifier);

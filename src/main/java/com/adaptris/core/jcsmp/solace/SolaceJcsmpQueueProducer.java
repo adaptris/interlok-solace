@@ -29,6 +29,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @ComponentProfile(summary="A Solace native JCSMP component will produce your messages to the Solace VPN.", tag="queue,producer,solace,jcsmp")
 @XStreamAlias("solace-jcsmp-queue-producer")
 public class SolaceJcsmpQueueProducer extends ProduceOnlyProducerImp {
+  
+  private static final long MILLION = 1000000;
 
   @NotNull
   @AutoPopulated
@@ -43,6 +45,10 @@ public class SolaceJcsmpQueueProducer extends ProduceOnlyProducerImp {
   private transient XMLMessageProducer messageProducer;
   
   private transient Map<String, Queue> queueCache;
+  
+  private long allNanos = 0;
+  
+  private long messagesProduced = 0;
   
   public SolaceJcsmpQueueProducer() {
     this.setMessageTranslator(new SolaceJcsmpBytesMessageTranslator());
@@ -66,6 +72,7 @@ public class SolaceJcsmpQueueProducer extends ProduceOnlyProducerImp {
   @Override
   public void produce(AdaptrisMessage msg, ProduceDestination destination) throws ProduceException {
     try {
+      
       Queue queue = queue(msg, destination);
       XMLMessageProducer jcsmpMessageProducer = messageProducer();
       
@@ -74,7 +81,17 @@ public class SolaceJcsmpQueueProducer extends ProduceOnlyProducerImp {
       // If we're using a splitter this may break.
       translatedMessage.setCorrelationKey(msg.getUniqueId());
       
+      long start = System.nanoTime();
+      
       jcsmpMessageProducer.send(translatedMessage, queue);
+      
+      long totalnanos = System.nanoTime() - start;
+      allNanos += totalnanos;
+      messagesProduced ++; 
+      long avgNanos = allNanos / messagesProduced;
+      double avgMillis = avgNanos / MILLION;
+      
+      log.trace("JCSMP Produced to {} on thread {} - [{} ms, {} avg ms {}]", queue.getName(), Thread.currentThread().getName(), (totalnanos / start), avgMillis);
     } catch (Exception ex) {
       throw ExceptionHelper.wrapProduceException(ex);
     }

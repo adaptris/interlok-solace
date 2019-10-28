@@ -6,8 +6,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.concurrent.TimeUnit;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,7 +58,6 @@ public class SolaceJcsmpQueueConsumerTest {
     consumer.registerConnection(mockConnection);
     consumer.setJcsmpFactory(mockJcsmpFactory);
     consumer.setQueueName("myQueue");
-    consumer.setMaxThreads(1);
     consumer.setMessageTranslator(mockTranslator);
     consumer.registerAdaptrisMessageListener(mockMessageListener);
     consumer.setMessageAcker(mockMessageAcker);
@@ -95,9 +92,6 @@ public class SolaceJcsmpQueueConsumerTest {
   public void testOnReceiveSuccess() throws Exception {
     consumer.onReceive(mockBytesMessage);
     
-    LifecycleHelper.stopAndClose(consumer);
-    consumer.getExecutorService().awaitTermination(5L, TimeUnit.SECONDS);
-    
     verify(mockTranslator).translate(mockBytesMessage);
     verify(mockMessageListener).onAdaptrisMessage(any(AdaptrisMessage.class));
   }
@@ -108,9 +102,6 @@ public class SolaceJcsmpQueueConsumerTest {
         .when(mockTranslator).translate(mockBytesMessage);
     
     consumer.onReceive(mockBytesMessage);
-    
-    LifecycleHelper.stopAndClose(consumer);
-    consumer.getExecutorService().awaitTermination(5L, TimeUnit.SECONDS);
     
     verify(mockTranslator).translate(mockBytesMessage);
     verify(mockMessageListener, times(0)).onAdaptrisMessage(any(AdaptrisMessage.class));

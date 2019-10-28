@@ -1,9 +1,6 @@
 package com.adaptris.core.jcsmp.solace;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import javax.validation.constraints.NotNull;
 
@@ -12,12 +9,10 @@ import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
-import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageConsumerImp;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.ExceptionHelper;
-import com.adaptris.util.NumberUtils;
 import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.ConsumerFlowProperties;
 import com.solacesystems.jcsmp.EndpointProperties;
@@ -33,8 +28,6 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @ComponentProfile(summary="A Solace native JCSMP component that consumes your messages from the Solace VPN.", tag="queue,consumer,solace,jcsmp")
 @XStreamAlias("solace-jcsmp-queue-consumer")
 public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp implements SolaceJcsmpReceiverStarter {
-
-  private static final int DEFAULT_MAX_THREADS = 10;
     
   @NotNull
   private String queueName;
@@ -43,11 +36,6 @@ public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp impleme
   @AutoPopulated
   private SolaceJcsmpMessageTranslator messageTranslator;
   
-  @NotNull
-  @AutoPopulated
-  @InputFieldDefault(value = "10")
-  private Integer maxThreads;
-  
   private transient SolaceJcsmpMessageAcker messageAcker;
   
   private transient JCSMPFactory jcsmpFactory;
@@ -55,8 +43,6 @@ public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp impleme
   private transient JCSMPSession currentSession;
   
   private transient FlowReceiver flowReceiver;
-  
-  private transient ExecutorService executorService;
   
   public SolaceJcsmpQueueConsumer() {
     this.setMessageTranslator(new SolaceJcsmpBytesMessageTranslator());
@@ -71,19 +57,16 @@ public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp impleme
 
   @Override
   public void onReceive(BytesXMLMessage message) {
-    this.getExecutorService().execute(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          AdaptrisMessage adaptrisMessage = getMessageTranslator().translate(message);
-          getMessageAcker().addUnacknowledgedMessage(message, adaptrisMessage.getUniqueId());
-          
-          retrieveAdaptrisMessageListener().onAdaptrisMessage(adaptrisMessage);
-        } catch (Exception e) {
-          log.error("Failed to translate message.", e);
-        }
-      }
-    });
+    try {
+      AdaptrisMessage adaptrisMessage = getMessageTranslator().translate(message);
+      getMessageAcker().addUnacknowledgedMessage(message, adaptrisMessage.getUniqueId());
+      
+      log.trace("JCSMP Consumed message {} on thread {}", message.getMessageId(), Thread.currentThread().getName());
+      
+      retrieveAdaptrisMessageListener().onAdaptrisMessage(adaptrisMessage);
+    } catch (Exception e) {
+      log.error("Failed to translate message.", e);
+    }
   }
 
   @Override
@@ -109,7 +92,6 @@ public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp impleme
   
   @Override
   public void init() throws CoreException {
-    this.setExecutorService(new ThreadPoolExecutor(1, maxThreads(), 1, TimeUnit.MINUTES, new LimitedQueue<Runnable>(maxThreads())));
   }
   
   @Override
@@ -206,26 +188,6 @@ public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp impleme
 
   public void setMessageTranslator(SolaceJcsmpMessageTranslator messageTranslator) {
     this.messageTranslator = messageTranslator;
-  }
-  
-  int maxThreads() {
-    return NumberUtils.toIntDefaultIfNull(this.getMaxThreads(), DEFAULT_MAX_THREADS);
-  }
-
-  public Integer getMaxThreads() {
-    return maxThreads;
-  }
-
-  public void setMaxThreads(Integer maxThreads) {
-    this.maxThreads = maxThreads;
-  }
-
-  ExecutorService getExecutorService() {
-    return executorService;
-  }
-
-  void setExecutorService(ExecutorService executorService) {
-    this.executorService = executorService;
   }
 
   SolaceJcsmpMessageAcker getMessageAcker() {
