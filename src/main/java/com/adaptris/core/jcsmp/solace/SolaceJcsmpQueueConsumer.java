@@ -1,7 +1,5 @@
 package com.adaptris.core.jcsmp.solace;
 
-import java.util.concurrent.LinkedBlockingQueue;
-
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -125,25 +123,6 @@ public class SolaceJcsmpQueueConsumer extends AdaptrisMessageConsumerImp impleme
     endpointProps.setAccessType(EndpointProperties.ACCESSTYPE_NONEXCLUSIVE);
     
     return endpointProps;
-  }
-  
-  class LimitedQueue<E> extends LinkedBlockingQueue<E> {
-    private static final long serialVersionUID = -591885796518346827L;
-
-    public LimitedQueue(int maxSize) {
-      super(maxSize);
-    }
-
-    @Override
-    public boolean offer(E e) {
-      try {
-        put(e);
-        return true;
-      } catch (InterruptedException ie) {
-        Thread.currentThread().interrupt();
-      }
-      return false;
-    }
   }
   
   JCSMPFactory jcsmpFactory() {

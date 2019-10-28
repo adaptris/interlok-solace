@@ -1,5 +1,6 @@
 package com.adaptris.core.jcsmp.solace;
 
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -15,6 +16,7 @@ import org.mockito.MockitoAnnotations;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageListener;
 import com.adaptris.core.ConnectionErrorHandler;
+import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LifecycleHelper;
 import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.FlowReceiver;
@@ -74,8 +76,6 @@ public class SolaceJcsmpQueueConsumerTest {
         .thenReturn(mockAdpMessage);
     when(mockConnection.getConnectionErrorHandler())
         .thenReturn(mockConnectionErrorHandler);
-    
-    LifecycleHelper.initAndStart(consumer);
   }
   
   @After
@@ -85,11 +85,28 @@ public class SolaceJcsmpQueueConsumerTest {
   
   @Test
   public void testReceiveStart() throws Exception {
+    LifecycleHelper.initAndStart(consumer);
+    
     verify(mockFlowReceiver).start();
   }
   
   @Test
+  public void testReceiveStartFails() throws Exception {
+    doThrow(new JCSMPException("Expected"))
+        .when(mockConnection).createSession();
+    
+    try {
+      LifecycleHelper.initAndStart(consumer);
+      fail("Should throw an error on start.");
+    } catch (CoreException ex) {
+      //expected
+    }
+  }
+  
+  @Test
   public void testOnReceiveSuccess() throws Exception {
+    LifecycleHelper.initAndStart(consumer);
+    
     consumer.onReceive(mockBytesMessage);
     
     verify(mockTranslator).translate(mockBytesMessage);
@@ -101,6 +118,8 @@ public class SolaceJcsmpQueueConsumerTest {
     doThrow(new Exception("Expected"))
         .when(mockTranslator).translate(mockBytesMessage);
     
+    LifecycleHelper.initAndStart(consumer);
+    
     consumer.onReceive(mockBytesMessage);
     
     verify(mockTranslator).translate(mockBytesMessage);
@@ -109,6 +128,8 @@ public class SolaceJcsmpQueueConsumerTest {
   
   @Test
   public void testOnExceptionTriggersErrorHandler() throws Exception {
+    LifecycleHelper.initAndStart(consumer);
+    
     consumer.onException(new JCSMPException("Expected"));
     
     verify(mockConnectionErrorHandler).handleConnectionException();
