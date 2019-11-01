@@ -1,21 +1,77 @@
 package com.adaptris.core.jcsmp.solace;
 
+import java.text.DecimalFormat;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
-import com.adaptris.core.PoolingWorkflow;
+import com.adaptris.core.ProduceException;
+import com.adaptris.core.ServiceException;
+import com.adaptris.core.StandardWorkflow;
+import com.adaptris.core.jcsmp.solace.util.Timer;
 import com.adaptris.core.util.LifecycleHelper;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @AdapterComponent
 @ComponentProfile(summary="A Solace native JCSMP workflow, to be used with JCSMP consumers and producers.", tag="workflow,solace,jcsmp")
 @XStreamAlias("solace-jcsmp-workflow")
-public class SolaceJcsmpWorkflow extends PoolingWorkflow {
+public class SolaceJcsmpWorkflow extends StandardWorkflow {
+  
+  protected static final DecimalFormat format = new DecimalFormat("###,###,###.00");
 
   private SolaceJcsmpMessageAcker messageAcker;
   
   public SolaceJcsmpWorkflow() {
     super();
+  }
+  
+  protected void handleMessage(final AdaptrisMessage msg, boolean clone) {
+    Timer.start("OnMessagePrep", "OnMessagePrep");
+    AdaptrisMessage wip = addConsumeLocation(msg);
+    workflowStart(msg);
+    processingStart(msg);
+    Timer.stopAndLog("OnMessagePrep");
+    log.trace("OnMessagePrep {} nanos", Timer.getLastTimingNanos("OnMessagePrep"));
+    try {
+      Timer.start("handleMessage", null);
+      log.debug("start processing msg [{}]", messageLogger().toString(msg));
+      
+      Timer.start("OnMessageEvent", null);
+      wip.getMessageLifecycleEvent().setChannelId(obtainChannel().getUniqueId());
+      wip.getMessageLifecycleEvent().setWorkflowId(obtainWorkflowId());
+      wip.addEvent(getConsumer(), true); // initial receive event
+      Timer.stopAndLog("OnMessageEvent");
+      Timer.start("Services", null);
+      getServiceCollection().doService(wip);
+      Timer.stopAndLog("Services");
+      Timer.start("doProduce", null);
+      doProduce(wip);
+      Timer.stopAndLog("doProduce");
+      Timer.stop("handleMessage");
+      logSuccess(wip, 0l);
+    }
+    catch (ServiceException e) {
+      handleBadMessage("Exception from ServiceCollection", e, copyExceptionHeaders(wip, msg));
+    }
+    catch (ProduceException e) {
+      wip.addEvent(getProducer(), false); // generate event
+      handleBadMessage("Exception producing msg", e, copyExceptionHeaders(wip, msg));
+      handleProduceException();
+    }
+    catch (Exception e) { // all other Exc. inc. runtime
+      handleBadMessage("Exception processing message", e, copyExceptionHeaders(wip, msg));
+    }
+    finally {
+      sendMessageLifecycleEvent(wip);
+    }
+    Timer.start("WorkflowEnd", null);
+    workflowEnd(msg, wip);
+    Timer.stopAndLog("WorkflowEnd");
+  }
+  
+  protected void logSuccess(AdaptrisMessage msg, long start) {
+    log.info("message [{}] processed in [{}] ms, avg [{}] ms", msg.getUniqueId(), format.format(Timer.getLastTimingMs("handleMessage")), format.format(Timer.getAvgTimingMs("handleMessage")));
   }
   
   @Override

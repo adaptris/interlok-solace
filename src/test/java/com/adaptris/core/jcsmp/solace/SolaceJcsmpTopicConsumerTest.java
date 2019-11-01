@@ -20,16 +20,16 @@ import com.adaptris.core.ConnectionErrorHandler;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LifecycleHelper;
 import com.solacesystems.jcsmp.BytesXMLMessage;
-import com.solacesystems.jcsmp.FlowReceiver;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPSession;
-import com.solacesystems.jcsmp.Queue;
+import com.solacesystems.jcsmp.Topic;
+import com.solacesystems.jcsmp.XMLMessageConsumer;
 import com.solacesystems.jcsmp.XMLMessageListener;
 
-public class SolaceJcsmpQueueConsumerTest {
-  
-  private SolaceJcsmpQueueConsumer consumer;
+public class SolaceJcsmpTopicConsumerTest {
+
+private SolaceJcsmpTopicConsumer consumer;
   
   @Mock private SolaceJcsmpConnection mockConnection;
   
@@ -37,9 +37,9 @@ public class SolaceJcsmpQueueConsumerTest {
   
   @Mock private JCSMPFactory mockJcsmpFactory;
   
-  @Mock private Queue mockQueue;
+  @Mock private Topic mockTopic;
 
-  @Mock private FlowReceiver mockFlowReceiver;
+  @Mock private XMLMessageConsumer mockMessageConsumer;
   
   @Mock private BytesXMLMessage mockBytesMessage;
   
@@ -57,7 +57,7 @@ public class SolaceJcsmpQueueConsumerTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
     
-    consumer = new SolaceJcsmpQueueConsumer();
+    consumer = new SolaceJcsmpTopicConsumer();
     consumer.registerConnection(mockConnection);
     consumer.setJcsmpFactory(mockJcsmpFactory);
     consumer.setDestination(new ConfiguredConsumeDestination("myQueue"));
@@ -69,10 +69,10 @@ public class SolaceJcsmpQueueConsumerTest {
         .thenReturn(mockSession);
     when(mockConnection.retrieveConnection(SolaceJcsmpConnection.class))
         .thenReturn(mockConnection);
-    when(mockSession.createFlow(any(XMLMessageListener.class), any(), any()))
-        .thenReturn(mockFlowReceiver);
-    when(mockJcsmpFactory.createQueue(any(String.class)))
-        .thenReturn(mockQueue);
+    when(mockSession.getMessageConsumer(any(XMLMessageListener.class)))
+        .thenReturn(mockMessageConsumer);
+    when(mockJcsmpFactory.createTopic(any(String.class)))
+        .thenReturn(mockTopic);
     when(mockTranslator.translate(mockBytesMessage))
         .thenReturn(mockAdpMessage);
     when(mockConnection.getConnectionErrorHandler())
@@ -88,7 +88,7 @@ public class SolaceJcsmpQueueConsumerTest {
   public void testReceiveStart() throws Exception {
     LifecycleHelper.initAndStart(consumer);
     
-    verify(mockFlowReceiver).start();
+    verify(mockMessageConsumer).start();
   }
   
   @Test
@@ -135,5 +135,4 @@ public class SolaceJcsmpQueueConsumerTest {
     
     verify(mockConnectionErrorHandler).handleConnectionException();
   }
-
 }

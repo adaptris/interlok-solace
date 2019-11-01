@@ -1,7 +1,6 @@
 package com.adaptris.core.jcsmp.solace;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.After;
@@ -49,7 +48,7 @@ public class SolaceJcsmpBytesMessageTranslatorTest {
     
     TextMessage translatedMessage = (TextMessage) translator.translate(adaptrisMessage);
     
-    verify(translatedMessage).setText(MESSAGE_CONTENT);
+    assertEquals(MESSAGE_CONTENT, translatedMessage.getText());
   }
   
   @Test

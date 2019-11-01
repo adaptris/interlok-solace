@@ -27,12 +27,12 @@ import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.JCSMPStreamingPublishCorrelatingEventHandler;
 import com.solacesystems.jcsmp.JCSMPStreamingPublishEventHandler;
-import com.solacesystems.jcsmp.Queue;
+import com.solacesystems.jcsmp.Topic;
 import com.solacesystems.jcsmp.XMLMessageProducer;
 
-public class SolaceJcsmpQueueProducerTest {
-  
-  private SolaceJcsmpQueueProducer producer;
+public class SolaceJcsmpTopicProducerTest {
+
+  private SolaceJcsmpTopicProducer producer;
   
   private AdaptrisMessage adaptrisMessage;
   
@@ -42,7 +42,7 @@ public class SolaceJcsmpQueueProducerTest {
   
   @Mock private JCSMPFactory mockJcsmpFactory;
   
-  @Mock private Queue mockQueue;
+  @Mock private Topic mockTopic;
 
   @Mock private JCSMPSession mockSession;
   
@@ -66,7 +66,7 @@ public class SolaceJcsmpQueueProducerTest {
     
     produceDestination = new ConfiguredProduceDestination("myDestination");
     
-    producer = new SolaceJcsmpQueueProducer();
+    producer = new SolaceJcsmpTopicProducer();
     producer.setJcsmpFactory(mockJcsmpFactory);
     producer.registerConnection(mockConnection);
     producer.setProducerEventHandler(callbackHandler);
@@ -74,8 +74,8 @@ public class SolaceJcsmpQueueProducerTest {
     
     when(mockConnection.createSession())
         .thenReturn(mockSession);
-    when(mockJcsmpFactory.createQueue(any(String.class)))
-        .thenReturn(mockQueue);
+    when(mockJcsmpFactory.createTopic(any(String.class)))
+        .thenReturn(mockTopic);
     when(mockConnection.retrieveConnection(SolaceJcsmpConnection.class))
         .thenReturn(mockConnection);
     when(mockSession.getMessageProducer(any(JCSMPStreamingPublishCorrelatingEventHandler.class)))
@@ -136,12 +136,12 @@ public class SolaceJcsmpQueueProducerTest {
   }
   
   @Test
-  public void testQueueCache() throws Exception {
+  public void testTopicCache() throws Exception {
     producer.generateDestination(adaptrisMessage, produceDestination);
     producer.generateDestination(adaptrisMessage, produceDestination);
     producer.generateDestination(adaptrisMessage, produceDestination);
     
-    verify(mockJcsmpFactory, times(1)).createQueue(any(String.class));
+    verify(mockJcsmpFactory, times(1)).createTopic(any(String.class));
   }
   
   @Test
@@ -149,13 +149,13 @@ public class SolaceJcsmpQueueProducerTest {
     producer.produce(adaptrisMessage, produceDestination);
     
     verify(mockTranslator).translate(adaptrisMessage);
-    verify(mockProducer).send(mockMessage, mockQueue);
+    verify(mockProducer).send(mockMessage, mockTopic);
   }
   
   @Test
   public void testPublishFailure() throws Exception {
     doThrow(new JCSMPException("Expected"))
-        .when(mockProducer).send(mockMessage, mockQueue);
+        .when(mockProducer).send(mockMessage, mockTopic);
     
     try {
       producer.produce(adaptrisMessage, produceDestination);
@@ -164,5 +164,4 @@ public class SolaceJcsmpQueueProducerTest {
       // expected
     }
   }
-  
 }

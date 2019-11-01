@@ -60,8 +60,10 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
   @Override
   protected void initConnection() throws CoreException {
     try {
-      if(this.getConnectionErrorHandler() == null)
+      if(this.getConnectionErrorHandler() == null) {
         this.setConnectionErrorHandler(new SolaceJcsmpConnectionErrorHandler());
+        this.getConnectionErrorHandler().registerConnection(this);
+      }
       this.connect().closeSession();
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);

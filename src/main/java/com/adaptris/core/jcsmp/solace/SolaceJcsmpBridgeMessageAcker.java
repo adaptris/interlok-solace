@@ -3,6 +3,7 @@ package com.adaptris.core.jcsmp.solace;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.core.CoreException;
+import com.adaptris.core.jcsmp.solace.util.Timer;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPStreamingPublishCorrelatingEventHandler;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -17,7 +18,9 @@ public class SolaceJcsmpBridgeMessageAcker extends SolaceJcsmpBaseMessageAcker i
   
   @Override
   public void responseReceivedEx(Object messageId) {
+    Timer.start("Ack", null);
     super.acknowledge((String) messageId);
+    Timer.stopAndLog("Ack");
   }
   
   @Override

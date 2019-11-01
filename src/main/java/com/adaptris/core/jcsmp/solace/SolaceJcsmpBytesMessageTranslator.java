@@ -29,8 +29,11 @@ public class SolaceJcsmpBytesMessageTranslator implements SolaceJcsmpMessageTran
 
   private transient JCSMPFactory jcsmpFactory;
   
+  private transient TextMessage textMessage;
+  
   public SolaceJcsmpBytesMessageTranslator() {
     this.setMessageFactory(messageFactory);
+    textMessage = this.jcsmpFactory().createMessage(TextMessage.class);
   }
   
   @Override
@@ -43,7 +46,9 @@ public class SolaceJcsmpBytesMessageTranslator implements SolaceJcsmpMessageTran
 
   @Override
   public BytesXMLMessage translate(AdaptrisMessage message) throws Exception {
-    TextMessage textMessage = this.jcsmpFactory().createMessage(TextMessage.class);
+//    TextMessage textMessage = this.jcsmpFactory().createMessage(TextMessage.class);
+    
+    textMessage.reset();
     textMessage.setDeliveryMode(DeliveryMode.PERSISTENT);
     textMessage.setText(message.getContent());
     
