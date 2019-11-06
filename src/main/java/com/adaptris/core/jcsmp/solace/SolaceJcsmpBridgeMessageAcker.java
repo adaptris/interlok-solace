@@ -18,9 +18,9 @@ public class SolaceJcsmpBridgeMessageAcker extends SolaceJcsmpBaseMessageAcker i
   
   @Override
   public void responseReceivedEx(Object messageId) {
-    Timer.start("Ack", null);
+    Timer.start("OnReceive", "Ack", 1000);
     super.acknowledge((String) messageId);
-    Timer.stopAndLog("Ack");
+    Timer.stop("OnReceive", "Ack");
   }
   
   @Override

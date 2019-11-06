@@ -47,7 +47,6 @@ public class SolaceJcsmpBytesMessageTranslator implements SolaceJcsmpMessageTran
   @Override
   public BytesXMLMessage translate(AdaptrisMessage message) throws Exception {
 //    TextMessage textMessage = this.jcsmpFactory().createMessage(TextMessage.class);
-    
     textMessage.reset();
     textMessage.setDeliveryMode(DeliveryMode.PERSISTENT);
     textMessage.setText(message.getContent());

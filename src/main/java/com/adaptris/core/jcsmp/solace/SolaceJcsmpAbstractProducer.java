@@ -62,19 +62,17 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
       Destination dest = generateDestination(msg, destination);
       XMLMessageProducer jcsmpMessageProducer = messageProducer();
       
-      Timer.start("Producer-Translator", "Translating from Adp to Solace message");
+      Timer.start("OnReceive", "Producer-Translator", 1000);
       BytesXMLMessage translatedMessage = this.getMessageTranslator().translate(msg);
-      Timer.stop("Producer-Translator");
-      log.trace("Message translated to BytesXmlMessage in {} nanos", Timer.getLastTimingNanos("Producer-Translator"));
+      Timer.stop("OnReceive", "Producer-Translator");
       // assumes the message ID is the same as that assigned by the consumer.
       // If we're using a splitter this may break.
       translatedMessage.setCorrelationKey(msg.getUniqueId());
       
-      Timer.start("Producer", "JCSMP Send timing.");
+      Timer.start("OnReceive", "Producer", 1000);
       jcsmpMessageProducer.send(translatedMessage, dest);
-      Timer.stop("Producer");
-      
-      log.trace("JCSMP Produced to {} on thread {} - [{} ms, {} avg ms {}]", dest.getName(), Thread.currentThread().getName(), Timer.getLastTimingMs("Producer"), Timer.getAvgTimingMs("Producer"));
+      Timer.stop("OnReceive", "Producer");
+
     } catch (Exception ex) {
       throw ExceptionHelper.wrapProduceException(ex);
     }

@@ -45,11 +45,9 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   @Override
   public void onReceive(BytesXMLMessage message) {
     try {
-      Timer.start("OnReceive", null);
+      Timer.start("OnReceive", 1000);
       AdaptrisMessage adaptrisMessage = getMessageTranslator().translate(message);
       getMessageAcker().addUnacknowledgedMessage(message, adaptrisMessage.getUniqueId());
-      
-      log.trace("JCSMP Consumed message {} on thread {}", message.getMessageId(), Thread.currentThread().getName());
       
       retrieveAdaptrisMessageListener().onAdaptrisMessage(adaptrisMessage);
       Timer.stopAndLog("OnReceive");

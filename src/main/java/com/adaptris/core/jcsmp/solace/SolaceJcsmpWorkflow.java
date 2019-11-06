@@ -27,29 +27,28 @@ public class SolaceJcsmpWorkflow extends StandardWorkflow {
   }
   
   protected void handleMessage(final AdaptrisMessage msg, boolean clone) {
-    Timer.start("OnMessagePrep", "OnMessagePrep");
+    Timer.start("OnReceive", "OnMessagePrep", 1000);
     AdaptrisMessage wip = addConsumeLocation(msg);
     workflowStart(msg);
     processingStart(msg);
-    Timer.stopAndLog("OnMessagePrep");
-    log.trace("OnMessagePrep {} nanos", Timer.getLastTimingNanos("OnMessagePrep"));
+    Timer.stop("OnReceive", "OnMessagePrep");
     try {
-      Timer.start("handleMessage", null);
-      log.debug("start processing msg [{}]", messageLogger().toString(msg));
+      Timer.start("OnReceive", "handleMessage", 1000);
+//      log.debug("start processing msg [{}]", messageLogger().toString(msg));
       
-      Timer.start("OnMessageEvent", null);
+      Timer.start("OnReceive", "OnMessageEvent", 1000);
       wip.getMessageLifecycleEvent().setChannelId(obtainChannel().getUniqueId());
       wip.getMessageLifecycleEvent().setWorkflowId(obtainWorkflowId());
       wip.addEvent(getConsumer(), true); // initial receive event
-      Timer.stopAndLog("OnMessageEvent");
-      Timer.start("Services", null);
+      Timer.stop("OnReceive", "OnMessageEvent");
+      Timer.start("OnReceive", "Services", 1000);
       getServiceCollection().doService(wip);
-      Timer.stopAndLog("Services");
-      Timer.start("doProduce", null);
+      Timer.stop("OnReceive", "Services");
+      Timer.start("OnReceive", "doProduce", 1000);
       doProduce(wip);
-      Timer.stopAndLog("doProduce");
-      Timer.stop("handleMessage");
-      logSuccess(wip, 0l);
+      Timer.stop("OnReceive", "doProduce");
+      Timer.stop("OnReceive", "handleMessage");
+//      logSuccess(wip, 0l);
     }
     catch (ServiceException e) {
       handleBadMessage("Exception from ServiceCollection", e, copyExceptionHeaders(wip, msg));
@@ -65,13 +64,15 @@ public class SolaceJcsmpWorkflow extends StandardWorkflow {
     finally {
       sendMessageLifecycleEvent(wip);
     }
-    Timer.start("WorkflowEnd", null);
+    Timer.start("OnReceive", "WorkflowEnd", 1000);
     workflowEnd(msg, wip);
-    Timer.stopAndLog("WorkflowEnd");
+    Timer.stop("OnReceive", "WorkflowEnd");
   }
   
   protected void logSuccess(AdaptrisMessage msg, long start) {
-    log.info("message [{}] processed in [{}] ms, avg [{}] ms", msg.getUniqueId(), format.format(Timer.getLastTimingMs("handleMessage")), format.format(Timer.getAvgTimingMs("handleMessage")));
+    log.info("message [{}] processed in [{}] ms, avg [{}] ms", msg.getUniqueId(), 
+        format.format(Timer.getLastTimingMs("OnReceive", "handleMessage")), 
+        format.format(Timer.getAvgTimingMs("OnReceive", "handleMessage")));
   }
   
   @Override
