@@ -1,10 +1,14 @@
 package com.adaptris.core.jcsmp.solace;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 
 import org.apache.commons.lang3.ObjectUtils;
 
 import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.annotation.InputFieldDefault;
+import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageConsumerImp;
 import com.adaptris.core.CoreException;
@@ -21,15 +25,90 @@ import com.solacesystems.jcsmp.Queue;
 
 public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsumerImp implements SolaceJcsmpReceiverStarter {
 
+  private static final permissions DEFAULT_ENDPOINT_PERMISSIONS = permissions.CONSUME;
+
+  private static final accessType DEFAULT_ENDPOINT_ACCESS_TYPE = accessType.NONEXCLUSIVE;
+
+  private static final ackMode DEFAULT_ACKNOWLEDGE_MODE = ackMode.CLIENT;
+
   @NotNull
   @AutoPopulated
   private SolaceJcsmpMessageTranslator messageTranslator;
+  
+  @NotBlank
+  @AutoPopulated
+  @InputFieldDefault(value = "CONSUME")
+  @InputFieldHint(style="com.adaptris.core.jcsmp.solace.permissions")
+  @Pattern(regexp = "CONSUME|DELETE|READ_ONLY|NONE|MODIFY_TOPIC")
+  private String endpointPermissions;
+  
+  @NotBlank
+  @AutoPopulated
+  @InputFieldDefault(value = "NONEXCLUSIVE")
+  @InputFieldHint(style="com.adaptris.core.jcsmp.solace.accessType")
+  @Pattern(regexp = "NONEXCLUSIVE|EXCLUSIVE")
+  private String endpointAccessType;
+  
+  @NotBlank
+  @AutoPopulated
+  @InputFieldDefault(value = "CLIENT")
+  @InputFieldHint(style="com.adaptris.core.jcsmp.solace.ackMode")
+  @Pattern(regexp = "CLIENT|AUTO")
+  private String acknowledgeMode;
   
   private transient SolaceJcsmpMessageAcker messageAcker;
   
   private transient JCSMPFactory jcsmpFactory;
   
   private transient JCSMPSession currentSession;
+  
+  public enum permissions {
+    CONSUME {
+      @Override
+      int value() { return EndpointProperties.PERMISSION_CONSUME; }
+    },
+    DELETE {
+      @Override
+      int value() { return EndpointProperties.PERMISSION_DELETE; }
+    }, 
+    READ_ONLY {
+      @Override
+      int value() { return EndpointProperties.PERMISSION_READ_ONLY; }
+    },
+    NONE {
+      @Override
+      int value() { return EndpointProperties.PERMISSION_NONE; }
+    },
+    MODIFY_TOPIC {
+      @Override
+      int value() { return EndpointProperties.PERMISSION_MODIFY_TOPIC; }
+    };
+    abstract int value();
+  }
+  
+  public enum accessType {
+    EXCLUSIVE {
+      @Override
+      int value() { return EndpointProperties.ACCESSTYPE_EXCLUSIVE; }
+    },
+    NONEXCLUSIVE {
+      @Override
+      int value() { return EndpointProperties.ACCESSTYPE_NONEXCLUSIVE; }
+    };
+    abstract int value();
+  }
+  
+  public enum ackMode {
+    CLIENT {
+      @Override
+      String value() { return JCSMPProperties.SUPPORTED_MESSAGE_ACK_CLIENT; }
+    },
+    AUTO {
+      @Override
+      String value() { return JCSMPProperties.SUPPORTED_MESSAGE_ACK_AUTO; }
+    };
+    abstract String value();
+  }
   
   public SolaceJcsmpAbstractConsumer() {
     this.setMessageTranslator(new SolaceJcsmpBytesMessageTranslator());
@@ -78,7 +157,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   protected ConsumerFlowProperties createConsumerFlowProperties(Queue queue) {
     final ConsumerFlowProperties flowProps = new ConsumerFlowProperties();
     flowProps.setEndpoint(queue);
-    flowProps.setAckMode(JCSMPProperties.SUPPORTED_MESSAGE_ACK_CLIENT);
+    flowProps.setAckMode(acknowledgeMode().value());
     
     return flowProps;
   }
@@ -86,8 +165,8 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   protected EndpointProperties createEndpointProperties() {
     final EndpointProperties endpointProps = new EndpointProperties();
     // set queue permissions to "consume" and access-type to "exclusive"
-    endpointProps.setPermission(EndpointProperties.PERMISSION_CONSUME);
-    endpointProps.setAccessType(EndpointProperties.ACCESSTYPE_NONEXCLUSIVE);
+    endpointProps.setPermission(endpointPermissions().value());
+    endpointProps.setAccessType(endpointAccessType().value());
     
     return endpointProps;
   }
@@ -129,5 +208,41 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
 
   void setMessageAcker(SolaceJcsmpMessageAcker messageAcker) {
     this.messageAcker = messageAcker;
+  }
+
+  permissions endpointPermissions() {
+    return ObjectUtils.defaultIfNull(permissions.valueOf(this.getEndpointPermissions()), DEFAULT_ENDPOINT_PERMISSIONS);
+  }
+  
+  public String getEndpointPermissions() {
+    return endpointPermissions;
+  }
+
+  public void setEndpointPermissions(String endpointPermissions) {
+    this.endpointPermissions = endpointPermissions;
+  }
+
+  accessType endpointAccessType() {
+    return ObjectUtils.defaultIfNull(accessType.valueOf(this.getEndpointAccessType()), DEFAULT_ENDPOINT_ACCESS_TYPE);
+  }
+  
+  public String getEndpointAccessType() {
+    return endpointAccessType;
+  }
+
+  public void setEndpointAccessType(String endpointAccessType) {
+    this.endpointAccessType = endpointAccessType;
+  }
+
+  ackMode acknowledgeMode() {
+    return ObjectUtils.defaultIfNull(ackMode.valueOf(this.getAcknowledgeMode()), DEFAULT_ACKNOWLEDGE_MODE);
+  }
+  
+  public String getAcknowledgeMode() {
+    return acknowledgeMode;
+  }
+
+  public void setAcknowledgeMode(String acknowledgeMode) {
+    this.acknowledgeMode = acknowledgeMode;
   }
 }

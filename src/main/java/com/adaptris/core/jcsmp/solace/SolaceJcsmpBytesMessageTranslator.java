@@ -1,6 +1,8 @@
 package com.adaptris.core.jcsmp.solace;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -8,6 +10,8 @@ import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.annotation.InputFieldDefault;
+import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.DefaultMessageFactory;
@@ -23,9 +27,18 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @DisplayOrder(order = {"messageFactory"})
 public class SolaceJcsmpBytesMessageTranslator implements SolaceJcsmpMessageTranslator {
 
+  private static final DeliveryMode DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT;
+  
   @NotNull
   @AutoPopulated
   private AdaptrisMessageFactory messageFactory;
+  
+  @NotBlank
+  @AutoPopulated
+  @InputFieldDefault(value = "PERSISTENT")
+  @InputFieldHint(style="com.solacesystems.jcsmp.DeliveryMode")
+  @Pattern(regexp = "PERSISTENT|NON-PERSISTENT|DIRECT")
+  private String deliveryMode;
 
   private transient JCSMPFactory jcsmpFactory;
   
@@ -48,7 +61,7 @@ public class SolaceJcsmpBytesMessageTranslator implements SolaceJcsmpMessageTran
   public BytesXMLMessage translate(AdaptrisMessage message) throws Exception {
 //    TextMessage textMessage = this.jcsmpFactory().createMessage(TextMessage.class);
     textMessage.reset();
-    textMessage.setDeliveryMode(DeliveryMode.PERSISTENT);
+    textMessage.setDeliveryMode(DeliveryMode.valueOf(deliveryMode()));
     textMessage.setText(message.getContent());
     
     return textMessage;
@@ -76,6 +89,18 @@ public class SolaceJcsmpBytesMessageTranslator implements SolaceJcsmpMessageTran
 
   void setJcsmpFactory(JCSMPFactory jcsmpFactory) {
     this.jcsmpFactory = jcsmpFactory;
+  }
+  
+  String deliveryMode() {
+    return (String) ObjectUtils.defaultIfNull(this.getDeliveryMode().toUpperCase(), DEFAULT_DELIVERY_MODE);
+  }
+
+  public String getDeliveryMode() {
+    return deliveryMode;
+  }
+
+  public void setDeliveryMode(String deliveryMode) {
+    this.deliveryMode = deliveryMode;
   }
 
 }

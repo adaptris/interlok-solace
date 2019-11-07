@@ -34,7 +34,7 @@ public class SolaceJcsmpWorkflow extends StandardWorkflow {
     Timer.stop("OnReceive", "OnMessagePrep");
     try {
       Timer.start("OnReceive", "handleMessage", 1000);
-//      log.debug("start processing msg [{}]", messageLogger().toString(msg));
+      log.debug("start processing msg [{}]", messageLogger().toString(msg));
       
       Timer.start("OnReceive", "OnMessageEvent", 1000);
       wip.getMessageLifecycleEvent().setChannelId(obtainChannel().getUniqueId());
@@ -48,7 +48,7 @@ public class SolaceJcsmpWorkflow extends StandardWorkflow {
       doProduce(wip);
       Timer.stop("OnReceive", "doProduce");
       Timer.stop("OnReceive", "handleMessage");
-//      logSuccess(wip, 0l);
+      logSuccess(wip, 0l);
     }
     catch (ServiceException e) {
       handleBadMessage("Exception from ServiceCollection", e, copyExceptionHeaders(wip, msg));
