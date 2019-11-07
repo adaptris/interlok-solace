@@ -25,11 +25,11 @@ import com.solacesystems.jcsmp.Queue;
 
 public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsumerImp implements SolaceJcsmpReceiverStarter {
 
-  private static final permissions DEFAULT_ENDPOINT_PERMISSIONS = permissions.CONSUME;
+  private static final String DEFAULT_ENDPOINT_PERMISSIONS = "CONSUME";
 
-  private static final accessType DEFAULT_ENDPOINT_ACCESS_TYPE = accessType.NONEXCLUSIVE;
+  private static final String DEFAULT_ENDPOINT_ACCESS_TYPE = "NONEXCLUSIVE";
 
-  private static final ackMode DEFAULT_ACKNOWLEDGE_MODE = ackMode.CLIENT;
+  private static final String DEFAULT_ACKNOWLEDGE_MODE = "CLIENT";
 
   @NotNull
   @AutoPopulated
@@ -211,37 +211,53 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   }
 
   permissions endpointPermissions() {
-    return ObjectUtils.defaultIfNull(permissions.valueOf(this.getEndpointPermissions()), DEFAULT_ENDPOINT_PERMISSIONS);
+    return permissions.valueOf(ObjectUtils.defaultIfNull(this.getEndpointPermissions(), DEFAULT_ENDPOINT_PERMISSIONS));
   }
   
   public String getEndpointPermissions() {
     return endpointPermissions;
   }
 
+  /**
+   * <p>"CONSUME" / "DELETE" / "READ_ONLY" / "NONE" / "MODIFY_TOPIC""</p>
+   * <p>This must match your end-point permissions on the Solace queue/topic.</p>
+   * @param endpointPermissions
+   */
   public void setEndpointPermissions(String endpointPermissions) {
     this.endpointPermissions = endpointPermissions;
   }
 
   accessType endpointAccessType() {
-    return ObjectUtils.defaultIfNull(accessType.valueOf(this.getEndpointAccessType()), DEFAULT_ENDPOINT_ACCESS_TYPE);
+    return accessType.valueOf(ObjectUtils.defaultIfNull(this.getEndpointAccessType(), DEFAULT_ENDPOINT_ACCESS_TYPE));
   }
   
   public String getEndpointAccessType() {
     return endpointAccessType;
   }
 
+  /**
+   * <p>"EXCLUSIVE" / "NONEXCLUSIVE"</p>
+   * <p>This must match your end-point configuration on the Solace queue/topic.</p>
+   * @param endpointAccessType
+   */
   public void setEndpointAccessType(String endpointAccessType) {
     this.endpointAccessType = endpointAccessType;
   }
 
   ackMode acknowledgeMode() {
-    return ObjectUtils.defaultIfNull(ackMode.valueOf(this.getAcknowledgeMode()), DEFAULT_ACKNOWLEDGE_MODE);
+    return ackMode.valueOf(ObjectUtils.defaultIfNull(this.getAcknowledgeMode(), DEFAULT_ACKNOWLEDGE_MODE));
   }
   
   public String getAcknowledgeMode() {
     return acknowledgeMode;
   }
 
+  /**
+   * <p>"CLIENT" / "AUTO"</p>
+   * <p>Client acknowledge mode means Interlok will handle the Acknowledgements after the workflow has finished or the producer
+   * gives us a successful async callback.</p>
+   * @param acknowledgeMode
+   */
   public void setAcknowledgeMode(String acknowledgeMode) {
     this.acknowledgeMode = acknowledgeMode;
   }
