@@ -16,6 +16,8 @@
 
 package com.adaptris.core.jcsmp.solace;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.validation.constraints.NotBlank;
@@ -96,7 +98,7 @@ public class SolaceJcsmpBytesMessageTranslator implements SolaceJcsmpMessageTran
   @AutoPopulated
   @InputFieldDefault(value = "PERSISTENT")
   @InputFieldHint(style="com.solacesystems.jcsmp.DeliveryMode")
-  @Pattern(regexp = "PERSISTENT|NON-PERSISTENT|DIRECT")
+  @Pattern(regexp = "PERSISTENT|NON_PERSISTENT|DIRECT")
   private String deliveryMode;
   
   @NotNull
@@ -107,8 +109,71 @@ public class SolaceJcsmpBytesMessageTranslator implements SolaceJcsmpMessageTran
   
   private transient TextMessage textMessage;
   
+  private enum HeaderDataType {
+    STRING {
+      @Override
+      void setHeader(BytesXMLMessage message, String headerName, String value) throws Exception {
+        getSetterMethodFromHeaderName(message, headerName, String.class).invoke(message, value);
+      }
+
+      @Override
+      String getHeader(BytesXMLMessage message, String headerName) throws Exception {
+        return (String) getGetterMethodFromHeaderName(message, headerName).invoke(message);
+      }
+    },
+    
+    INTEGER {
+      @Override
+      void setHeader(BytesXMLMessage message, String headerName, String value) throws Exception {
+        getSetterMethodFromHeaderName(message, headerName, int.class).invoke(message, Integer.parseInt(value));
+      }
+
+      @Override
+      String getHeader(BytesXMLMessage message, String headerName) throws Exception {
+        return Integer.toString((int) getGetterMethodFromHeaderName(message, headerName).invoke(message));
+      }
+    },
+    
+    LONG {
+      @Override
+      void setHeader(BytesXMLMessage message, String headerName, String value) throws Exception {
+        getSetterMethodFromHeaderName(message, headerName, long.class).invoke(message, Long.parseLong(value));
+      }
+
+      @Override
+      String getHeader(BytesXMLMessage message, String headerName) throws Exception {
+        return Long.toString((long) getGetterMethodFromHeaderName(message, headerName).invoke(message));
+      }
+    },
+    
+    BOOLEAN {
+      @Override
+      void setHeader(BytesXMLMessage message, String headerName, String value) throws Exception {
+        getSetterMethodFromHeaderName(message, headerName, boolean.class).invoke(message, Boolean.parseBoolean(value));
+      }
+
+      @Override
+      String getHeader(BytesXMLMessage message, String headerName) throws Exception {
+        return Boolean.toString((boolean) getGetterMethodFromHeaderName(message, headerName).invoke(message));
+      }
+    };
+    
+    abstract void setHeader(BytesXMLMessage message, String headerName, String value) throws Exception;
+    
+    abstract String getHeader(BytesXMLMessage message, String headerName) throws Exception;
+    
+    Method getGetterMethodFromHeaderName(BytesXMLMessage message, String headerName) throws Exception {
+      return message.getClass().getMethod("get" + headerName);
+    }
+    
+    Method getSetterMethodFromHeaderName(BytesXMLMessage message, String headerName, Class<?> type) throws Exception {
+      return message.getClass().getMethod("set" + headerName, type);
+    }
+  }
+  
   public SolaceJcsmpBytesMessageTranslator() {
     this.setMessageFactory(messageFactory);
+    this.setMappings(new ArrayList<>());
     textMessage = this.jcsmpFactory().createMessage(TextMessage.class);
   }
   
@@ -116,16 +181,27 @@ public class SolaceJcsmpBytesMessageTranslator implements SolaceJcsmpMessageTran
   public AdaptrisMessage translate(BytesXMLMessage message) throws Exception {
     AdaptrisMessage adaptrisMessage = this.messageFactory().newMessage();
     adaptrisMessage.setPayload(message.getBytes());
-
+    
+    for(SolaceJcsmpMetadataMapping mapping : this.getMappings()) {
+      String headerValue = HeaderDataType.valueOf(((String) ObjectUtils.defaultIfNull(mapping.getDataType(), "String")).toUpperCase())
+          .getHeader(message, mapping.getHeaderKey());
+      
+      adaptrisMessage.addMessageHeader(mapping.getMetadataKey(), headerValue);
+    }
+    
     return adaptrisMessage;
   }
 
   @Override
   public BytesXMLMessage translate(AdaptrisMessage message) throws Exception {
-//    TextMessage textMessage = this.jcsmpFactory().createMessage(TextMessage.class);
     textMessage.reset();
     textMessage.setDeliveryMode(DeliveryMode.valueOf(deliveryMode()));
     textMessage.setText(message.getContent());
+        
+    for(SolaceJcsmpMetadataMapping mapping : this.getMappings()) {
+      HeaderDataType.valueOf(((String) ObjectUtils.defaultIfNull(mapping.getDataType(), "String")).toUpperCase())
+          .setHeader(textMessage, mapping.getHeaderKey(), message.getMetadataValue(mapping.getMetadataKey()));
+    }
     
     return textMessage;
   }

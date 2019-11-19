@@ -55,9 +55,14 @@ public class SolaceJcsmpMetadataMapping {
   }
   
   public SolaceJcsmpMetadataMapping(String metadataKey, String headerKey) {
+    this(metadataKey, headerKey, null);
+  }
+  
+  public SolaceJcsmpMetadataMapping(String metadataKey, String headerKey, String dataType) {
     this();
     this.setMetadataKey(metadataKey);
     this.setHeaderKey(headerKey);
+    this.setDataType(dataType);
   }
 
   public String getMetadataKey() {
@@ -83,6 +88,19 @@ public class SolaceJcsmpMetadataMapping {
    */
   public void setHeaderKey(String headerKey) {
     this.headerKey = headerKey;
+  }
+
+  public String getDataType() {
+    return dataType;
+  }
+
+  /**
+   * If left null, it is assumed that the Solace property value is a String, otherwise specify
+   * "Integer / Boolean / Long"
+   * @param dataType
+   */
+  public void setDataType(String dataType) {
+    this.dataType = dataType;
   }
 
 }
