@@ -16,6 +16,8 @@
 
 package com.adaptris.core.jcsmp.solace;
 
+import org.apache.commons.lang3.ObjectUtils;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.core.CoreException;
@@ -41,6 +43,8 @@ public class SolaceJcsmpBridgeMessageAcker extends SolaceJcsmpBaseMessageAcker i
 
   private transient SolaceJcsmpAbstractProducer producer;
   
+  private Boolean triggerErrorHandlerOnFailure;
+  
   public SolaceJcsmpBridgeMessageAcker() {
   }
   
@@ -54,6 +58,9 @@ public class SolaceJcsmpBridgeMessageAcker extends SolaceJcsmpBaseMessageAcker i
   @Override
   public void handleErrorEx(Object messageId, JCSMPException exception, long timestamp) {
     log.error("Received producer callback error from Solace for message [{}]", messageId, exception);
+    if(triggerErrorHandlerOnFailure()) {
+      this.getProducer().retrieveConnection(SolaceJcsmpConnection.class).getConnectionErrorHandler().handleConnectionException();
+    }
   }
 
   @Override
@@ -75,6 +82,18 @@ public class SolaceJcsmpBridgeMessageAcker extends SolaceJcsmpBaseMessageAcker i
   @Override
   public void handleError(String messageId, JCSMPException exception, long timestamp) {
     // never called - deprecated.
+  }
+  
+  boolean triggerErrorHandlerOnFailure() {
+    return ObjectUtils.defaultIfNull(this.getTriggerErrorHandlerOnFailure(), false);
+  }
+
+  public Boolean getTriggerErrorHandlerOnFailure() {
+    return triggerErrorHandlerOnFailure;
+  }
+
+  public void setTriggerErrorHandlerOnFailure(Boolean triggerErrorHandlerOnFailure) {
+    this.triggerErrorHandlerOnFailure = triggerErrorHandlerOnFailure;
   }
   
   SolaceJcsmpAbstractProducer getProducer() {

@@ -3,6 +3,7 @@ package com.adaptris.core.jcsmp.solace;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.junit.After;
 import org.junit.Before;
@@ -27,6 +28,10 @@ public class SolaceJcsmpBridgeMessageAckerTest {
   @Mock private SolaceJcsmpQueueProducer mockProducer;
   
   @Mock private AdaptrisMessageProducer mockAdpProducer;
+  
+  @Mock private SolaceJcsmpConnection mockConnection;
+  
+  @Mock private SolaceJcsmpConnectionErrorHandler mockCeh;
   
   @Before
   public void setUp() throws Exception {
@@ -90,6 +95,19 @@ public class SolaceJcsmpBridgeMessageAckerTest {
     messageAcker.handleErrorEx("id", new JCSMPException("expected"), 1L);
     
     verify(mockMessage, times(0)).ackMessage();
+  }
+  
+  @Test
+  public void testCallbackFailureErrorHandler() throws Exception {
+    when(mockProducer.retrieveConnection(SolaceJcsmpConnection.class))
+        .thenReturn(mockConnection);
+    when(mockConnection.getConnectionErrorHandler())
+        .thenReturn(mockCeh);
+    messageAcker.setProducer(mockProducer);
+    messageAcker.setTriggerErrorHandlerOnFailure(true);
+    messageAcker.handleErrorEx("x", null, 1L);
+    
+    verify(mockCeh).handleConnectionException();
   }
   
   @Test

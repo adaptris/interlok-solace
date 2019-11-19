@@ -2,6 +2,7 @@ package com.adaptris.core.jcsmp.solace;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.junit.After;
 import org.junit.Before;
@@ -15,6 +16,12 @@ public class SolaceJcsmpLoggingProducerEventHandlerTest {
   private SolaceJcsmpLoggingProducerEventHandler eventHandler;
   
   @Mock private Logger mockLogger; 
+  
+  @Mock private SolaceJcsmpQueueProducer mockProducer;
+  
+  @Mock private SolaceJcsmpConnection mockConnection;
+  
+  @Mock private SolaceJcsmpConnectionErrorHandler mockCeh;
   
   @Before
   public void setUp() throws Exception {
@@ -43,8 +50,23 @@ public class SolaceJcsmpLoggingProducerEventHandlerTest {
   }
   
   @Test
+  public void testCallbackFailureErrorHandler() throws Exception {
+    when(mockProducer.retrieveConnection(SolaceJcsmpConnection.class))
+        .thenReturn(mockConnection);
+    when(mockConnection.getConnectionErrorHandler())
+        .thenReturn(mockCeh);
+    eventHandler.setProducer(mockProducer);
+    eventHandler.setTriggerErrorHandlerOnFailure(true);
+    eventHandler.handleErrorEx("x", null, 1L);
+    
+    verify(mockLogger).error(any(String.class), any(Object.class), any(Exception.class));
+    verify(mockCeh).handleConnectionException();
+  }
+  
+  @Test
   public void neverCalledButNecessaryOverride() throws Exception {
     eventHandler.responseReceived("x");
     eventHandler.handleError("x", null, 1L);
   }
+  
 }
