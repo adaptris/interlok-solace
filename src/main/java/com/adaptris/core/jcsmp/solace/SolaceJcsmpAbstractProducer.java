@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Adaptris Ltd.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package com.adaptris.core.jcsmp.solace;
 
 import java.util.HashMap;
@@ -20,7 +36,6 @@ import com.solacesystems.jcsmp.Destination;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPSession;
-import com.solacesystems.jcsmp.JCSMPStreamingPublishCorrelatingEventHandler;
 import com.solacesystems.jcsmp.XMLMessageProducer;
 
 public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp {
@@ -29,7 +44,7 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
   @AutoPopulated
   private SolaceJcsmpMessageTranslator messageTranslator;
   
-  private transient JCSMPStreamingPublishCorrelatingEventHandler producerEventHandler;
+  private transient SolaceJcsmpProducerEventHandler producerEventHandler;
   
   private transient JCSMPFactory jcsmpFactory;
   
@@ -54,6 +69,7 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
     this.getDestinationCache().clear();
     this.setMessageProducer(null);
     this.setCurrentSession(null);
+    this.getProducerEventHandler().setProducer(this);
   }
 
   @Override
@@ -74,6 +90,7 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
       Timer.stop("OnReceive", "Producer");
 
     } catch (Exception ex) {
+      this.retrieveConnection(SolaceJcsmpConnection.class).getConnectionErrorHandler().handleConnectionException();
       throw ExceptionHelper.wrapProduceException(ex);
     }
   }
@@ -102,11 +119,11 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
     this.messageTranslator = messageTranslator;
   }
 
-  JCSMPStreamingPublishCorrelatingEventHandler getProducerEventHandler() {
+  SolaceJcsmpProducerEventHandler getProducerEventHandler() {
     return producerEventHandler;
   }
 
-  void setProducerEventHandler(JCSMPStreamingPublishCorrelatingEventHandler producerEventHandler) {
+  void setProducerEventHandler(SolaceJcsmpProducerEventHandler producerEventHandler) {
     this.producerEventHandler = producerEventHandler;
   }
 

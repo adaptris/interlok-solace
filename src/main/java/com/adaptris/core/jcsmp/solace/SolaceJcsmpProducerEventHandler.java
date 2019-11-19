@@ -16,13 +16,10 @@
 
 package com.adaptris.core.jcsmp.solace;
 
-import com.adaptris.core.AdaptrisMessage;
-import com.solacesystems.jcsmp.BytesXMLMessage;
+import com.solacesystems.jcsmp.JCSMPStreamingPublishCorrelatingEventHandler;
 
-public interface SolaceJcsmpMessageTranslator {
+public interface SolaceJcsmpProducerEventHandler extends JCSMPStreamingPublishCorrelatingEventHandler {
 
-  public AdaptrisMessage translate(BytesXMLMessage message) throws Exception;
-  
-  public BytesXMLMessage translate(AdaptrisMessage message) throws Exception;
+  public void setProducer(SolaceJcsmpAbstractProducer producer);
   
 }

@@ -18,8 +18,9 @@ import com.adaptris.core.AdaptrisMessageProducer;
 import com.adaptris.core.Channel;
 import com.adaptris.core.DefaultMessageFactory;
 import com.adaptris.core.ProcessingExceptionHandler;
+import com.adaptris.core.ProduceException;
+import com.adaptris.core.ServiceCollection;
 import com.adaptris.core.ServiceException;
-import com.adaptris.core.ServiceList;
 import com.adaptris.core.util.LifecycleHelper;
 
 public class SolaceJcsmpWorkflowTest {
@@ -38,9 +39,9 @@ public class SolaceJcsmpWorkflowTest {
   
   @Mock private SolaceJcsmpMessageAcker mockMessageAcker;
   
-  @Mock private ServiceList mockServiceList;
-  
   @Mock private ProcessingExceptionHandler mockErrorHandler;
+  
+  @Mock private ServiceCollection mockServiceCollection;
   
   @Before
   public void setUp() throws Exception {
@@ -52,8 +53,10 @@ public class SolaceJcsmpWorkflowTest {
     workflow.setConsumer(mockConsumer);
     workflow.setProducer(mockProducer);
     workflow.setMessageAcker(mockMessageAcker);
-    workflow.setServiceCollection(mockServiceList);
     workflow.setMessageErrorHandler(mockErrorHandler);
+    workflow.setServiceCollection(mockServiceCollection);
+    
+    workflow.registerActiveMsgErrorHandler(mockErrorHandler);
     
     mockChannel.getWorkflowList().add(workflow);
     
@@ -136,7 +139,31 @@ public class SolaceJcsmpWorkflowTest {
   @Test
   public void testHandleMessageServiceFails() throws Exception {
     doThrow(new ServiceException("Expected"))
-        .when(mockServiceList).doService(message);
+        .when(mockServiceCollection).doService(message);
+    
+    LifecycleHelper.initAndStart(mockChannel);
+
+    workflow.handleMessage(message, false);
+
+    verify(mockErrorHandler).handleProcessingException(message);
+  }
+  
+  @Test
+  public void testHandleMessageProducerFails() throws Exception {
+    doThrow(new ProduceException("Expected"))
+        .when(mockProducer).produce(any());
+    
+    LifecycleHelper.initAndStart(mockChannel);
+
+    workflow.handleMessage(message, false);
+
+    verify(mockErrorHandler).handleProcessingException(message);
+  }
+  
+  @Test
+  public void testHandleMessageUnexpectedException() throws Exception {
+    doThrow(new RuntimeException("Expected"))
+        .when(mockProducer).produce(any());
     
     LifecycleHelper.initAndStart(mockChannel);
 

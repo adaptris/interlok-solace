@@ -52,7 +52,7 @@ public class SolaceJcsmpQueueProducerTest {
   
   @Mock private XMLMessageProducer mockProducer2;
   
-  @Mock private JCSMPStreamingPublishCorrelatingEventHandler callbackHandler;
+  @Mock private SolaceJcsmpProducerEventHandler callbackHandler;
   
   @Mock private SolaceJcsmpMessageTranslator mockTranslator;
 

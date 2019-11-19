@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Adaptris Ltd.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package com.adaptris.core.jcsmp.solace;
 
 import javax.validation.constraints.NotNull;
@@ -9,6 +25,7 @@ import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
+import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AllowsRetriesConnection;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.ExceptionHelper;
@@ -22,6 +39,16 @@ import com.solacesystems.jcsmp.Session;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 
+/**
+ * <p>
+ * The Interlok {@link AdaptrisConnection} that will allow us to connect to your Solace router via the JCSMP api.
+ * </p>
+ * <p>
+ * Simply supply the host, vpn name, user and password.
+ * </p>
+ * @author aaron
+ *
+ */
 @AdapterComponent
 @ComponentProfile(summary="A Solace native JCSMP connection used to create JCSMP sessions to your Solace appliance.", tag="connection,solace,jcsmp")
 @XStreamAlias("solace-jcsmp-connection")
@@ -131,6 +158,10 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
     return host;
   }
 
+  /**
+   * The tcp address to your Solace router, such as "tcp://localhost:55555".
+   * @param host
+   */
   public void setHost(String host) {
     this.host = host;
   }
@@ -139,6 +170,10 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
     return vpn;
   }
 
+  /**
+   * The Solave VPN name, such as "default".
+   * @param vpn
+   */
   public void setVpn(String vpn) {
     this.vpn = vpn;
   }
@@ -147,6 +182,10 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
     return username;
   }
 
+  /**
+   * Your Solace username.
+   * @param username
+   */
   public void setUsername(String username) {
     this.username = username;
   }
@@ -155,6 +194,10 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
     return password;
   }
 
+  /**
+   * Your Solace password (supports Interlok encoding/decoding).
+   * @param password
+   */
   public void setPassword(String password) {
     this.password = password;
   }

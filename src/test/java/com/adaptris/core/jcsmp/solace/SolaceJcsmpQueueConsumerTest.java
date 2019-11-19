@@ -64,6 +64,9 @@ public class SolaceJcsmpQueueConsumerTest {
     consumer.setMessageTranslator(mockTranslator);
     consumer.registerAdaptrisMessageListener(mockMessageListener);
     consumer.setMessageAcker(mockMessageAcker);
+    consumer.setAcknowledgeMode("CLIENT");
+    consumer.setEndpointAccessType("NONEXCLUSIVE");
+    consumer.setEndpointPermissions("CONSUME");
     
     when(mockConnection.createSession())
         .thenReturn(mockSession);
