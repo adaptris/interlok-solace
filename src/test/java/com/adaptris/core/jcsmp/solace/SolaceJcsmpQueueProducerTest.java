@@ -40,6 +40,8 @@ public class SolaceJcsmpQueueProducerTest {
   
   @Mock private SolaceJcsmpConnection mockConnection;
   
+  @Mock private SolaceJcsmpConnectionErrorHandler mockConnectionErrorHandler;
+  
   @Mock private JCSMPFactory mockJcsmpFactory;
   
   @Mock private Queue mockQueue;
@@ -74,6 +76,8 @@ public class SolaceJcsmpQueueProducerTest {
     
     when(mockConnection.createSession())
         .thenReturn(mockSession);
+    when(mockConnection.getConnectionErrorHandler())
+        .thenReturn(mockConnectionErrorHandler);
     when(mockJcsmpFactory.createQueue(any(String.class)))
         .thenReturn(mockQueue);
     when(mockConnection.retrieveConnection(SolaceJcsmpConnection.class))

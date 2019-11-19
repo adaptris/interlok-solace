@@ -17,6 +17,7 @@ import org.mockito.MockitoAnnotations;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ConfiguredProduceDestination;
+import com.adaptris.core.ConnectionErrorHandler;
 import com.adaptris.core.DefaultMessageFactory;
 import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
@@ -57,6 +58,8 @@ public class SolaceJcsmpTopicProducerTest {
   @Mock private SolaceJcsmpMessageTranslator mockTranslator;
 
   @Mock private BytesXMLMessage mockMessage;
+
+  @Mock private ConnectionErrorHandler mockConnectionErrorHandler;
   
   @Before
   public void setup() throws Exception {
@@ -74,6 +77,8 @@ public class SolaceJcsmpTopicProducerTest {
     
     when(mockConnection.createSession())
         .thenReturn(mockSession);
+    when(mockConnection.getConnectionErrorHandler())
+        .thenReturn(mockConnectionErrorHandler);
     when(mockJcsmpFactory.createTopic(any(String.class)))
         .thenReturn(mockTopic);
     when(mockConnection.retrieveConnection(SolaceJcsmpConnection.class))

@@ -78,7 +78,7 @@ public class SolaceJcsmpLoggingProducerEventHandler implements SolaceJcsmpProduc
   }
   
   boolean triggerErrorHandlerOnFailure() {
-    return ObjectUtils.defaultIfNull(this.getTriggerErrorHandlerOnFailure(), true);
+    return ObjectUtils.defaultIfNull(this.getTriggerErrorHandlerOnFailure(), false);
   }
 
   public Boolean getTriggerErrorHandlerOnFailure() {
