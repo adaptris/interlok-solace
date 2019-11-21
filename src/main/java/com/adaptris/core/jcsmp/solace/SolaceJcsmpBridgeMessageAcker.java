@@ -18,7 +18,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * We will expect the configured producer to report a successful message delivery, which will trigger this class to fire the message acknowledgement on the consumer.
  * </p>
  * @author aaron
- * @version=”3.9.3”
+ * @version="3.9.3"
  * @config solace-jcsmp-bridge-message-acker
  *
  */

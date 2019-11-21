@@ -31,7 +31,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * Simply supply the host, vpn name, user and password.
  * </p>
  * @author aaron
- * @version=”3.9.3”
+ * @version="3.9.3"
  * @config solace-jcsmp-connection
  */
 @AdapterComponent

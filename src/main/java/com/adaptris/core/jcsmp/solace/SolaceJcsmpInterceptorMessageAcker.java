@@ -16,7 +16,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * this class will fire, acknowledging the originally consumed Solace Jcsmp message.
  * </p>
  * @author aaron
- * @version=”3.9.3”
+ * @version="3.9.3"
  * @config solace-jcsmp-workflow-message-acker
  * 
  */

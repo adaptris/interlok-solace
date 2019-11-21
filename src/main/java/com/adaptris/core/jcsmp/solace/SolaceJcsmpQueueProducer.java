@@ -14,7 +14,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * </p>
  * 
  * @author aaron
- * @version=”3.9.3”
+ * @version="3.9.3"
  * @config solace-jcsmp-queue-producer
  * 
  */

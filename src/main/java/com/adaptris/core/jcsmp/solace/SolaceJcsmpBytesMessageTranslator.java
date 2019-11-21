@@ -64,7 +64,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * on the Solace message.
  * </p>
  * @author aaron
- * @version=”3.9.3”
+ * @version="3.9.3"
  * @config solace-jcsmp-bytes-message-translator
  *
  */

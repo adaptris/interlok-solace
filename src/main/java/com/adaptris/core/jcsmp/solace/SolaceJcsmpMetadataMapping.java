@@ -20,7 +20,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * the value for which will come from the Adaptris Message metadata item with the kay "message-id".
  * </p>
  * @author aaron
- * @version=”3.9.3”
+ * @version="3.9.3"
  * @config solace-jcsmp-metadata-mapping
  */
 @XStreamAlias("solace-jcsmp-metadata-mapping")

@@ -14,7 +14,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  *  Should a connection be disconnected or report an error, this handler will fire, attempting to restart everything.
  *  </p>
  * @author aaron
- * @version=”3.9.3”
+ * @version="3.9.3"
  * @config solace-jcsmp-connection-error-handler
  * 
  */
