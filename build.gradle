@@ -30,7 +30,7 @@ ext {
   organizationUrl = "http://interlok.adaptris.net"
   slf4jVersion = '1.7.26'
   log4j2Version = '2.11.2'
-  solaceVersion = '10.6.0'
+  solaceVersion = '10.6.4'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
