@@ -18,12 +18,11 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * We will expect the configured producer to report a successful message delivery, which will trigger this class to fire the message acknowledgement on the consumer.
  * </p>
  * @author aaron
- * @version="3.9.3"
  * @config solace-jcsmp-bridge-message-acker
  *
  */
 @AdapterComponent
-@ComponentProfile(summary="A Solace native JCSMP component used to acknowledge consumed messages, based on produced message events.", tag="ack,solace,jcsmp")
+@ComponentProfile(summary="A Solace native JCSMP component used to acknowledge consumed messages, based on produced message events.", tag="ack,solace,jcsmp", since="3.9.3")
 @XStreamAlias("solace-jcsmp-bridge-message-acker")
 public class SolaceJcsmpBridgeMessageAcker extends SolaceJcsmpBaseMessageAcker implements SolaceJcsmpProducerEventHandler {
 

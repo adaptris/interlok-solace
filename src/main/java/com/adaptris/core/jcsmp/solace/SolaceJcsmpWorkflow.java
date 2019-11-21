@@ -28,11 +28,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * </p>
  * 
  * @author aaron
- * @version="3.9.3"
  * @config solace-jcsmp-workflow
  */
 @AdapterComponent
-@ComponentProfile(summary="A Solace native JCSMP workflow, to be used with JCSMP consumers and producers.", tag="workflow,solace,jcsmp")
+@ComponentProfile(summary="A Solace native JCSMP workflow, to be used with JCSMP consumers and producers.", tag="workflow,solace,jcsmp", since="3.9.3")
 @XStreamAlias("solace-jcsmp-workflow")
 public class SolaceJcsmpWorkflow extends StandardWorkflow {
   

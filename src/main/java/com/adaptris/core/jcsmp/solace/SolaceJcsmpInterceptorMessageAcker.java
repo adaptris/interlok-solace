@@ -16,12 +16,11 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * this class will fire, acknowledging the originally consumed Solace Jcsmp message.
  * </p>
  * @author aaron
- * @version="3.9.3"
  * @config solace-jcsmp-workflow-message-acker
  * 
  */
 @AdapterComponent
-@ComponentProfile(summary="A Solace native JCSMP component used to acknowledge consumed messages once the workflow completes processing.", tag="ack,solace,jcsmp")
+@ComponentProfile(summary="A Solace native JCSMP component used to acknowledge consumed messages once the workflow completes processing.", tag="ack,solace,jcsmp", since="3.9.3")
 @XStreamAlias("solace-jcsmp-workflow-message-acker")
 public class SolaceJcsmpInterceptorMessageAcker extends SolaceJcsmpBaseMessageAcker implements WorkflowInterceptor {
   

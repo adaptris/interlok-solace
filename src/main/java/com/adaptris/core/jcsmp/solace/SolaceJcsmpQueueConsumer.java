@@ -22,11 +22,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * </ul>
  * </p>
  * @author aaron
- * @version="3.9.3"
  * @config solace-jcsmp-queue-consumer
  */
 @AdapterComponent
-@ComponentProfile(summary="A Solace native JCSMP component that consumes your messages from the Solace VPN.", tag="queue,consumer,solace,jcsmp")
+@ComponentProfile(summary="A Solace native JCSMP component that consumes your messages from the Solace VPN.", tag="queue,consumer,solace,jcsmp", since="3.9.3")
 @XStreamAlias("solace-jcsmp-queue-consumer")
 public class SolaceJcsmpQueueConsumer extends SolaceJcsmpAbstractConsumer {
   

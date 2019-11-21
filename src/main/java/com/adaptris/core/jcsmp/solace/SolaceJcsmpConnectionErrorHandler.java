@@ -14,12 +14,11 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  *  Should a connection be disconnected or report an error, this handler will fire, attempting to restart everything.
  *  </p>
  * @author aaron
- * @version="3.9.3"
  * @config solace-jcsmp-connection-error-handler
  * 
  */
 @AdapterComponent
-@ComponentProfile(summary="A Solace native JCSMP connection error handler, used to restart affected components on error.", tag="ceh,connection,solace,jcsmp")
+@ComponentProfile(summary="A Solace native JCSMP connection error handler, used to restart affected components on error.", tag="ceh,connection,solace,jcsmp", since="3.9.3")
 @XStreamAlias("solace-jcsmp-connection-error-handler")
 public class SolaceJcsmpConnectionErrorHandler extends ConnectionErrorHandlerImp {
 

@@ -14,11 +14,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * </p>
  * 
  * @author aaron
- * @version="3.9.3"
  * @config solace-jcsmp-topic-producer
  */
 @AdapterComponent
-@ComponentProfile(summary="A Solace native JCSMP component will produce your messages to the Solace VPN topic.", tag="topic,producer,solace,jcsmp")
+@ComponentProfile(summary="A Solace native JCSMP component will produce your messages to the Solace VPN topic.", tag="topic,producer,solace,jcsmp", since="3.9.3")
 @XStreamAlias("solace-jcsmp-topic-producer")
 public class SolaceJcsmpTopicProducer extends SolaceJcsmpAbstractProducer {
 

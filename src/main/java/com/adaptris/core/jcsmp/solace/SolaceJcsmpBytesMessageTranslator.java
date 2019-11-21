@@ -64,12 +64,11 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * on the Solace message.
  * </p>
  * @author aaron
- * @version="3.9.3"
  * @config solace-jcsmp-bytes-message-translator
  *
  */
 @AdapterComponent
-@ComponentProfile(summary="A Solace native JCSMP message translator.", tag="solace,jcsmp,translator")
+@ComponentProfile(summary="A Solace native JCSMP message translator.", tag="solace,jcsmp,translator", since="3.9.3")
 @XStreamAlias("solace-jcsmp-bytes-message-translator")
 @DisplayOrder(order = {"messageFactory"})
 public class SolaceJcsmpBytesMessageTranslator implements SolaceJcsmpMessageTranslator {

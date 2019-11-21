@@ -31,11 +31,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * Simply supply the host, vpn name, user and password.
  * </p>
  * @author aaron
- * @version="3.9.3"
  * @config solace-jcsmp-connection
  */
 @AdapterComponent
-@ComponentProfile(summary="A Solace native JCSMP connection used to create JCSMP sessions to your Solace appliance.", tag="connection,solace,jcsmp")
+@ComponentProfile(summary="A Solace native JCSMP connection used to create JCSMP sessions to your Solace appliance.", tag="connection,solace,jcsmp", since="3.9.3")
 @XStreamAlias("solace-jcsmp-connection")
 @DisplayOrder(order = {"host", "vpn", "username", "password"})
 public class SolaceJcsmpConnection extends AllowsRetriesConnection implements SolaceJcsmpSessionCreator {

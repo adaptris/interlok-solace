@@ -2,7 +2,9 @@ package com.adaptris.core.jcsmp.solace;
 
 import javax.validation.constraints.NotBlank;
 
+import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.annotation.ComponentProfile;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
@@ -20,9 +22,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * the value for which will come from the Adaptris Message metadata item with the kay "message-id".
  * </p>
  * @author aaron
- * @version="3.9.3"
  * @config solace-jcsmp-metadata-mapping
  */
+@AdapterComponent
+@ComponentProfile(summary="Used with the message translator to map Solace headers to Interlok metadata and the reverse.", tag="solace,jcsmp", since="3.9.3")
 @XStreamAlias("solace-jcsmp-metadata-mapping")
 public class SolaceJcsmpMetadataMapping {
   

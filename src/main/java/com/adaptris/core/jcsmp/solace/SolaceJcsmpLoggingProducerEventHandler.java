@@ -18,11 +18,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * trigger-error-handler-on-failure = true (default is false.)
  * </p>
  * @author aaron
- * @version="3.9.3"
  * @config solace-jcsmp-logging-producer-event-handler
  */
 @AdapterComponent
-@ComponentProfile(summary="A Solace native JCSMP component that listens and simply logs produced message events.", tag="ack,solace,jcsmp")
+@ComponentProfile(summary="A Solace native JCSMP component that listens and simply logs produced message events.", tag="ack,solace,jcsmp", since="3.9.3")
 @XStreamAlias("solace-jcsmp-logging-producer-event-handler")
 public class SolaceJcsmpLoggingProducerEventHandler implements SolaceJcsmpProducerEventHandler {
 
