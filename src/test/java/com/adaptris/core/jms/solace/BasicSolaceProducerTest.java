@@ -8,21 +8,10 @@ import com.adaptris.core.jms.JmsProducer;
 import com.adaptris.core.jms.JmsProducerExample;
 
 public class BasicSolaceProducerTest extends JmsProducerExample {
-
-  public BasicSolaceProducerTest(String name) {
-    super(name);
-  }
-
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  public boolean isAnnotatedForJunit4() {
+    return true;
   }
-
-  @Override
-  public void tearDown() throws Exception {
-    super.tearDown();
-  }
-
   @Override
   protected String createBaseFileName(Object object) {
     return ((StandaloneProducer) object).getProducer().getClass().getName() + "-SolaceJMS";

@@ -8,10 +8,6 @@ import com.adaptris.util.KeyValuePair;
 
 public class AdvancedSolaceConsumerTest extends BasicSolaceConsumerTest {
 
-  public AdvancedSolaceConsumerTest(String name) {
-    super(name);
-  }
-
 
   @Override
   protected String createBaseFileName(Object object) {

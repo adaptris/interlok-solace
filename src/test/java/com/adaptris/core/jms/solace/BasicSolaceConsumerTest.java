@@ -8,12 +8,10 @@ import com.adaptris.core.jms.JmsConsumer;
 import com.adaptris.core.jms.JmsConsumerCase;
 
 public class BasicSolaceConsumerTest extends JmsConsumerCase {
-
-  public BasicSolaceConsumerTest(String name) {
-    super(name);
+  @Override
+  public boolean isAnnotatedForJunit4() {
+    return true;
   }
-
-
   @Override
   protected String createBaseFileName(Object object) {
     return ((StandaloneConsumer) object).getConsumer().getClass().getName() + "-SolaceJMS";
