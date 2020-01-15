@@ -1,13 +1,13 @@
 package com.adaptris.core.jms.solace;
 
-import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.validation.constraints.NotNull;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.ObjectUtils;
 
 import com.adaptris.annotation.AdvancedConfig;
