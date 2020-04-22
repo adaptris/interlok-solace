@@ -11,6 +11,7 @@ import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageConsumerImp;
+import com.adaptris.core.CoreConstants;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.jcsmp.solace.util.Timer;
 import com.adaptris.core.util.ExceptionHelper;
@@ -27,9 +28,11 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
 
   private static final String DEFAULT_ENDPOINT_PERMISSIONS = "CONSUME";
 
-  private static final String DEFAULT_ENDPOINT_ACCESS_TYPE = "NONEXCLUSIVE";
+  private static final String DEFAULT_ENDPOINT_ACCESS_TYPE = "EXCLUSIVE";
 
   private static final String DEFAULT_ACKNOWLEDGE_MODE = "CLIENT";
+  
+  private Boolean traceLogTimings;
 
   @NotNull
   @AutoPopulated
@@ -44,7 +47,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   
   @NotBlank
   @AutoPopulated
-  @InputFieldDefault(value = "NONEXCLUSIVE")
+  @InputFieldDefault(value = "EXCLUSIVE")
   @InputFieldHint(style="com.adaptris.core.jcsmp.solace.accessType")
   @Pattern(regexp = "NONEXCLUSIVE|EXCLUSIVE")
   private String endpointAccessType;
@@ -55,9 +58,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   @InputFieldHint(style="com.adaptris.core.jcsmp.solace.ackMode")
   @Pattern(regexp = "CLIENT|AUTO")
   private String acknowledgeMode;
-  
-  private transient SolaceJcsmpMessageAcker messageAcker;
-  
+    
   private transient JCSMPFactory jcsmpFactory;
   
   private transient JCSMPSession currentSession;
@@ -124,12 +125,26 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   @Override
   public void onReceive(BytesXMLMessage message) {
     try {
-      Timer.start("OnReceive", 1000);
+      Timer.start("OnReceive", 100);
+      Timer.start("OnReceive", "TranslateMessage", 100);
       AdaptrisMessage adaptrisMessage = getMessageTranslator().translate(message);
-      getMessageAcker().addUnacknowledgedMessage(message, adaptrisMessage.getUniqueId());
+      Timer.stop("OnReceive", "TranslateMessage");
       
+      Timer.start("OnReceive", "ProcessMessage", 100);
       retrieveAdaptrisMessageListener().onAdaptrisMessage(adaptrisMessage);
-      Timer.stopAndLog("OnReceive");
+      Timer.stop("OnReceive", "ProcessMessage");
+      if(this.acknowledgeMode().equals(ackMode.CLIENT)) {
+        if(!adaptrisMessage.getObjectHeaders().containsKey(CoreConstants.OBJ_METADATA_EXCEPTION)) {
+          Timer.start("OnReceive", "AckMessage", 100);
+          message.ackMessage();
+          Timer.stop("OnReceive", "AckMessage");
+        } else {
+          log.error("Message failed.  Will not acknowledge.", adaptrisMessage.getObjectHeaders().get(CoreConstants.OBJ_METADATA_EXCEPTION_CAUSE));
+        }
+      }
+      Timer.stop("OnReceive");
+      if(traceLogTimings())
+        Timer.log("OnReceive");
     } catch (Exception e) {
       log.error("Failed to translate message.", e);
     }
@@ -198,16 +213,13 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
     return messageTranslator;
   }
 
+  /**
+   * The message translator is responsible for translating the Solace JCSMP message object
+   * into an {@link AdaptrisMessage} and the reverse.  The translator will typically handle the payload and the headers/metadata.
+   * @param messageTranslator
+   */
   public void setMessageTranslator(SolaceJcsmpMessageTranslator messageTranslator) {
     this.messageTranslator = messageTranslator;
-  }
-
-  SolaceJcsmpMessageAcker getMessageAcker() {
-    return messageAcker;
-  }
-
-  void setMessageAcker(SolaceJcsmpMessageAcker messageAcker) {
-    this.messageAcker = messageAcker;
   }
 
   permissions endpointPermissions() {
@@ -260,5 +272,22 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
    */
   public void setAcknowledgeMode(String acknowledgeMode) {
     this.acknowledgeMode = acknowledgeMode;
+  }
+
+  public Boolean getTraceLogTimings() {
+    return traceLogTimings;
+  }
+
+  /**
+   * For debugging purposes you may want to see trace logging (in the interlok logs) of the steps
+   * this consume will go through to consume, translate and process the incoming messages.  The default value is false.
+   * @param traceLogTimings
+   */
+  public void setTraceLogTimings(Boolean traceLogTimings) {
+    this.traceLogTimings = traceLogTimings;
+  }
+  
+  boolean traceLogTimings() {
+    return ObjectUtils.defaultIfNull(this.getTraceLogTimings(), false);
   }
 }

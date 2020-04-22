@@ -2,6 +2,8 @@ package com.adaptris.core.jcsmp.solace;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.validation.constraints.NotNull;
 
@@ -15,20 +17,24 @@ import com.adaptris.core.ProduceException;
 import com.adaptris.core.ProduceOnlyProducerImp;
 import com.adaptris.core.jcsmp.solace.util.Timer;
 import com.adaptris.core.util.ExceptionHelper;
+import com.adaptris.util.NumberUtils;
 import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.Destination;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPSession;
+import com.solacesystems.jcsmp.JCSMPStreamingPublishEventHandler;
 import com.solacesystems.jcsmp.XMLMessageProducer;
 
 public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp {
 
+  private static final int DEFAULT_MAX_WAIT = 5000;
+  
   @NotNull
   @AutoPopulated
   private SolaceJcsmpMessageTranslator messageTranslator;
   
-  private transient SolaceJcsmpProducerEventHandler producerEventHandler;
+  private Integer maxWaitOnProduceMillis;
   
   private transient JCSMPFactory jcsmpFactory;
   
@@ -38,11 +44,13 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
   
   private transient Map<String, Destination> destinationCache;
   
+  private transient CountDownLatch producerLatch; // is this thread safe?
+  
+  private Boolean traceLogTimings;
   
   public SolaceJcsmpAbstractProducer() {
     this.setMessageTranslator(new SolaceJcsmpBytesMessageTranslator());
     this.setDestinationCache(new HashMap<String, Destination>());
-    this.setProducerEventHandler(new SolaceJcsmpLoggingProducerEventHandler());
   }
   @Override
   public void prepare() throws CoreException {
@@ -53,28 +61,39 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
     this.getDestinationCache().clear();
     this.setMessageProducer(null);
     this.setCurrentSession(null);
-    this.getProducerEventHandler().setProducer(this);
   }
 
   @Override
   public void produce(AdaptrisMessage msg, ProduceDestination destination) throws ProduceException {
     try {
+      Timer.start("OnProduce", 100);
+      this.setProducerLatch(new CountDownLatch(1));
       Destination dest = generateDestination(msg, destination);
-      XMLMessageProducer jcsmpMessageProducer = messageProducer();
       
-      Timer.start("OnReceive", "Producer-Translator", 1000);
+      Timer.start("OnProduce", "setupProducer", 100);
+      XMLMessageProducer jcsmpMessageProducer = messageProducer(msg, producerLatch);
+      Timer.stop("OnProduce", "setupProducer");
+      
+      Timer.start("OnProduce", "Producer-Translator", 100);
       BytesXMLMessage translatedMessage = this.getMessageTranslator().translate(msg);
-      Timer.stop("OnReceive", "Producer-Translator");
+      Timer.stop("OnProduce", "Producer-Translator");
       // assumes the message ID is the same as that assigned by the consumer.
       // If we're using a splitter this may break.
       translatedMessage.setCorrelationKey(msg.getUniqueId());
       
-      Timer.start("OnReceive", "Producer", 1000);
+      Timer.start("OnProduce", "Producer", 100);
       jcsmpMessageProducer.send(translatedMessage, dest);
-      Timer.stop("OnReceive", "Producer");
+      Timer.stop("OnProduce", "Producer");
+      
+      Timer.start("OnProduce", "AwaitAsyncCallback", 100);
+      if(!this.getProducerLatch().await(maxWaitOnProduceMillis(), TimeUnit.MILLISECONDS))
+        throw new ProduceException("VPN has not ackowledged our sent message in time.");
+      Timer.stop("OnProduce", "AwaitAsyncCallback");
 
+      Timer.stop("OnProduce");
+      if(traceLogTimings())
+        Timer.log("OnProduce");
     } catch (Exception ex) {
-      this.retrieveConnection(SolaceJcsmpConnection.class).getConnectionErrorHandler().handleConnectionException();
       throw ExceptionHelper.wrapProduceException(ex);
     }
   }
@@ -88,10 +107,22 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
     return this.getCurrentSession();
   }
   
-  XMLMessageProducer messageProducer() throws JCSMPException, Exception {
-    if(this.getMessageProducer() == null)
-      this.setMessageProducer(session().getMessageProducer(this.getProducerEventHandler()));
-
+  XMLMessageProducer messageProducer(AdaptrisMessage msg, CountDownLatch producerLatch) throws JCSMPException, Exception {
+    // What if the session has gone down?
+    if(this.getMessageProducer() == null) {
+      this.setMessageProducer(session().getMessageProducer(new JCSMPStreamingPublishEventHandler() {
+        
+        @Override
+        public void responseReceived(String messageId) {
+          getProducerLatch().countDown();
+        }
+        
+        @Override
+        public void handleError(String messageId, JCSMPException exception, long arg2) {
+          log.error("Failed to send JCSMP message.", exception);
+        }
+      }));
+    }
     return this.getMessageProducer();
   }
   
@@ -99,16 +130,13 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
     return messageTranslator;
   }
 
+  /**
+   * The message translator is responsible for translating the Solace JCSMP message object
+   * into an {@link AdaptrisMessage} and the reverse.  The translator will typically handle the payload and the headers/metadata.
+   * @param messageTranslator
+   */
   public void setMessageTranslator(SolaceJcsmpMessageTranslator messageTranslator) {
     this.messageTranslator = messageTranslator;
-  }
-
-  SolaceJcsmpProducerEventHandler getProducerEventHandler() {
-    return producerEventHandler;
-  }
-
-  void setProducerEventHandler(SolaceJcsmpProducerEventHandler producerEventHandler) {
-    this.producerEventHandler = producerEventHandler;
   }
 
   JCSMPFactory jcsmpFactory() {
@@ -146,5 +174,47 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
   void setDestinationCache(Map<String, Destination> queueCache) {
     this.destinationCache = queueCache;
   }
+  
+  CountDownLatch getProducerLatch() {
+    return producerLatch;
+  }
+  
+  void setProducerLatch(CountDownLatch producerLatch) {
+    this.producerLatch = producerLatch;
+  }
+  
+  /**
+   * This is the maximum amount in milliseconds of time to wait for the Solace VPN send a success or failure message back 
+   * after producing a message.  Should this time expire, the produced message will be deemed to have failed.
+   * @return
+   */
+  public Integer getMaxWaitOnProduceMillis() {
+    return maxWaitOnProduceMillis;
+  }
+  
+  public void setMaxWaitOnProduceMillis(Integer maxWaitOnProduceMillis) {
+    this.maxWaitOnProduceMillis = maxWaitOnProduceMillis;
+  }
 
+  Integer maxWaitOnProduceMillis() {
+    return NumberUtils.toIntDefaultIfNull(this.getMaxWaitOnProduceMillis(), DEFAULT_MAX_WAIT);
+  }
+  
+  public Boolean getTraceLogTimings() {
+    return traceLogTimings;
+  }
+
+  /**
+   * For debugging purposes you may want to see trace logging (in the interlok logs) of the steps
+   * this producer will go through to translate, produce the message to the Solace VPN and
+   * then wait for the acknowledgement.  The default value is false.
+   * @param traceLogTimings
+   */
+  public void setTraceLogTimings(Boolean traceLogTimings) {
+    this.traceLogTimings = traceLogTimings;
+  }
+  
+  boolean traceLogTimings() {
+    return ObjectUtils.defaultIfNull(this.getTraceLogTimings(), false);
+  }
 }

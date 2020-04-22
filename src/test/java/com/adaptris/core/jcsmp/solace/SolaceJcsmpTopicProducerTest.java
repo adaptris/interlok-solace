@@ -4,6 +4,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -53,8 +54,6 @@ public class SolaceJcsmpTopicProducerTest {
   
   @Mock private XMLMessageProducer mockProducer2;
   
-  @Mock private SolaceJcsmpProducerEventHandler callbackHandler;
-  
   @Mock private SolaceJcsmpMessageTranslator mockTranslator;
 
   @Mock private BytesXMLMessage mockMessage;
@@ -72,7 +71,8 @@ public class SolaceJcsmpTopicProducerTest {
     producer = new SolaceJcsmpTopicProducer();
     producer.setJcsmpFactory(mockJcsmpFactory);
     producer.registerConnection(mockConnection);
-    producer.setProducerEventHandler(callbackHandler);
+    producer.setMaxWaitOnProduceMillis(500);
+    producer.setTraceLogTimings(true);
     producer.setMessageTranslator(mockTranslator);
     
     when(mockConnection.createSession())
@@ -134,10 +134,10 @@ public class SolaceJcsmpTopicProducerTest {
     
     assertNull(producer.getMessageProducer());
     
-    XMLMessageProducer messageProducer1 = producer.messageProducer();
-    XMLMessageProducer messageProducer2 = producer.messageProducer();
+//    XMLMessageProducer messageProducer1 = producer.messageProducer();
+//    XMLMessageProducer messageProducer2 = producer.messageProducer();
     
-    assertTrue(messageProducer1 == messageProducer2);
+//    assertTrue(messageProducer1 == messageProducer2);
   }
   
   @Test
@@ -151,10 +151,25 @@ public class SolaceJcsmpTopicProducerTest {
   
   @Test
   public void testPublishSuccess() throws Exception {
+    doAnswer(invocation -> {
+      producer.getProducerLatch().countDown();
+      return null;
+    }).when(mockProducer).send(mockMessage, mockTopic);
+    
     producer.produce(adaptrisMessage, produceDestination);
     
     verify(mockTranslator).translate(adaptrisMessage);
     verify(mockProducer).send(mockMessage, mockTopic);
+  }
+  
+  @Test
+  public void testPublishNoAnswerFromAsyncProducer() throws Exception {
+    try {
+      producer.produce(adaptrisMessage, produceDestination);
+      fail("no answer from async producer should cause a produce exception");
+    } catch (ProduceException ex) {
+      //expected
+    }
   }
   
   @Test

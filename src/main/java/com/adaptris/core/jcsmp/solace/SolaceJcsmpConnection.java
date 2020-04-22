@@ -53,7 +53,7 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
   
   private transient JCSMPFactory jcsmpFactory;
 
-  private transient Boolean additionalDebug;
+  private Boolean additionalDebug;
 
   public SolaceJcsmpConnection() {
     super();
@@ -179,7 +179,7 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
   }
 
   /**
-   * Your Solace password (supports Interlok encoding/decoding).
+   * Your Solace password (supports Interlok password encoding/decoding).
    * @param password
    */
   public void setPassword(String password) {
