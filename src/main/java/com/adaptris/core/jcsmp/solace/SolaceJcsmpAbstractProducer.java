@@ -9,6 +9,7 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.ObjectUtils;
 
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisMessage;
@@ -45,6 +46,7 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
   
   private transient Map<String, Destination> destinationCache;
   
+  @AdvancedConfig(rare=true)
   @InputFieldDefault(value = "false")
   private Boolean traceLogTimings;
   
@@ -177,7 +179,7 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
     this.maxWaitOnProduceMillis = maxWaitOnProduceMillis;
   }
 
-  Integer maxWaitOnProduceMillis() {
+  int maxWaitOnProduceMillis() {
     return NumberUtils.toIntDefaultIfNull(this.getMaxWaitOnProduceMillis(), DEFAULT_MAX_WAIT);
   }
   

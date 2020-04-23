@@ -6,6 +6,7 @@ import javax.validation.constraints.Pattern;
 
 import org.apache.commons.lang3.ObjectUtils;
 
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
@@ -32,6 +33,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
 
   private static final String DEFAULT_ACKNOWLEDGE_MODE = "CLIENT";
   
+  @AdvancedConfig(rare=true)
   @InputFieldDefault(value = "false")
   private Boolean traceLogTimings;
 
