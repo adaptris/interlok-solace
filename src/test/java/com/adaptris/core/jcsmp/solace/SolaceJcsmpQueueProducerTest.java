@@ -10,6 +10,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -150,7 +152,8 @@ public class SolaceJcsmpQueueProducerTest {
   @Test
   public void testPublishSuccess() throws Exception {
     doAnswer(invocation -> {
-      producer.getProducerLatch().countDown();
+      CountDownLatch latch = ((CountDownLatch) adaptrisMessage.getObjectHeaders().get(SolaceJcsmpProduceEventHandler.SOLACE_LATCH_KEY));
+      latch.countDown();
       return null;
     }).when(mockProducer).send(mockMessage, mockQueue);
     

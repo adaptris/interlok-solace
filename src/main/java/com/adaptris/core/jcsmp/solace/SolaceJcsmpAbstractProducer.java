@@ -24,7 +24,6 @@ import com.solacesystems.jcsmp.Destination;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPSession;
-import com.solacesystems.jcsmp.JCSMPStreamingPublishEventHandler;
 import com.solacesystems.jcsmp.XMLMessageProducer;
 
 public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp {
@@ -45,8 +44,6 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
   private transient XMLMessageProducer messageProducer;
   
   private transient Map<String, Destination> destinationCache;
-  
-  private transient CountDownLatch producerLatch;
   
   @InputFieldDefault(value = "false")
   private Boolean traceLogTimings;
@@ -70,11 +67,12 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
   public void produce(AdaptrisMessage msg, ProduceDestination destination) throws ProduceException {
     try {
       Timer.start("OnProduce", 100);
-      this.setProducerLatch(new CountDownLatch(1));
+      CountDownLatch messageLatch = new CountDownLatch(1);
+      msg.getObjectHeaders().put(SolaceJcsmpProduceEventHandler.SOLACE_LATCH_KEY, messageLatch);
       Destination dest = generateDestination(msg, destination);
       
       Timer.start("OnProduce", "setupProducer", 100);
-      XMLMessageProducer jcsmpMessageProducer = messageProducer(msg, producerLatch);
+      XMLMessageProducer jcsmpMessageProducer = messageProducer(msg);
       Timer.stop("OnProduce", "setupProducer");
       
       Timer.start("OnProduce", "Producer-Translator", 100);
@@ -89,7 +87,7 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
       Timer.stop("OnProduce", "Producer");
       
       Timer.start("OnProduce", "AwaitAsyncCallback", 100);
-      if(!this.getProducerLatch().await(maxWaitOnProduceMillis(), TimeUnit.MILLISECONDS))
+      if(!messageLatch.await(maxWaitOnProduceMillis(), TimeUnit.MILLISECONDS))
         throw new ProduceException("VPN has not ackowledged our sent message in time.");
       Timer.stop("OnProduce", "AwaitAsyncCallback");
 
@@ -97,6 +95,7 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
       if(traceLogTimings())
         Timer.log("OnProduce");
     } catch (Exception ex) {
+      this.setMessageProducer(null);
       throw ExceptionHelper.wrapProduceException(ex);
     }
   }
@@ -110,22 +109,9 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
     return this.getCurrentSession();
   }
   
-  XMLMessageProducer messageProducer(AdaptrisMessage msg, CountDownLatch producerLatch) throws JCSMPException, Exception {
-    // What if the session has gone down?
-    if(this.getMessageProducer() == null) {
-      this.setMessageProducer(session().getMessageProducer(new JCSMPStreamingPublishEventHandler() {
-        
-        @Override
-        public void responseReceived(String messageId) {
-          getProducerLatch().countDown();
-        }
-        
-        @Override
-        public void handleError(String messageId, JCSMPException exception, long arg2) {
-          log.error("Failed to send JCSMP message.", exception);
-        }
-      }));
-    }
+  XMLMessageProducer messageProducer(AdaptrisMessage msg) throws JCSMPException, Exception {
+    if((this.getMessageProducer() == null) || (this.getCurrentSession() == null) || (this.getCurrentSession().isClosed()))
+    this.setMessageProducer(session().getMessageProducer(new SolaceJcsmpProduceEventHandler(msg)));
     return this.getMessageProducer();
   }
   
@@ -176,14 +162,6 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
 
   void setDestinationCache(Map<String, Destination> queueCache) {
     this.destinationCache = queueCache;
-  }
-  
-  CountDownLatch getProducerLatch() {
-    return producerLatch;
-  }
-  
-  void setProducerLatch(CountDownLatch producerLatch) {
-    this.producerLatch = producerLatch;
   }
   
   /**
