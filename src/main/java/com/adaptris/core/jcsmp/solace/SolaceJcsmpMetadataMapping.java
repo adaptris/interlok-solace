@@ -14,7 +14,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * <p>
  * When translating from Solace to Adaptris messages, the header keys will be used to generate a getter call.
  * For example, if we set the headerKey to "MessageId" and the metadataKey to "message-id" then Interlok will call the getter <code>getMessageId()</code>,
- * the value for which will be copied into the Adaptris Message metadata item with the kay "message-id".
+ * the value for which will be copied into the Adaptris Message metadata item with the key "message-id".
  * </p>
  * <p>
  * When translating from Adaptris to Solace messages, the header keys will be used to generate a setter call.

@@ -8,6 +8,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AllowsRetriesConnection;
@@ -53,7 +54,8 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
   
   private transient JCSMPFactory jcsmpFactory;
 
-  private transient Boolean additionalDebug;
+  @InputFieldDefault(value = "false")
+  private Boolean additionalDebug;
 
   public SolaceJcsmpConnection() {
     super();
@@ -179,7 +181,7 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
   }
 
   /**
-   * Your Solace password (supports Interlok encoding/decoding).
+   * Your Solace password (supports Interlok password encoding/decoding).
    * @param password
    */
   public void setPassword(String password) {

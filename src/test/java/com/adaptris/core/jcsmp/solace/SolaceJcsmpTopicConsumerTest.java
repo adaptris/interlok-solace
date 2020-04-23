@@ -51,8 +51,6 @@ private SolaceJcsmpTopicConsumer consumer;
   
   @Mock private ConnectionErrorHandler mockConnectionErrorHandler;
   
-  @Mock private SolaceJcsmpMessageAcker mockMessageAcker;
-  
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
@@ -63,7 +61,6 @@ private SolaceJcsmpTopicConsumer consumer;
     consumer.setDestination(new ConfiguredConsumeDestination("myQueue"));
     consumer.setMessageTranslator(mockTranslator);
     consumer.registerAdaptrisMessageListener(mockMessageListener);
-    consumer.setMessageAcker(mockMessageAcker);
     
     when(mockConnection.createSession())
         .thenReturn(mockSession);
