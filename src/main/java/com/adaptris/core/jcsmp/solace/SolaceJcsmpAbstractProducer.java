@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 import org.apache.commons.lang3.ObjectUtils;
 
 import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ProduceDestination;
@@ -34,6 +35,7 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
   @AutoPopulated
   private SolaceJcsmpMessageTranslator messageTranslator;
   
+  @InputFieldDefault(value = "5000")
   private Integer maxWaitOnProduceMillis;
   
   private transient JCSMPFactory jcsmpFactory;
@@ -44,8 +46,9 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
   
   private transient Map<String, Destination> destinationCache;
   
-  private transient CountDownLatch producerLatch; // is this thread safe?
+  private transient CountDownLatch producerLatch;
   
+  @InputFieldDefault(value = "false")
   private Boolean traceLogTimings;
   
   public SolaceJcsmpAbstractProducer() {

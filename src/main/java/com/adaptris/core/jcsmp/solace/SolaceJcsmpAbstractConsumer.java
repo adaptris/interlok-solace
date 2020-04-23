@@ -32,6 +32,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
 
   private static final String DEFAULT_ACKNOWLEDGE_MODE = "CLIENT";
   
+  @InputFieldDefault(value = "false")
   private Boolean traceLogTimings;
 
   @NotNull

@@ -8,6 +8,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AllowsRetriesConnection;
@@ -53,6 +54,7 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
   
   private transient JCSMPFactory jcsmpFactory;
 
+  @InputFieldDefault(value = "false")
   private Boolean additionalDebug;
 
   public SolaceJcsmpConnection() {
