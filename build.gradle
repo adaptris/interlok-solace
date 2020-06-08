@@ -30,7 +30,7 @@ ext {
   organizationName = "Adaptris Ltd"
   organizationUrl = "http://interlok.adaptris.net"
   slf4jVersion = '1.7.30'
-  solaceVersion = '10.6.4'
+  solaceVersion='10.8.1'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
@@ -135,9 +135,9 @@ dependencies {
   compile ("com.adaptris:interlok-common:$interlokCoreVersion") { changing= true}
   compile ("com.adaptris:interlok-licensing:$interlokCoreVersion") { changing= true}
 
-  compile "com.solacesystems:sol-common:$solaceVersion", optional
-  compile "com.solacesystems:sol-jcsmp:$solaceVersion", optional
-  compile "com.solacesystems:sol-jms:$solaceVersion", optional
+  compile "com.solacesystems:sol-common:$solaceVersion"
+  compile "com.solacesystems:sol-jcsmp:$solaceVersion"
+  compile "com.solacesystems:sol-jms:$solaceVersion"
 
   compile ("org.slf4j:slf4j-api:$slf4jVersion")
 
