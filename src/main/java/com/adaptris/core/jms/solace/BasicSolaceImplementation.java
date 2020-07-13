@@ -1,7 +1,5 @@
 package com.adaptris.core.jms.solace;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.validation.constraints.NotNull;
@@ -10,7 +8,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
-import com.adaptris.annotation.Removal;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.jms.JmsActorConfig;
 import com.adaptris.core.jms.JmsDestination;
@@ -21,8 +18,7 @@ import com.adaptris.core.licensing.License;
 import com.adaptris.core.licensing.License.LicenseType;
 import com.adaptris.core.licensing.LicenseChecker;
 import com.adaptris.core.licensing.LicensedComponent;
-import com.adaptris.core.util.LoggingHelper;
-import com.adaptris.util.NumberUtils;
+import com.adaptris.interlok.util.Args;
 import com.solacesystems.jms.SolConnectionFactory;
 import com.solacesystems.jms.SolJmsUtility;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -61,13 +57,6 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
 
   private static final int DEFAULT_SMF_PORT = 55555;
   private static boolean warningLogged = false;
-  @Deprecated
-  @Removal(message = "Use broker-url instead", version = "3.11.0")
-  private String hostname;
-
-  @Deprecated
-  @Removal(message = "Use broker-url instead", version = "3.11.0")
-  private Integer port;
 
   @NotNull
   @AutoPopulated
@@ -83,13 +72,6 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
 
   @Override
   public SolConnectionFactory createConnectionFactory() throws JMSException {
-    if (isBlank(getBrokerUrl()) && isNotBlank(getHostname())) {
-      LoggingHelper.logWarning(warningLogged, () -> {
-        warningLogged = true;
-      }, "hostname and port are deprecated; please use broker-url instead");
-      setBrokerUrl(getHostname() + (configuredLegacyPort() != DEFAULT_SMF_PORT ? ":" + configuredLegacyPort() : ""));
-    }
-
     try {
       SolConnectionFactory connnectionFactory = SolJmsUtility.createConnectionFactory();
       connnectionFactory.setHost(getBrokerUrl());
@@ -138,43 +120,6 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
     return consumerCreator.createTopicSubscriber(topicName, selector, subscriptionId, c);
   }
 
-  @Deprecated
-  @Removal(message = "Use broker-url instead", version = "3.11.0")
-  public String getHostname() {
-    return hostname;
-  }
-
-  /**
-   * Appliance or VMR host name, must be prefixed with smf://
-   * @param hostname
-   */
-  @Deprecated
-  @Removal(message = "Use broker-url instead", version = "3.11.0")
-  public void setHostname(String hostname) {
-    this.hostname = hostname;
-  }
-
-  @Deprecated
-  @Removal(message = "Use broker-url instead", version = "3.11.0")
-  public Integer getPort() {
-    return port;
-  }
-
-  /**
-   * Port number.
-   *
-   * @param port
-   */
-  @Deprecated
-  @Removal(message = "Use broker-url instead", version = "3.11.0")
-  public void setPort(Integer port) {
-    this.port = port;
-  }
-
-  private int configuredLegacyPort() {
-    return NumberUtils.toIntDefaultIfNull(getPort(), DEFAULT_SMF_PORT);
-  }
-
   public String getMessageVpn() {
     return messageVpn;
   }
@@ -196,7 +141,6 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
       BasicSolaceImplementation rhs = (BasicSolaceImplementation) other;
       return new EqualsBuilder()
         .append(getBrokerUrl(), rhs.getBrokerUrl())
-        .append(getPort(), rhs.getPort())
         .append(getMessageVpn(), rhs.getMessageVpn())
         .isEquals();
     }
@@ -206,6 +150,7 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
 
   @Override
   public void prepare() throws CoreException {
+    Args.notBlank(getBrokerUrl(), "broker-url");
     LicenseChecker.newChecker().checkLicense(this);
     super.prepare();
   }

@@ -3,12 +3,9 @@ package com.adaptris.core.jms.solace;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
 import javax.jms.JMSException;
-
 import org.junit.Before;
 import org.junit.Test;
-
 import com.adaptris.core.jms.solace.parameters.Client;
 import com.adaptris.core.jms.solace.parameters.ConnectionTuning;
 import com.adaptris.core.jms.solace.parameters.Keepalive;
@@ -22,29 +19,28 @@ import com.adaptris.core.jms.solace.parameters.SendTuning;
 import com.solacesystems.jms.SolConnectionFactory;
 
 public class ExtraParametersTest {
-  
+
   private SolConnectionFactory cf;
-  
+
   @Before
   public void setup() throws JMSException {
     BasicSolaceImplementation sol = new BasicSolaceImplementation();
-    sol.setHostname("tcp://hostname");
+    sol.setBrokerUrl("tcp://hostname:12345");
     sol.setMessageVpn("vpn1");
-    sol.setPort(12345);
     cf = sol.createConnectionFactory();
   }
-  
+
   @Test
   public void testClient() {
     final String CLIENT_ID = "clientId";
     final String CLIENT_DESCRIPTION = "description";
-    
+
     Client client = new Client();
     client.setClientId(CLIENT_ID);
     client.setClientDescription(CLIENT_DESCRIPTION);
-    
+
     client.apply(cf);
-    
+
     assertEquals(CLIENT_ID, cf.getClientID());
     assertEquals(CLIENT_DESCRIPTION, cf.getClientDescription());
   }
@@ -59,9 +55,9 @@ public class ExtraParametersTest {
     ct.setReconnectRetries(78);
     ct.setReconnectRetryWaitInMillis(3345);
     ct.setTcpNoDelay(true);
-    
+
     ct.apply(cf);
-    
+
     assertEquals(42, cf.getConnectRetries().intValue());
     assertEquals(34, cf.getConnectRetriesPerHost().intValue());
     assertEquals(34567, cf.getConnectTimeoutInMillis().intValue());
@@ -70,47 +66,47 @@ public class ExtraParametersTest {
     assertEquals(3345, cf.getReconnectRetryWaitInMillis().intValue());
     assertTrue(cf.getTcpNoDelay());
   }
-  
+
   @Test
   public void testKeepalive() {
     Keepalive ka = new Keepalive();
     ka.setKeepAliveCountMax(42);
     ka.setKeepAliveIntervalInMillis(5678);
     ka.setKeepAlives(true);
-    
+
     ka.apply(cf);
-    
+
     assertEquals(42, cf.getKeepAliveCountMax().intValue());
     assertEquals(5678, cf.getKeepAliveIntervalInMillis().intValue());
     assertTrue(cf.getKeepAlives());
   }
-  
+
   @Test
   public void testKerberos() {
     final String KRB_SERVICE_NAME = "service name";
-    
+
     Kerberos krb = new Kerberos();
     krb.setKrbMutualAuthentication(true);
     krb.setKrbServiceName(KRB_SERVICE_NAME);
-    
+
     krb.apply(cf);
-    
+
     assertTrue(cf.getKRBMutualAuthentication());
     assertEquals(KRB_SERVICE_NAME, cf.getKRBServiceName());
   }
-  
+
   @Test
   public void testReceiveFlags() {
     ReceiveFlags rf = new ReceiveFlags();
     rf.setDeliverToOne(true);
     rf.setDeliverToOneOverride(true);
-    
+
     rf.apply(cf);
-    
+
     assertTrue(cf.getDeliverToOne());
     assertTrue(cf.getDeliverToOneOverride());
   }
-  
+
   @Test
   public void testReceiveTuning() throws Exception {
     ReceiveTuning rt = new ReceiveTuning();
@@ -120,9 +116,9 @@ public class ExtraParametersTest {
     rt.setReceiveBufferSize(4567);
     rt.setSubscriberLocalPriority(3);
     rt.setSubscriberNetworkPriority(4);
-    
+
     rt.apply(cf);
-    
+
     assertEquals(1234, cf.getReceiveAdAckThreshold().intValue());
     assertEquals(2345, cf.getReceiveADAckTimerInMillis().intValue());
     assertEquals(3456, cf.getReceiveADWindowSize().intValue());
@@ -130,7 +126,7 @@ public class ExtraParametersTest {
     assertEquals(3, cf.getSubscriberLocalPriority().intValue());
     assertEquals(4, cf.getSubscriberNetworkPriority().intValue());
   }
-  
+
   @Test
   public void testSendFlags() throws Exception {
     SendFlags sf = new SendFlags();
@@ -138,15 +134,15 @@ public class ExtraParametersTest {
     sf.setElidingEligible(true);
     sf.setGenerateSenderID(true);
     sf.setXmlPayload(true);
-    
+
     sf.apply(cf);
-    
+
     assertTrue(cf.getDmqEligible());
     assertTrue(cf.getElidingEligible());
     assertTrue(cf.getGenerateSenderID());
     assertTrue(cf.getXmlPayload());
   }
-  
+
   @Test
   public void testSendTuning() throws Exception {
     SendTuning st = new SendTuning();
@@ -154,15 +150,15 @@ public class ExtraParametersTest {
     st.setSendAdMaxResends(2345);
     st.setSendAdWindowSize(3456);
     st.setSendBufferSize(4567);
-    
+
     st.apply(cf);
-    
+
     assertEquals(1234, cf.getSendADAckTimerInMillis().intValue());
     assertEquals(2345, cf.getSendADMaxResends().intValue());
     assertEquals(3456, cf.getSendADWindowSize().intValue());
     assertEquals(4567, cf.getSendBufferSize().intValue());
   }
-  
+
   @Test
   public void testSSL() throws Exception {
     final String CIPHER_SUITES = "some_cipher,some_other_cipher";
@@ -177,7 +173,7 @@ public class ExtraParametersTest {
     final String TRUSTSTORE_FILENAME = "truststore.jks";
     final String TRUSTSTORE_FORMAT = "JKS";
     final String TRUSTSTORE_PASSWORD = "password2";
-    
+
     SSL ssl = new SSL();
     ssl.setCipherSuites(CIPHER_SUITES);
     ssl.setExcludedProtocols(EXCLUDED_PROTOCOLS);
@@ -189,7 +185,7 @@ public class ExtraParametersTest {
     ssl.setTrustStore(keystore(TRUSTSTORE_FILENAME, TRUSTSTORE_FORMAT, TRUSTSTORE_PASSWORD));
     ssl.setValidateCertificate(false);
     ssl.setValidateCertificateDate(false);
-    
+
     ssl.apply(cf);
 
     assertEquals(CIPHER_SUITES, cf.getSSLCipherSuites());
@@ -207,7 +203,7 @@ public class ExtraParametersTest {
     assertFalse(cf.getSSLValidateCertificate());
     assertFalse(cf.getSSLValidateCertificateDate());
   }
-  
+
   private KeyStore keystore(String filename, String format, String password) {
     KeyStore ks = new KeyStore();
     ks.setFilename(filename);
