@@ -1,25 +1,20 @@
 package com.adaptris.core.jms.solace;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.Topic;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.adaptris.core.ConsumeDestination;
 import com.adaptris.core.jms.JmsActorConfig;
 import com.adaptris.core.jms.JmsDestination;
 import com.adaptris.core.jms.JmsDestination.DestinationType;
-import com.adaptris.core.jms.VendorImplementation;
 
 public class ConsumerCreator {
-  
+
   protected transient Logger log = LoggerFactory.getLogger(this.getClass());
 
   /**
@@ -27,13 +22,13 @@ public class ConsumerCreator {
    * If a Solace queue has been shutdown, we should wait for it to come back up before
    * we continue.
    * </p>
-   * @see VendorImplementation#createQueue(java.lang.String, JmsActorConfig)
    */
-  public MessageConsumer createQueueReceiver(ConsumeDestination cd, JmsActorConfig c, int maxRetries, int waitBetweenRetries)
+  public MessageConsumer createQueueReceiver(String queueName, String selector, JmsActorConfig c,
+      int maxRetries, int waitBetweenRetries)
       throws JMSException {
     Session s = c.currentSession();
-    Queue q = s.createQueue(cd.getDestination());
-    return createConsumerWithRetry(s, q, cd.getFilterExpression(), false, maxRetries, waitBetweenRetries);
+    Queue q = s.createQueue(queueName);
+    return createConsumerWithRetry(s, q, selector, false, maxRetries, waitBetweenRetries);
   }
 
   public MessageConsumer createConsumer(JmsDestination d, String selector, JmsActorConfig c, int maxRetries, int waitBetweenRetries) throws JMSException {
@@ -46,23 +41,24 @@ public class ConsumerCreator {
     return consumer;
   }
 
-  public MessageConsumer createTopicSubscriber(ConsumeDestination cd, String subscriptionId,
+  public MessageConsumer createTopicSubscriber(String topicName, String selector,
+      String subscriptionId,
       JmsActorConfig c) throws JMSException {
     Session s = c.currentSession();
-    Topic t = s.createTopic(cd.getDestination());
+    Topic t = s.createTopic(topicName);
     MessageConsumer result = null;
     if (!isEmpty(subscriptionId)) {
-      result = s.createDurableSubscriber(t, subscriptionId, cd.getFilterExpression(), false);
+      result = s.createDurableSubscriber(t, subscriptionId, selector, false);
     } else {
-      result = s.createConsumer(t, cd.getFilterExpression());
+      result = s.createConsumer(t, selector);
     }
     return result;
   }
-  
+
   /**
    * With Solace you can shut a queue down, which would mean it fails to startup.
    * So here we will retry to create the consumer as many times as configured.
-   * 
+   *
    * @param session
    * @param destination
    * @param selector
@@ -75,7 +71,7 @@ public class ConsumerCreator {
   protected MessageConsumer createConsumerWithRetry(Session session, Destination destination, String selector, boolean noLocal, int maxRetries, int waitBetweenRetries) throws JMSException {
     MessageConsumer returnedConsumer = null;
     JMSException lastException = null;
-    
+
     int retries = 0;
     while((returnedConsumer == null) && ((retries <= maxRetries) || (maxRetries <= 0) )) {
       try {
@@ -90,14 +86,14 @@ public class ConsumerCreator {
           log.warn("Interrupted while trying to create a message consumer.  Exiting.");
           break;
         }
-        
+
       }
     }
-    
+
     if(returnedConsumer == null)
       throw lastException;
-    
+
     return returnedConsumer;
   }
-  
+
 }

@@ -2,19 +2,15 @@ package com.adaptris.core.jms.solace;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.validation.constraints.NotNull;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.ObjectUtils;
-
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.Removal;
-import com.adaptris.core.ConsumeDestination;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.jms.JmsActorConfig;
 import com.adaptris.core.jms.JmsDestination;
@@ -42,49 +38,49 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * <b>This was built against Solace 10.6.0</b>
  * </p>
  * <p>
- * 
+ *
  * @config basic-solace-implementation
  * @license BASIC
  */
 @XStreamAlias("basic-solace-implementation")
 public class BasicSolaceImplementation extends UrlVendorImplementation implements LicensedComponent {
-  
+
   private static final int DEFAULT_CREATE_CONSUMER_RETRY_WAIT_SECONDS = 30;
-  
+
   private static final int DEFAULT_CREATE_CONSUMER_RETRIES = 0;
-  
+
   @AdvancedConfig
   @AutoPopulated
   @InputFieldDefault(value = "30")
   private Integer createConsumerRetryWaitSeconds;
-  
+
   @AutoPopulated
   @AdvancedConfig
   @InputFieldDefault(value = "0")
   private Integer createConsumerMaxRetries;
-  
+
   private static final int DEFAULT_SMF_PORT = 55555;
   private static boolean warningLogged = false;
   @Deprecated
   @Removal(message = "Use broker-url instead", version = "3.11.0")
   private String hostname;
-  
+
   @Deprecated
   @Removal(message = "Use broker-url instead", version = "3.11.0")
   private Integer port;
-  
+
   @NotNull
   @AutoPopulated
   @InputFieldDefault(value = "default")
   private String messageVpn;
-  
+
   private transient ConsumerCreator consumerCreator;
-  
+
   public BasicSolaceImplementation() {
     super();
     consumerCreator = new ConsumerCreator();
   }
-  
+
   @Override
   public SolConnectionFactory createConnectionFactory() throws JMSException {
     if (isBlank(getBrokerUrl()) && isNotBlank(getHostname())) {
@@ -93,15 +89,15 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
       }, "hostname and port are deprecated; please use broker-url instead");
       setBrokerUrl(getHostname() + (configuredLegacyPort() != DEFAULT_SMF_PORT ? ":" + configuredLegacyPort() : ""));
     }
-    
+
     try {
       SolConnectionFactory connnectionFactory = SolJmsUtility.createConnectionFactory();
       connnectionFactory.setHost(getBrokerUrl());
       connnectionFactory.setVPN(messageVpn());
       // Username and password will be set in .connect(username, password)
       return connnectionFactory;
-      
-      
+
+
     } catch (JMSException e) {
       throw e;
     } catch (Exception e) {
@@ -110,12 +106,12 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
       throw ex;
     }
   }
-  
+
   @Override
   public String retrieveBrokerDetailsForLogging() {
     return String.format("Solace host: %s; Message vpn: %s", getBrokerUrl(), getMessageVpn());
   }
-  
+
   /**
    * <p>
    * If a Solace queue has been shutdown, we should wait for it to come back up before
@@ -124,9 +120,10 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
    * @see VendorImplementation#createQueue(java.lang.String, JmsActorConfig)
    */
   @Override
-  public MessageConsumer createQueueReceiver(ConsumeDestination cd, JmsActorConfig c)
+  public MessageConsumer createQueueReceiver(String queueName, String selector, JmsActorConfig c)
       throws JMSException {
-    return consumerCreator.createQueueReceiver(cd, c, createConsumerMaxRetries(), createConsumerRetryWaitSeconds());
+    return consumerCreator.createQueueReceiver(queueName, selector, c, createConsumerMaxRetries(),
+        createConsumerRetryWaitSeconds());
   }
 
   @Override
@@ -135,9 +132,10 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
   }
 
   @Override
-  public MessageConsumer createTopicSubscriber(ConsumeDestination cd, String subscriptionId,
+  public MessageConsumer createTopicSubscriber(String topicName, String selector,
+      String subscriptionId,
       JmsActorConfig c) throws JMSException {
-    return consumerCreator.createTopicSubscriber(cd, subscriptionId, c);
+    return consumerCreator.createTopicSubscriber(topicName, selector, subscriptionId, c);
   }
 
   @Deprecated
@@ -164,7 +162,7 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
 
   /**
    * Port number.
-   * 
+   *
    * @param port
    */
   @Deprecated
@@ -220,7 +218,7 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
   public Integer createConsumerRetryWaitSeconds() {
     return getCreateConsumerRetryWaitSeconds() == null? DEFAULT_CREATE_CONSUMER_RETRY_WAIT_SECONDS : getCreateConsumerRetryWaitSeconds();
   }
-  
+
   /**
    * Returns the amount of time in seconds to wait before each attempt to create the message consumer.
    */
@@ -238,7 +236,7 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
   public Integer createConsumerMaxRetries() {
     return getCreateConsumerMaxRetries() == null? DEFAULT_CREATE_CONSUMER_RETRIES : getCreateConsumerMaxRetries();
   }
-  
+
   /**
    * <p>Returns the maximum amount of times to retry attempting to create the message consumer.</p>
    * <p>A value of zero means continue trying forever</p>

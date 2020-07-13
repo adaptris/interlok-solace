@@ -1,6 +1,5 @@
 package com.adaptris.core.jms.solace;
 
-import com.adaptris.core.ConfiguredConsumeDestination;
 import com.adaptris.core.StandaloneConsumer;
 import com.adaptris.core.jms.JmsConnection;
 import com.adaptris.core.jms.JmsConnectionErrorHandler;
@@ -19,7 +18,7 @@ public class BasicSolaceConsumerTest extends JmsConsumerCase {
 
   @Override
   protected Object retrieveObjectForSampleConfig() {
-    JmsConsumer consumer = new JmsConsumer(new ConfiguredConsumeDestination("jms:queue:MyQueueName"));
+    JmsConsumer consumer = new JmsConsumer().withEndpoint("jms:queue:MyQueueName");
     StandaloneConsumer result = new StandaloneConsumer(configure(new JmsConnection()), consumer);
     return result;
   }
