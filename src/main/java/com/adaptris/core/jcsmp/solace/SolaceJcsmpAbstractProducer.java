@@ -50,9 +50,6 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
     setMessageTranslator(new SolaceJcsmpBytesMessageTranslator());
     setDestinationCache(new HashMap<String, Destination>());
   }
-  @Override
-  public void prepare() throws CoreException {
-  }
 
   @Override
   public void init() throws CoreException {
