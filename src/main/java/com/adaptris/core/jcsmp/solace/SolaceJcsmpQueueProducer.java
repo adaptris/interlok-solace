@@ -36,18 +36,18 @@ import lombok.Setter;
 public class SolaceJcsmpQueueProducer extends SolaceJcsmpAbstractProducer {
 
   /**
-   * The destination represents the base-directory where you are producing files to.
+   * The destination is the Solace Queue
    *
    */
   @Getter
   @Setter
   @Deprecated
   @Valid
-  @Removal(version = "4.0.0", message = "Use 'path' instead")
+  @Removal(version = "4.0.0", message = "Use 'queue' instead")
   private ProduceDestination destination;
 
   /**
-   * The SMB Path to write files to in the form {@code \\server-name\shareName\path\to\dir}.
+   * The Solace Queue
    *
    */
   @InputFieldHint(expression = true)

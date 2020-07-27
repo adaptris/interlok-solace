@@ -31,22 +31,22 @@ import lombok.Setter;
 @ComponentProfile(summary="A Solace native JCSMP component will produce your messages to the Solace VPN topic.", tag="topic,producer,solace,jcsmp", since="3.9.3")
 @XStreamAlias("solace-jcsmp-topic-producer")
 @NoArgsConstructor
-@DisplayOrder(order = {"queue", "maxWaitOnProduceMillis", "traceLogTimings", "messageTranslator"})
+@DisplayOrder(order = {"topic", "maxWaitOnProduceMillis", "traceLogTimings", "messageTranslator"})
 public class SolaceJcsmpTopicProducer extends SolaceJcsmpAbstractProducer {
 
   /**
-   * The destination represents the base-directory where you are producing files to.
+   * The destination is the Solace Topic
    *
    */
   @Getter
   @Setter
   @Deprecated
   @Valid
-  @Removal(version = "4.0.0", message = "Use 'path' instead")
+  @Removal(version = "4.0.0", message = "Use 'topic' instead")
   private ProduceDestination destination;
 
   /**
-   * The SMB Path to write files to in the form {@code \\server-name\shareName\path\to\dir}.
+   * The Solace Topic
    *
    */
   @InputFieldHint(expression = true)
