@@ -26,7 +26,7 @@ public class SolaceJcsmpProduceEventHandlerTest {
   public void setUp() throws Exception {
     message = DefaultMessageFactory.getDefaultInstance().newMessage();
     
-    eventHandler = new SolaceJcsmpProduceEventHandler(message);
+    eventHandler = new SolaceJcsmpProduceEventHandler(null);
   }
   
   @After

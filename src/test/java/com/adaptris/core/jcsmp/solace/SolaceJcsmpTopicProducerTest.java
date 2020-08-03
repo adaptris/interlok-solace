@@ -70,7 +70,6 @@ public class SolaceJcsmpTopicProducerTest {
     producer = new SolaceJcsmpTopicProducer();
     producer.setJcsmpFactory(mockJcsmpFactory);
     producer.registerConnection(mockConnection);
-    producer.setMaxWaitOnProduceMillis(500);
     producer.setTraceLogTimings(true);
     producer.setMessageTranslator(mockTranslator);
     producer.setTopic("myDestination");
