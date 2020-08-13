@@ -43,6 +43,7 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishEven
       log.warn("Received failure callback for an unknown message {}", messageId);
     } else {
       defaultIfNull(callbackConsumers.getOnFailure(), (msg) -> {   }).accept(callbackConsumers.getMessage());
+      getUnAckedMessages().remove(messageId);
     }
     
     getProducer().retrieveConnection(SolaceJcsmpConnection.class).getConnectionErrorHandler().handleConnectionException();
@@ -57,6 +58,7 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishEven
         log.warn("Received success callback for an unknown message {}", messageId);
       } else {
         defaultIfNull(callbackConsumers.getOnSuccess(), (msg) -> {   }).accept(callbackConsumers.getMessage());
+        getUnAckedMessages().remove(messageId);
       }
       
       logRemainingUnAckedMessages();
@@ -66,9 +68,11 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishEven
   }
 
   public void addUnAckedMessage(String messageId, AdaptrisMessage message) {
-    new CallbackConsumers(message,
+    log.trace("Adding message to un'acked list with id {}", messageId);
+    CallbackConsumers callbackConsumers = new CallbackConsumers(message,
         (Consumer<AdaptrisMessage>) message.getObjectHeaders().get(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK),
         (Consumer<AdaptrisMessage>) message.getObjectHeaders().get(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK));
+    this.getUnAckedMessages().put(messageId, callbackConsumers);
   }
 
   private void logRemainingUnAckedMessages() {

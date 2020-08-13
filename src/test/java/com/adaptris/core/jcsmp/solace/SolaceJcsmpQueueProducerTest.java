@@ -4,21 +4,19 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import java.util.concurrent.CountDownLatch;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.DefaultMessageFactory;
-import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.util.LifecycleHelper;
 import com.solacesystems.jcsmp.BytesXMLMessage;
@@ -36,7 +34,7 @@ public class SolaceJcsmpQueueProducerTest {
 
   private AdaptrisMessage adaptrisMessage;
 
-  private ProduceDestination produceDestination;
+  private String produceDestination;
 
   @Mock private SolaceJcsmpConnection mockConnection;
 
@@ -64,7 +62,7 @@ public class SolaceJcsmpQueueProducerTest {
 
     adaptrisMessage = DefaultMessageFactory.getDefaultInstance().newMessage();
 
-    produceDestination = new ConfiguredProduceDestination("myDestination");
+    produceDestination = "myDestination";
 
     producer = new SolaceJcsmpQueueProducer();
     producer.setJcsmpFactory(mockJcsmpFactory);
@@ -72,6 +70,7 @@ public class SolaceJcsmpQueueProducerTest {
 //    producer.setProducerEventHandler(callbackHandler);
     producer.setMessageTranslator(mockTranslator);
     producer.setQueue("myDestination");
+    producer.setTraceLogTimings(false);
 
     when(mockConnection.createSession())
         .thenReturn(mockSession);
@@ -131,11 +130,6 @@ public class SolaceJcsmpQueueProducerTest {
         .thenReturn(mockProducer2);
 
     assertNull(producer.getMessageProducer());
-
-//    XMLMessageProducer messageProducer1 = producer.messageProducer();
-//    XMLMessageProducer messageProducer2 = producer.messageProducer();
-
-//    assertTrue(messageProducer1 == messageProducer2);
   }
 
   @Test
@@ -149,27 +143,10 @@ public class SolaceJcsmpQueueProducerTest {
 
   @Test
   public void testPublishSuccess() throws Exception {
-    doAnswer(invocation -> {
-      CountDownLatch latch = ((CountDownLatch) adaptrisMessage.getObjectHeaders().get(SolaceJcsmpProduceEventHandler.SOLACE_LATCH_KEY));
-      latch.countDown();
-      return null;
-    }).when(mockProducer).send(mockMessage, mockQueue);
-
-    producer.produce(adaptrisMessage, produceDestination);
-
+    producer.doProduce(adaptrisMessage, produceDestination);
 
     verify(mockTranslator).translate(adaptrisMessage);
     verify(mockProducer).send(mockMessage, mockQueue);
-  }
-
-  @Test
-  public void testPublishNoAnswerFromAsyncProducer() throws Exception {
-    try {
-      producer.produce(adaptrisMessage, produceDestination);
-      fail("no answer from async producer should cause a produce exception");
-    } catch (ProduceException ex) {
-      // expected
-    }
   }
 
   @Test
@@ -178,7 +155,7 @@ public class SolaceJcsmpQueueProducerTest {
         .when(mockProducer).send(mockMessage, mockQueue);
 
     try {
-      producer.produce(adaptrisMessage, produceDestination);
+      producer.doProduce(adaptrisMessage, produceDestination);
       fail("Produce should fail.");
     } catch (ProduceException ex) {
    // expected

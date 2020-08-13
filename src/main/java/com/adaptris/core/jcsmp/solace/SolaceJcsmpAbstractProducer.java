@@ -11,6 +11,7 @@ import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.CoreConstants;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.ProduceOnlyProducerImp;
@@ -71,14 +72,16 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
       BytesXMLMessage translatedMessage = getMessageTranslator().translate(msg);
       Timer.stop("OnProduce", "Producer-Translator");
       
-      getAsynEventHandler().addUnAckedMessage(translatedMessage.getMessageId(), msg);
-      // assumes the message ID is the same as that assigned by the consumer.
-      // If we're using a splitter this may break.
       translatedMessage.setCorrelationKey(msg.getUniqueId());
 
       Timer.start("OnProduce", "Producer", 100);
       jcsmpMessageProducer.send(translatedMessage, dest);
+      getAsynEventHandler().addUnAckedMessage(translatedMessage.getMessageId(), msg);
       Timer.stop("OnProduce", "Producer");
+      // Standard workflow will attempt to execute this after the produce, 
+      // let's remove them so it's handled by our async event handler.
+      msg.getObjectHeaders().remove(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK);
+      msg.getObjectHeaders().remove(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK);
 
       Timer.stop("OnProduce");
       if(traceLogTimings())
