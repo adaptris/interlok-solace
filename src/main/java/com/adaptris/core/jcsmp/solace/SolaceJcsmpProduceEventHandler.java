@@ -13,9 +13,34 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ComponentLifecycle;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.CoreException;
+import com.adaptris.core.jms.JmsConsumer;
+import com.adaptris.core.jms.JmsPollingConsumer;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPStreamingPublishEventHandler;
 
+/**
+ * <p>
+ * A Solace JCSMP asynchronous producer event handler that is registered to the Solace producer.
+ * </p>
+ * <p>
+ * After a message has been produced to the Solace VPN this event handler will be called at some point in the future
+ * with either a success (the message was received without error) or failure (an error occurred on the Solace VPN). 
+ * </p>
+ * <p>
+ * Once either a success or failure event for any given produced message is received this event handler will 
+ * execute the registered AdaptrisMessage's success or failure code.  The code executed on success or fail is determined by the 
+ * consumer that originally created the message.  For example; if your consumer is JMS, then on success of the producer producing the message
+ * the success code will likely be an acknowledgement/commit of the originally consumed message.
+ * </p>
+ * <p>
+ * <b>NOTE:</b> The success and failure code executed will not run in the workflow thread, but a callback thread maintained by the Solace client API.
+ * Therefore if you're bridging a JMS consumer to this Solace producer, then you must make sure your JMS consumer is run in asynchronous mode too.
+ * Standard rules of JMS will not allow you to act on (acknowledge/commit) a consumed message in a thread that is not the delivery thread.
+ * Simply make sure your not using a JMS message listener such as {@link JmsConsumer}, but instead an asynchronous consumer like {@link JmsPollingConsumer}.
+ * </p>
+ * @author Aaron
+ *
+ */
 public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishEventHandler, ComponentLifecycle {
   
   protected transient Logger log = LoggerFactory.getLogger(this.getClass().getName());
