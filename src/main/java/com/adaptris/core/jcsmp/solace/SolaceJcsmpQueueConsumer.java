@@ -25,7 +25,7 @@ import lombok.Setter;
  * There are four main components that you will need to configure;
  * <ul>
  * <li><b>Destination: </b> The Solace end point to consume messages from.</li>
- * <li><b>End point permissions: </b> Should match the Solace configured end point properties.</li>
+ * <li><b>End point permissions: </b> Should match the Solace configured endpoint properties.</li>
  * <li><b>End point access type: </b> Should match either EXCLUSIVE or NONEXCLUSIVE</li>
  * <li><b>Acknowledge mode: </b> Should either be CLIENT or AUTO.</li>
  * </ul>

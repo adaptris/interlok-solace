@@ -6,6 +6,9 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.function.Consumer;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -105,7 +108,7 @@ private SolaceJcsmpTopicConsumer consumer;
     consumer.onReceive(mockBytesMessage);
 
     verify(mockTranslator).translate(mockBytesMessage);
-    verify(mockMessageListener).onAdaptrisMessage(any(AdaptrisMessage.class));
+    verify(mockMessageListener).onAdaptrisMessage(any(AdaptrisMessage.class), any(Consumer.class), any(Consumer.class));
   }
 
   @Test
@@ -118,7 +121,7 @@ private SolaceJcsmpTopicConsumer consumer;
     consumer.onReceive(mockBytesMessage);
 
     verify(mockTranslator).translate(mockBytesMessage);
-    verify(mockMessageListener, times(0)).onAdaptrisMessage(any(AdaptrisMessage.class));
+    verify(mockMessageListener, times(0)).onAdaptrisMessage(any(AdaptrisMessage.class), any(Consumer.class), any(Consumer.class));
   }
 
   @Test

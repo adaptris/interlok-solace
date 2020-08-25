@@ -1,9 +1,13 @@
 package com.adaptris.core.jcsmp.solace;
 
+import java.util.function.Consumer;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+
 import org.apache.commons.lang3.ObjectUtils;
+
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
@@ -131,18 +135,22 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
       AdaptrisMessage adaptrisMessage = getMessageTranslator().translate(message);
       Timer.stop("OnReceive", "TranslateMessage");
       
-      Timer.start("OnReceive", "ProcessMessage", 100);
-      retrieveAdaptrisMessageListener().onAdaptrisMessage(adaptrisMessage);
-      Timer.stop("OnReceive", "ProcessMessage");
-      if(acknowledgeMode().equals(ackMode.CLIENT)) {
-        if(!adaptrisMessage.getObjectHeaders().containsKey(CoreConstants.OBJ_METADATA_EXCEPTION)) {
+      Consumer<AdaptrisMessage> successCallback = adpMessage -> {
+        if(acknowledgeMode().equals(ackMode.CLIENT)) {
           Timer.start("OnReceive", "AckMessage", 100);
           message.ackMessage();
           Timer.stop("OnReceive", "AckMessage");
-        } else {
-          log.error("Message failed.  Will not acknowledge.", adaptrisMessage.getObjectHeaders().get(CoreConstants.OBJ_METADATA_EXCEPTION_CAUSE));
         }
-      }
+      };
+      
+      Consumer<AdaptrisMessage> failureCallback = adpMessage -> {
+        log.error("Message failed.  Will not acknowledge.", adaptrisMessage.getObjectHeaders().get(CoreConstants.OBJ_METADATA_EXCEPTION_CAUSE));
+      };
+      
+      Timer.start("OnReceive", "ProcessMessage", 100);
+      retrieveAdaptrisMessageListener().onAdaptrisMessage(adaptrisMessage, successCallback, failureCallback);
+      Timer.stop("OnReceive", "ProcessMessage");
+      
       Timer.stop("OnReceive");
       if(traceLogTimings())
         Timer.log("OnReceive");

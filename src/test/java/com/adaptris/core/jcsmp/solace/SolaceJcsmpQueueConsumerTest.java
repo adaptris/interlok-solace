@@ -3,18 +3,21 @@ package com.adaptris.core.jcsmp.solace;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.AdaptrisMessageListener;
+import com.adaptris.core.AdaptrisMessageProducer;
 import com.adaptris.core.ConnectionErrorHandler;
 import com.adaptris.core.CoreException;
+import com.adaptris.core.DefaultMessageFactory;
+import com.adaptris.core.stubs.MockMessageListener;
 import com.adaptris.core.util.LifecycleHelper;
 import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.FlowReceiver;
@@ -42,25 +45,32 @@ public class SolaceJcsmpQueueConsumerTest {
 
   @Mock private SolaceJcsmpMessageTranslator mockTranslator;
 
-  @Mock private AdaptrisMessageListener mockMessageListener;
+  @Mock private AdaptrisMessageProducer mockProducer;
 
-  @Mock private AdaptrisMessage mockAdpMessage;
+  private MockMessageListener mockListener;
+
+  private AdaptrisMessage mockAdpMessage;
 
   @Mock private ConnectionErrorHandler mockConnectionErrorHandler;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
+    
+    mockAdpMessage = DefaultMessageFactory.getDefaultInstance().newMessage();
+    
+    mockListener = new MockMessageListener();
 
     consumer = new SolaceJcsmpQueueConsumer();
     consumer.registerConnection(mockConnection);
     consumer.setJcsmpFactory(mockJcsmpFactory);
     consumer.setQueue("myQueue");
     consumer.setMessageTranslator(mockTranslator);
-    consumer.registerAdaptrisMessageListener(mockMessageListener);
+    consumer.registerAdaptrisMessageListener(mockListener);
     consumer.setAcknowledgeMode("CLIENT");
     consumer.setEndpointAccessType("NONEXCLUSIVE");
     consumer.setEndpointPermissions("CONSUME");
+    consumer.setTraceLogTimings(true);
 
     when(mockConnection.createSession())
         .thenReturn(mockSession);
@@ -108,7 +118,7 @@ public class SolaceJcsmpQueueConsumerTest {
     consumer.onReceive(mockBytesMessage);
 
     verify(mockTranslator).translate(mockBytesMessage);
-    verify(mockMessageListener).onAdaptrisMessage(any(AdaptrisMessage.class));
+    verify(mockBytesMessage).ackMessage();
   }
 
   @Test
@@ -121,7 +131,6 @@ public class SolaceJcsmpQueueConsumerTest {
     consumer.onReceive(mockBytesMessage);
 
     verify(mockTranslator).translate(mockBytesMessage);
-    verify(mockMessageListener, times(0)).onAdaptrisMessage(any(AdaptrisMessage.class));
   }
 
   @Test
