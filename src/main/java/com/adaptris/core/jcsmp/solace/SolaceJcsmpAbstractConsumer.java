@@ -16,6 +16,8 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageConsumerImp;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.CoreException;
+import com.adaptris.core.jcsmp.solace.translator.SolaceJcsmpMessageTranslator;
+import com.adaptris.core.jcsmp.solace.translator.SolaceJcsmpTextMessageTranslator;
 import com.adaptris.core.jcsmp.solace.util.Timer;
 import com.adaptris.core.util.ExceptionHelper;
 import com.solacesystems.jcsmp.BytesXMLMessage;
@@ -117,7 +119,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   }
   
   public SolaceJcsmpAbstractConsumer() {
-    setMessageTranslator(new SolaceJcsmpBytesMessageTranslator());
+    setMessageTranslator(new SolaceJcsmpTextMessageTranslator());
   }
   
   @Override

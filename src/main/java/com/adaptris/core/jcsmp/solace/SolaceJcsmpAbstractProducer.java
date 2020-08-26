@@ -15,13 +15,15 @@ import com.adaptris.core.CoreConstants;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.ProduceOnlyProducerImp;
+import com.adaptris.core.jcsmp.solace.translator.SolaceJcsmpMessageTranslator;
+import com.adaptris.core.jcsmp.solace.translator.SolaceJcsmpTextMessageTranslator;
 import com.adaptris.core.jcsmp.solace.util.Timer;
 import com.adaptris.core.util.ExceptionHelper;
-import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.Destination;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPSession;
+import com.solacesystems.jcsmp.XMLMessage;
 import com.solacesystems.jcsmp.XMLMessageProducer;
 
 public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp {
@@ -45,7 +47,7 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
   private Boolean traceLogTimings;
 
   public SolaceJcsmpAbstractProducer() {
-    setMessageTranslator(new SolaceJcsmpBytesMessageTranslator());
+    setMessageTranslator(new SolaceJcsmpTextMessageTranslator());
     setDestinationCache(new HashMap<String, Destination>());
     setAsynEventHandler(new SolaceJcsmpProduceEventHandler(this));
   }
@@ -69,7 +71,7 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
       Timer.stop("OnProduce", "setupProducer");
 
       Timer.start("OnProduce", "Producer-Translator", 100);
-      BytesXMLMessage translatedMessage = getMessageTranslator().translate(msg);
+      XMLMessage translatedMessage = getMessageTranslator().translate(msg);
       Timer.stop("OnProduce", "Producer-Translator");
       
       translatedMessage.setCorrelationKey(msg.getUniqueId());
