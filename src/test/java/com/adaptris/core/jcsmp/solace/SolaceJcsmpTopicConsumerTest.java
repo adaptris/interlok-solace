@@ -18,6 +18,7 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageListener;
 import com.adaptris.core.ConnectionErrorHandler;
 import com.adaptris.core.CoreException;
+import com.adaptris.core.jcsmp.solace.translator.SolaceJcsmpMessageTranslator;
 import com.adaptris.core.util.LifecycleHelper;
 import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.JCSMPException;
