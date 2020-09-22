@@ -2,13 +2,11 @@ package com.adaptris.core.jms.solace;
 
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldDefault;
-import com.adaptris.core.ConsumeDestination;
 import com.adaptris.core.jms.JmsActorConfig;
 import com.adaptris.core.jms.JmsDestination;
 import com.adaptris.core.jms.VendorImplementation;
@@ -30,7 +28,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * <b>This was built against Solace 10.6.0</b>
  * </p>
  * <p>
- * 
+ *
  * @config solace-jndi-implementation
  * @license BASIC
  */
@@ -38,23 +36,23 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @ComponentProfile(summary = "Custom solace JNDI implementation that has consumer creation reties should it error when starting up/restarting..", tag = "consumer,jms,jndi,vendor")
 @XStreamAlias("solace-jndi-implementation")
 public class SolaceJndiVendorImplementation extends StandardJndiImplementation {
-  
+
   private static final int DEFAULT_CREATE_CONSUMER_RETRY_WAIT_SECONDS = 30;
-  
+
   private static final int DEFAULT_CREATE_CONSUMER_RETRIES = 0;
-  
+
   @AdvancedConfig
   @AutoPopulated
   @InputFieldDefault(value = "30")
   private Integer createConsumerRetryWaitSeconds;
-  
+
   @AutoPopulated
   @AdvancedConfig
   @InputFieldDefault(value = "0")
   private Integer createConsumerMaxRetries;
-  
+
   private transient ConsumerCreator consumerCreator;
-  
+
   public SolaceJndiVendorImplementation() {
     consumerCreator = new ConsumerCreator();
   }
@@ -67,9 +65,10 @@ public class SolaceJndiVendorImplementation extends StandardJndiImplementation {
    * @see VendorImplementation#createQueue(java.lang.String, JmsActorConfig)
    */
   @Override
-  public MessageConsumer createQueueReceiver(ConsumeDestination cd, JmsActorConfig c)
+  public MessageConsumer createQueueReceiver(String queueName, String selector, JmsActorConfig c)
       throws JMSException {
-    return consumerCreator.createQueueReceiver(cd, c, createConsumerMaxRetries(), createConsumerRetryWaitSeconds());
+    return consumerCreator.createQueueReceiver(queueName, selector, c, createConsumerMaxRetries(),
+        createConsumerRetryWaitSeconds());
   }
 
   @Override
@@ -78,15 +77,16 @@ public class SolaceJndiVendorImplementation extends StandardJndiImplementation {
   }
 
   @Override
-  public MessageConsumer createTopicSubscriber(ConsumeDestination cd, String subscriptionId,
+  public MessageConsumer createTopicSubscriber(String topicName, String selector,
+      String subscriptionId,
       JmsActorConfig c) throws JMSException {
-    return consumerCreator.createTopicSubscriber(cd, subscriptionId, c);
+    return consumerCreator.createTopicSubscriber(topicName, selector, subscriptionId, c);
   }
-  
+
   public Integer createConsumerRetryWaitSeconds() {
     return getCreateConsumerRetryWaitSeconds() == null? DEFAULT_CREATE_CONSUMER_RETRY_WAIT_SECONDS : getCreateConsumerRetryWaitSeconds();
   }
-  
+
   /**
    * Returns the amount of time in seconds to wait before each attempt to create the message consumer.
    */
@@ -104,7 +104,7 @@ public class SolaceJndiVendorImplementation extends StandardJndiImplementation {
   public Integer createConsumerMaxRetries() {
     return getCreateConsumerMaxRetries() == null? DEFAULT_CREATE_CONSUMER_RETRIES : getCreateConsumerMaxRetries();
   }
-  
+
   /**
    * <p>Returns the maximum amount of times to retry attempting to create the message consumer.</p>
    * <p>A value of zero means continue trying forever</p>

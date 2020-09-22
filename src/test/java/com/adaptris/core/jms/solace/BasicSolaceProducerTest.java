@@ -1,6 +1,5 @@
 package com.adaptris.core.jms.solace;
 
-import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.jms.JmsConnection;
 import com.adaptris.core.jms.JmsConnectionErrorHandler;
@@ -20,7 +19,7 @@ public class BasicSolaceProducerTest extends JmsProducerExample {
   @Override
   protected Object retrieveObjectForSampleConfig() {
 
-    JmsProducer producer = new JmsProducer(new ConfiguredProduceDestination("jms:queue:MyQueueName"));
+    JmsProducer producer = new JmsProducer().withEndpoint("jms:queue:MyQueueName");
     StandaloneProducer result = new StandaloneProducer(configure(new JmsConnection()), producer);
 
     return result;

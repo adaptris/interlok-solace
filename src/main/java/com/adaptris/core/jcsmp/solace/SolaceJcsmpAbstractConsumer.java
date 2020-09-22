@@ -1,5 +1,7 @@
 package com.adaptris.core.jcsmp.solace;
 
+import java.util.function.Consumer;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -14,6 +16,8 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageConsumerImp;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.CoreException;
+import com.adaptris.core.jcsmp.solace.translator.SolaceJcsmpMessageTranslator;
+import com.adaptris.core.jcsmp.solace.translator.SolaceJcsmpTextMessageTranslator;
 import com.adaptris.core.jcsmp.solace.util.Timer;
 import com.adaptris.core.util.ExceptionHelper;
 import com.solacesystems.jcsmp.BytesXMLMessage;
@@ -115,7 +119,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   }
   
   public SolaceJcsmpAbstractConsumer() {
-    this.setMessageTranslator(new SolaceJcsmpBytesMessageTranslator());
+    setMessageTranslator(new SolaceJcsmpTextMessageTranslator());
   }
   
   @Override
@@ -133,18 +137,22 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
       AdaptrisMessage adaptrisMessage = getMessageTranslator().translate(message);
       Timer.stop("OnReceive", "TranslateMessage");
       
-      Timer.start("OnReceive", "ProcessMessage", 100);
-      retrieveAdaptrisMessageListener().onAdaptrisMessage(adaptrisMessage);
-      Timer.stop("OnReceive", "ProcessMessage");
-      if(this.acknowledgeMode().equals(ackMode.CLIENT)) {
-        if(!adaptrisMessage.getObjectHeaders().containsKey(CoreConstants.OBJ_METADATA_EXCEPTION)) {
+      Consumer<AdaptrisMessage> successCallback = adpMessage -> {
+        if(acknowledgeMode().equals(ackMode.CLIENT)) {
           Timer.start("OnReceive", "AckMessage", 100);
           message.ackMessage();
           Timer.stop("OnReceive", "AckMessage");
-        } else {
-          log.error("Message failed.  Will not acknowledge.", adaptrisMessage.getObjectHeaders().get(CoreConstants.OBJ_METADATA_EXCEPTION_CAUSE));
         }
-      }
+      };
+      
+      Consumer<AdaptrisMessage> failureCallback = adpMessage -> {
+        log.error("Message failed.  Will not acknowledge.", adaptrisMessage.getObjectHeaders().get(CoreConstants.OBJ_METADATA_EXCEPTION_CAUSE));
+      };
+      
+      Timer.start("OnReceive", "ProcessMessage", 100);
+      retrieveAdaptrisMessageListener().onAdaptrisMessage(adaptrisMessage, successCallback, failureCallback);
+      Timer.stop("OnReceive", "ProcessMessage");
+      
       Timer.stop("OnReceive");
       if(traceLogTimings())
         Timer.log("OnReceive");
@@ -152,16 +160,11 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
       log.error("Failed to translate message.", e);
     }
   }
-
-  @Override
-  public void prepare() throws CoreException {
-    
-  }
   
   @Override
   public void start() throws CoreException {
     try {
-      this.startReceive();
+      startReceive();
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException("JCSMP Consumer, failed to start.", e);
     }
@@ -169,7 +172,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   
   @Override
   public void stop() {
-    this.getCurrentSession().closeSession();
+    getCurrentSession().closeSession();
   }
   
   protected ConsumerFlowProperties createConsumerFlowProperties(Queue queue) {
@@ -193,7 +196,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   public abstract void startReceive() throws Exception;
 
   JCSMPFactory jcsmpFactory() {
-    return ObjectUtils.defaultIfNull(this.getJcsmpFactory(), JCSMPFactory.onlyInstance());
+    return ObjectUtils.defaultIfNull(getJcsmpFactory(), JCSMPFactory.onlyInstance());
   }
   
   JCSMPFactory getJcsmpFactory() {
@@ -226,7 +229,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   }
 
   permissions endpointPermissions() {
-    return permissions.valueOf(ObjectUtils.defaultIfNull(this.getEndpointPermissions(), DEFAULT_ENDPOINT_PERMISSIONS));
+    return permissions.valueOf(ObjectUtils.defaultIfNull(getEndpointPermissions(), DEFAULT_ENDPOINT_PERMISSIONS));
   }
   
   public String getEndpointPermissions() {
@@ -243,7 +246,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   }
 
   accessType endpointAccessType() {
-    return accessType.valueOf(ObjectUtils.defaultIfNull(this.getEndpointAccessType(), DEFAULT_ENDPOINT_ACCESS_TYPE));
+    return accessType.valueOf(ObjectUtils.defaultIfNull(getEndpointAccessType(), DEFAULT_ENDPOINT_ACCESS_TYPE));
   }
   
   public String getEndpointAccessType() {
@@ -260,7 +263,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   }
 
   ackMode acknowledgeMode() {
-    return ackMode.valueOf(ObjectUtils.defaultIfNull(this.getAcknowledgeMode(), DEFAULT_ACKNOWLEDGE_MODE));
+    return ackMode.valueOf(ObjectUtils.defaultIfNull(getAcknowledgeMode(), DEFAULT_ACKNOWLEDGE_MODE));
   }
   
   public String getAcknowledgeMode() {
@@ -291,6 +294,6 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   }
   
   boolean traceLogTimings() {
-    return ObjectUtils.defaultIfNull(this.getTraceLogTimings(), false);
+    return ObjectUtils.defaultIfNull(getTraceLogTimings(), false);
   }
 }

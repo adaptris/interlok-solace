@@ -1,11 +1,19 @@
 package com.adaptris.core.jcsmp.solace;
 
+import javax.validation.Valid;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisMessageConsumer;
+import com.adaptris.core.ConsumeDestination;
+import com.adaptris.core.CoreException;
+import com.adaptris.core.util.DestinationHelper;
+import com.adaptris.core.util.LoggingHelper;
 import com.solacesystems.jcsmp.Topic;
 import com.solacesystems.jcsmp.XMLMessageConsumer;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * <p>
@@ -29,43 +37,80 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 public class SolaceJcsmpTopicConsumer extends SolaceJcsmpAbstractConsumer {
 
   private transient XMLMessageConsumer messageConsumer;
-  
+  private transient boolean destinationWarningLogged = false;
+
+  /**
+   * The consume destination is the topic that we receive messages from.
+   *
+   */
+  @Getter
+  @Setter
+  @Deprecated
+  @Valid
+  @Removal(version = "4.0.0", message = "Use 'topic' instead")
+  private ConsumeDestination destination;
+  /**
+   * The Solace Topic
+   *
+   */
+  @Getter
+  @Setter
+  // Needs to be @NotBlank when destination is removed.
+  private String topic;
+
   public SolaceJcsmpTopicConsumer() {
     super();
   }
-  
+
   @Override
   public void startReceive() throws Exception {
-    this.setCurrentSession(retrieveConnection(SolaceJcsmpConnection.class).createSession());
-    this.getCurrentSession().connect();
-    
-    this.setMessageConsumer(this.getCurrentSession().getMessageConsumer(this));
-    
-    final Topic topic = jcsmpFactory().createTopic(this.getDestination().getDestination());
-    this.getCurrentSession().addSubscription(topic);
-    this.getMessageConsumer().start();
+    setCurrentSession(retrieveConnection(SolaceJcsmpConnection.class).createSession());
+    getCurrentSession().connect();
+
+    setMessageConsumer(getCurrentSession().getMessageConsumer(this));
+
+    final Topic topic = jcsmpFactory().createTopic(topicName());
+    getCurrentSession().addSubscription(topic);
+    getMessageConsumer().start();
   }
 
   @Override
   public void stop() {
-    if(this.getMessageConsumer() != null)
-      this.getMessageConsumer().stop();
+    if(getMessageConsumer() != null)
+      getMessageConsumer().stop();
     super.stop();
   }
 
   @Override
   public void close() {
-    if(this.getMessageConsumer() != null)
-      this.getMessageConsumer().close();
+    if(getMessageConsumer() != null)
+      getMessageConsumer().close();
     super.close();
   }
-  
+
   XMLMessageConsumer getMessageConsumer() {
     return messageConsumer;
   }
 
   void setMessageConsumer(XMLMessageConsumer messageConsumer) {
     this.messageConsumer = messageConsumer;
+  }
+
+  @Override
+  public void prepare() throws CoreException {
+    DestinationHelper.logConsumeDestinationWarning(destinationWarningLogged,
+        () -> destinationWarningLogged = true, getDestination(),
+        "{} uses destination, use 'queue' instead", LoggingHelper.friendlyName(this));
+    DestinationHelper.mustHaveEither(getTopic(), getDestination());
+  }
+
+  @Override
+  protected String newThreadName() {
+    return DestinationHelper.threadName(retrieveAdaptrisMessageListener(), getDestination());
+  }
+
+  private String topicName() {
+    return DestinationHelper.consumeDestination(getTopic(), getDestination());
   }
 
 }
