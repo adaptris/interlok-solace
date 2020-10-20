@@ -16,6 +16,7 @@ import org.mockito.MockitoAnnotations;
 
 import com.adaptris.core.ConnectionErrorHandler;
 import com.adaptris.core.fs.FsConsumer;
+import com.adaptris.core.jcsmp.solace.auth.BasicAuthenticationProvider;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.util.TimeInterval;
 import com.solacesystems.jcsmp.InvalidPropertiesException;
@@ -65,6 +66,19 @@ public class SolaceJcsmpConnectionTest {
   
   @Test
   public void testConnectionSuccess() throws Exception {
+    LifecycleHelper.initAndStart(connection);
+    
+    assertNotNull(connection.createSession());
+  }
+  
+  @Test
+  public void testConnectionSuccessWithAuthProvider() throws Exception {
+    BasicAuthenticationProvider authenticationProvider = new BasicAuthenticationProvider();
+    authenticationProvider.setUsername("username");
+    authenticationProvider.setPassword("password");
+    
+    connection.setAuthenticationProvider(authenticationProvider);
+    
     LifecycleHelper.initAndStart(connection);
     
     assertNotNull(connection.createSession());

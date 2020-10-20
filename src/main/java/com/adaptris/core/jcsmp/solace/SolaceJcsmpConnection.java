@@ -10,9 +10,11 @@ import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
+import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AllowsRetriesConnection;
 import com.adaptris.core.CoreException;
+import com.adaptris.core.jcsmp.solace.auth.AuthenticationProvider;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.interlok.resolver.ExternalResolver;
 import com.adaptris.security.exc.PasswordException;
@@ -46,9 +48,14 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
   @NotNull
   private String vpn;
   
-  @NotNull
+  private AuthenticationProvider authenticationProvider;
+  
+  @Deprecated
+  @Removal(version = "4.0.0", message = "Set the credentials via one of the authentication providers.")
   private String username;
   
+  @Deprecated
+  @Removal(version = "4.0.0", message = "Set the credentials via one of the authentication providers.")
   @InputFieldHint(style = "PASSWORD", external=true)
   private String password;
   
@@ -129,13 +136,19 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
   protected void closeConnection() { 
   }
   
-  private JCSMPProperties generateJcsmpProperties() throws PasswordException {
-    JCSMPProperties properties = new JCSMPProperties();
-    properties.setProperty(JCSMPProperties.AUTHENTICATION_SCHEME, JCSMPProperties.AUTHENTICATION_SCHEME_BASIC);
+  private JCSMPProperties generateJcsmpProperties() throws CoreException, PasswordException {
+    JCSMPProperties properties = null;
+    if(getAuthenticationProvider() != null) {
+      properties = getAuthenticationProvider().setConnectionProperties();
+    } else {
+      properties = new JCSMPProperties();
+      properties.setProperty(JCSMPProperties.AUTHENTICATION_SCHEME, JCSMPProperties.AUTHENTICATION_SCHEME_BASIC);
+      properties.setProperty(JCSMPProperties.USERNAME, this.getUsername());
+      properties.setProperty(JCSMPProperties.PASSWORD, Password.decode(ExternalResolver.resolve(this.getPassword())));
+    }
+    
     properties.setProperty(JCSMPProperties.HOST, this.getHost());
     properties.setProperty(JCSMPProperties.VPN_NAME, this.getVpn());
-    properties.setProperty(JCSMPProperties.USERNAME, this.getUsername());
-    properties.setProperty(JCSMPProperties.PASSWORD, Password.decode(ExternalResolver.resolve(this.getPassword())));
     
     return properties;
   }
@@ -215,6 +228,18 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
 
   protected boolean additionalDebug() {
     return BooleanUtils.toBooleanDefaultIfNull(getAdditionalDebug(), false);
+  }
+
+  public AuthenticationProvider getAuthenticationProvider() {
+    return authenticationProvider;
+  }
+
+  /**
+   * How would you like to connect to Solace.
+   * @param authenticationProvider
+   */
+  public void setAuthenticationProvider(AuthenticationProvider authenticationProvider) {
+    this.authenticationProvider = authenticationProvider;
   }
 
 }
