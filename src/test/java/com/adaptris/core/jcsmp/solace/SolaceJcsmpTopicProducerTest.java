@@ -100,7 +100,7 @@ public class SolaceJcsmpTopicProducerTest {
         .thenReturn(mockSession)
         .thenReturn(mockSession2);
 
-    assertNull(producer.getCurrentSession());
+    assertNull(producer.getSessionHelper().getSession());
 
     JCSMPSession session1 = producer.session();
     JCSMPSession session2 = producer.session();
@@ -116,7 +116,7 @@ public class SolaceJcsmpTopicProducerTest {
     when(mockSession.isClosed())
         .thenReturn(true);
 
-    assertNull(producer.getCurrentSession());
+    assertNull(producer.getSessionHelper().getSession());
 
     JCSMPSession session1 = producer.session();
     JCSMPSession session2 = producer.session();

@@ -72,6 +72,7 @@ public class SolaceJcsmpQueueConsumerTest {
     consumer.setEndpointAccessType("NONEXCLUSIVE");
     consumer.setEndpointPermissions("CONSUME");
     consumer.setTraceLogTimings(true);
+    consumer.setTransacted(false);
 
     when(mockConnection.createSession())
         .thenReturn(mockSession);

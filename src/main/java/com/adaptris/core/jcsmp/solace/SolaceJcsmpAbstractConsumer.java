@@ -26,7 +26,6 @@ import com.solacesystems.jcsmp.EndpointProperties;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPProperties;
-import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.Queue;
 
 public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsumerImp implements SolaceJcsmpReceiverStarter {
@@ -65,10 +64,12 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   @InputFieldHint(style="com.adaptris.core.jcsmp.solace.ackMode")
   @Pattern(regexp = "CLIENT|AUTO")
   private String acknowledgeMode;
-    
-  private transient JCSMPFactory jcsmpFactory;
+
+  private Boolean transacted;
   
-  private transient JCSMPSession currentSession;
+  private transient SolaceJcsmpSessionHelper sessionHelper;
+  
+  private transient JCSMPFactory jcsmpFactory;
   
   public enum permissions {
     CONSUME {
@@ -120,6 +121,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   
   public SolaceJcsmpAbstractConsumer() {
     setMessageTranslator(new SolaceJcsmpTextMessageTranslator());
+    setSessionHelper(new SolaceJcsmpSessionHelper());
   }
   
   @Override
@@ -140,13 +142,14 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
       Consumer<AdaptrisMessage> successCallback = adpMessage -> {
         if(acknowledgeMode().equals(ackMode.CLIENT)) {
           Timer.start("OnReceive", "AckMessage", 100);
-          message.ackMessage();
+          getSessionHelper().commit(message);
           Timer.stop("OnReceive", "AckMessage");
         }
       };
       
       Consumer<AdaptrisMessage> failureCallback = adpMessage -> {
         log.error("Message failed.  Will not acknowledge.", adaptrisMessage.getObjectHeaders().get(CoreConstants.OBJ_METADATA_EXCEPTION_CAUSE));
+        getSessionHelper().rollback();
       };
       
       Timer.start("OnReceive", "ProcessMessage", 100);
@@ -162,6 +165,12 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   }
   
   @Override
+  public void init() throws CoreException {
+    getSessionHelper().setConnection(retrieveConnection(SolaceJcsmpConnection.class));
+    getSessionHelper().setTransacted(transacted());
+  }
+  
+  @Override
   public void start() throws CoreException {
     try {
       startReceive();
@@ -172,13 +181,16 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   
   @Override
   public void stop() {
-    getCurrentSession().closeSession();
+    getSessionHelper().close();
   }
   
   protected ConsumerFlowProperties createConsumerFlowProperties(Queue queue) {
     final ConsumerFlowProperties flowProps = new ConsumerFlowProperties();
     flowProps.setEndpoint(queue);
-    flowProps.setAckMode(acknowledgeMode().value());
+    if(transacted())
+      flowProps.setStartState(true);
+    else
+      flowProps.setAckMode(acknowledgeMode().value());
     
     return flowProps;
   }
@@ -205,14 +217,6 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
 
   void setJcsmpFactory(JCSMPFactory jcsmpFactory) {
     this.jcsmpFactory = jcsmpFactory;
-  }
-
-  JCSMPSession getCurrentSession() {
-    return currentSession;
-  }
-
-  void setCurrentSession(JCSMPSession currentSession) {
-    this.currentSession = currentSession;
   }
 
   public SolaceJcsmpMessageTranslator getMessageTranslator() {
@@ -295,5 +299,25 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   
   boolean traceLogTimings() {
     return ObjectUtils.defaultIfNull(getTraceLogTimings(), false);
+  }
+
+  public SolaceJcsmpSessionHelper getSessionHelper() {
+    return sessionHelper;
+  }
+
+  public void setSessionHelper(SolaceJcsmpSessionHelper sessionHelper) {
+    this.sessionHelper = sessionHelper;
+  }
+
+  boolean transacted() {
+    return ObjectUtils.defaultIfNull(getTransacted(), false);
+  }
+  
+  public Boolean getTransacted() {
+    return transacted;
+  }
+
+  public void setTransacted(Boolean transacted) {
+    this.transacted = transacted;
   }
 }

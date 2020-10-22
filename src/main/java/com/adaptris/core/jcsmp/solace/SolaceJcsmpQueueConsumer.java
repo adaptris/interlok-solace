@@ -1,6 +1,7 @@
 package com.adaptris.core.jcsmp.solace;
 
 import javax.validation.Valid;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.Removal;
@@ -13,6 +14,7 @@ import com.solacesystems.jcsmp.FlowReceiver;
 import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.Queue;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -64,12 +66,12 @@ public class SolaceJcsmpQueueConsumer extends SolaceJcsmpAbstractConsumer {
 
   @Override
   public void startReceive() throws Exception {
-    setCurrentSession(retrieveConnection(SolaceJcsmpConnection.class).createSession());
+    getSessionHelper().createSession();
 
     final Queue queue = jcsmpFactory().createQueue(queueName());
     // Actually provision it, and do not fail if it already exists
-    getCurrentSession().provision(queue, createEndpointProperties(), JCSMPSession.FLAG_IGNORE_ALREADY_EXISTS);
-    setFlowReceiver(getCurrentSession().createFlow(this, createConsumerFlowProperties(queue), createEndpointProperties()));
+    getSessionHelper().getSession().provision(queue, createEndpointProperties(), JCSMPSession.FLAG_IGNORE_ALREADY_EXISTS);
+    setFlowReceiver(getSessionHelper().getSession().createFlow(this, createConsumerFlowProperties(queue), createEndpointProperties()));
 
     getFlowReceiver().start();
   }
