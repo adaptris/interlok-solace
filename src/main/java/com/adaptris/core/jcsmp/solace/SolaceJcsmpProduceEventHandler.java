@@ -18,6 +18,10 @@ import com.adaptris.core.jms.JmsPollingConsumer;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPStreamingPublishEventHandler;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * <p>
  * A Solace JCSMP asynchronous producer event handler that is registered to the Solace producer.
@@ -47,10 +51,16 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishEven
   
   public static final String SOLACE_LATCH_KEY = "solaceJcsmpLath";
   
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
   private transient Map<String, CallbackConsumers> unAckedMessages;
   
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
   private transient SolaceJcsmpAbstractProducer producer;
   
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
   private volatile boolean acceptSuccessCallbacks;
 
   public SolaceJcsmpProduceEventHandler(SolaceJcsmpAbstractProducer producer) {
@@ -77,7 +87,7 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishEven
   @Override
   public void responseReceived(String messageId) {
     log.debug("Success callback received from Solace for message id {}", messageId);
-    if(this.isAcceptSuccessCallbacks()) {
+    if(this.getAcceptSuccessCallbacks()) {
       CallbackConsumers callbackConsumers = this.getUnAckedMessages().get(messageId);
       if(callbackConsumers == null) {
         log.warn("Received success callback for an unknown message {}", messageId);
@@ -92,6 +102,7 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishEven
     }
   }
 
+  @SuppressWarnings("unchecked")
   public void addUnAckedMessage(String messageId, AdaptrisMessage message) {
     log.trace("Adding message to un'acked list with id {}", messageId);
     CallbackConsumers callbackConsumers = new CallbackConsumers(message,
@@ -112,9 +123,15 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishEven
   
   class CallbackConsumers {
     
+    @Getter(AccessLevel.PACKAGE)
+    @Setter(AccessLevel.PACKAGE)
     private AdaptrisMessage message;
     
+    @Getter(AccessLevel.PACKAGE)
+    @Setter(AccessLevel.PACKAGE)
     private Consumer<AdaptrisMessage> onSuccess;
+    @Getter(AccessLevel.PACKAGE)
+    @Setter(AccessLevel.PACKAGE)
     private Consumer<AdaptrisMessage> onFailure;
     
     CallbackConsumers(AdaptrisMessage message, Consumer<AdaptrisMessage> onSuccess, Consumer<AdaptrisMessage> onFailure) {
@@ -122,53 +139,6 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishEven
       setOnSuccess(onSuccess);
       setOnFailure(onFailure);
     }
-
-    public Consumer<AdaptrisMessage> getOnSuccess() {
-      return onSuccess;
-    }
-
-    public Consumer<AdaptrisMessage> getOnFailure() {
-      return onFailure;
-    }
-
-    public void setOnSuccess(Consumer<AdaptrisMessage> onSuccess) {
-      this.onSuccess = onSuccess;
-    }
-
-    public void setOnFailure(Consumer<AdaptrisMessage> onFailure) {
-      this.onFailure = onFailure;
-    }
-
-    public AdaptrisMessage getMessage() {
-      return message;
-    }
-
-    public void setMessage(AdaptrisMessage message) {
-      this.message = message;
-    }
   }
 
-  public Map<String, CallbackConsumers> getUnAckedMessages() {
-    return unAckedMessages;
-  }
-
-  public void setUnAckedMessages(Map<String, CallbackConsumers> unAckedMessages) {
-    this.unAckedMessages = unAckedMessages;
-  }
-
-  public SolaceJcsmpAbstractProducer getProducer() {
-    return producer;
-  }
-
-  public void setProducer(SolaceJcsmpAbstractProducer producer) {
-    this.producer = producer;
-  }
-
-  public boolean isAcceptSuccessCallbacks() {
-    return acceptSuccessCallbacks;
-  }
-
-  public void setAcceptSuccessCallbacks(boolean acceptSuccessCallbacks) {
-    this.acceptSuccessCallbacks = acceptSuccessCallbacks;
-  }
 }

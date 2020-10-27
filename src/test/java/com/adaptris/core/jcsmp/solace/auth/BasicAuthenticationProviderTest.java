@@ -37,7 +37,7 @@ public class BasicAuthenticationProviderTest {
     authenticationProvider.setUsername(USERNAME);
     authenticationProvider.setPassword(PASSWORD);
     
-    JCSMPProperties properties = authenticationProvider.setConnectionProperties();
+    JCSMPProperties properties = authenticationProvider.initConnectionProperties();
     
     assertEquals(JCSMPProperties.AUTHENTICATION_SCHEME_BASIC, properties.getProperty(JCSMPProperties.AUTHENTICATION_SCHEME));
     
@@ -47,7 +47,7 @@ public class BasicAuthenticationProviderTest {
   
   @Test
   public void testSetUnSuppliedCredentials() throws Exception {
-    JCSMPProperties properties = authenticationProvider.setConnectionProperties();
+    JCSMPProperties properties = authenticationProvider.initConnectionProperties();
     
     assertEquals(JCSMPProperties.AUTHENTICATION_SCHEME_BASIC, properties.getProperty(JCSMPProperties.AUTHENTICATION_SCHEME));
     
@@ -61,7 +61,7 @@ public class BasicAuthenticationProviderTest {
     authenticationProvider.setPassword(PASSWORD_WITH_EXCEPTION);
     
     try {
-      authenticationProvider.setConnectionProperties();
+      authenticationProvider.initConnectionProperties();
       fail("Invalid password should throw exception");
     } catch (CoreException ex) {
       // expected

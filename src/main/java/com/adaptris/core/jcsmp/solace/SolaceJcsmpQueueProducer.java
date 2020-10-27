@@ -5,7 +5,7 @@ import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.validation.constraints.ConfigDeprecated;
+import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageProducer;
 import com.adaptris.core.CoreException;
@@ -43,7 +43,7 @@ public class SolaceJcsmpQueueProducer extends SolaceJcsmpAbstractProducer {
   @Setter
   @Deprecated
   @Valid
-  @ConfigDeprecated(removalVersion = "4.0.0", message = "Use 'queue' instead", groups = Deprecated.class)
+  @Removal(version = "4.0.0", message = "Use 'queue' instead")
   private ProduceDestination destination;
 
   /**

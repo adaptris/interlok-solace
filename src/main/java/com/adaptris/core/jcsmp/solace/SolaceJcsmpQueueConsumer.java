@@ -4,7 +4,7 @@ import javax.validation.Valid;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
-import com.adaptris.validation.constraints.ConfigDeprecated;
+import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisMessageConsumer;
 import com.adaptris.core.ConsumeDestination;
 import com.adaptris.core.CoreException;
@@ -15,6 +15,7 @@ import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.Queue;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -41,7 +42,11 @@ import lombok.Setter;
 @NoArgsConstructor
 public class SolaceJcsmpQueueConsumer extends SolaceJcsmpAbstractConsumer {
 
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
   private transient FlowReceiver flowReceiver;
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
   private transient boolean destinationWarningLogged = false;
 
   /**
@@ -52,7 +57,7 @@ public class SolaceJcsmpQueueConsumer extends SolaceJcsmpAbstractConsumer {
   @Setter
   @Deprecated
   @Valid
-  @ConfigDeprecated(removalVersion = "4.0.0", message = "Use 'queue' instead", groups = Deprecated.class)
+  @Removal(version = "4.0.0", message = "Use 'queue' instead")
   private ConsumeDestination destination;
   /**
    * The Solace Queue
@@ -90,18 +95,11 @@ public class SolaceJcsmpQueueConsumer extends SolaceJcsmpAbstractConsumer {
     super.close();
   }
 
-  FlowReceiver getFlowReceiver() {
-    return flowReceiver;
-  }
-
-  void setFlowReceiver(FlowReceiver flowReceiver) {
-    this.flowReceiver = flowReceiver;
-  }
-
+  @SuppressWarnings("deprecation")
   @Override
   public void prepare() throws CoreException {
-    DestinationHelper.logConsumeDestinationWarning(destinationWarningLogged,
-        () -> destinationWarningLogged = true, getDestination(),
+    DestinationHelper.logConsumeDestinationWarning(getDestinationWarningLogged(),
+        () -> setDestinationWarningLogged(true), getDestination(),
         "{} uses destination, use 'queue' instead", LoggingHelper.friendlyName(this));
     DestinationHelper.mustHaveEither(getQueue(), getDestination());
   }

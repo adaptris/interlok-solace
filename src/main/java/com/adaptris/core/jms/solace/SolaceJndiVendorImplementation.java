@@ -2,6 +2,7 @@ package com.adaptris.core.jms.solace;
 
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
@@ -12,6 +13,10 @@ import com.adaptris.core.jms.JmsDestination;
 import com.adaptris.core.jms.VendorImplementation;
 import com.adaptris.core.jms.jndi.StandardJndiImplementation;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * <p>
@@ -41,16 +46,29 @@ public class SolaceJndiVendorImplementation extends StandardJndiImplementation {
 
   private static final int DEFAULT_CREATE_CONSUMER_RETRIES = 0;
 
+  /**
+   * Sets the amount of time in seconds to wait before each attempt to create the message consumer.
+   */
   @AdvancedConfig
   @AutoPopulated
   @InputFieldDefault(value = "30")
+  @Getter
+  @Setter
   private Integer createConsumerRetryWaitSeconds;
 
+  /**
+   * <p>Sets the maximum amount of times to retry attempting to create the message consumer.</p>
+   * <p>A value of zero means continue trying forever</p>
+   */
   @AutoPopulated
   @AdvancedConfig
   @InputFieldDefault(value = "0")
+  @Getter
+  @Setter
   private Integer createConsumerMaxRetries;
 
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
   private transient ConsumerCreator consumerCreator;
 
   public SolaceJndiVendorImplementation() {
@@ -87,37 +105,8 @@ public class SolaceJndiVendorImplementation extends StandardJndiImplementation {
     return getCreateConsumerRetryWaitSeconds() == null? DEFAULT_CREATE_CONSUMER_RETRY_WAIT_SECONDS : getCreateConsumerRetryWaitSeconds();
   }
 
-  /**
-   * Returns the amount of time in seconds to wait before each attempt to create the message consumer.
-   */
-  public Integer getCreateConsumerRetryWaitSeconds() {
-    return createConsumerRetryWaitSeconds;
-  }
-
-  /**
-   * Sets the amount of time in seconds to wait before each attempt to create the message consumer.
-   */
-  public void setCreateConsumerRetryWaitSeconds(Integer createConsumerRetryWaitSeconds) {
-    this.createConsumerRetryWaitSeconds = createConsumerRetryWaitSeconds;
-  }
-
   public Integer createConsumerMaxRetries() {
     return getCreateConsumerMaxRetries() == null? DEFAULT_CREATE_CONSUMER_RETRIES : getCreateConsumerMaxRetries();
   }
 
-  /**
-   * <p>Returns the maximum amount of times to retry attempting to create the message consumer.</p>
-   * <p>A value of zero means continue trying forever</p>
-   */
-  public Integer getCreateConsumerMaxRetries() {
-    return createConsumerMaxRetries;
-  }
-
-  /**
-   * <p>Sets the maximum amount of times to retry attempting to create the message consumer.</p>
-   * <p>A value of zero means continue trying forever</p>
-   */
-  public void setCreateConsumerMaxRetries(Integer createConsumerMaxRetries) {
-    this.createConsumerMaxRetries = createConsumerMaxRetries;
-  }
 }

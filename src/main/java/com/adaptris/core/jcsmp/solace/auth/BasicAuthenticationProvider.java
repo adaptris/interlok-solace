@@ -11,6 +11,9 @@ import com.adaptris.security.password.Password;
 import com.solacesystems.jcsmp.JCSMPProperties;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * <p>
  * A basic {@link AuthenticationProvider} that requires a simple user name and password.
@@ -24,13 +27,23 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @DisplayOrder(order = {"username", "password"})
 public class BasicAuthenticationProvider implements AuthenticationProvider {
 
+  /**
+   * The username to authenticate your Solace connection.
+   */
+  @Getter
+  @Setter
   private String username;
   
+  /**
+   * The password used to authenticate your Solace connection.
+   */
   @InputFieldHint(style = "PASSWORD", external=true)
+  @Getter
+  @Setter
   private String password;
   
   @Override
-  public JCSMPProperties setConnectionProperties() throws CoreException {
+  public JCSMPProperties initConnectionProperties() throws CoreException {
     JCSMPProperties properties = new JCSMPProperties();
     try {
       properties.setProperty(JCSMPProperties.AUTHENTICATION_SCHEME, JCSMPProperties.AUTHENTICATION_SCHEME_BASIC);
@@ -42,22 +55,6 @@ public class BasicAuthenticationProvider implements AuthenticationProvider {
       throw new CoreException(pe);
     }
     return properties;
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  public void setUsername(String username) {
-    this.username = username;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
   }
 
 }

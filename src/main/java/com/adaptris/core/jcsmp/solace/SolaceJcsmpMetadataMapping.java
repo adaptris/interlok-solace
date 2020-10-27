@@ -7,6 +7,9 @@ import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * <p>
  * Used with the message translator to move headers and metedata between the Solace and Adaptris messages.
@@ -29,12 +32,32 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("solace-jcsmp-metadata-mapping")
 public class SolaceJcsmpMetadataMapping {
   
+  /**
+   * Set the key of the Adaptris message metadata item.
+   * @param metadataKey
+   */
   @NotBlank
+  @Getter
+  @Setter
   private String metadataKey;
   
+  /**
+   * Set the key of the Solace message header item.
+   * This will match the getter/setter of the property name of the Solace BytesXmlMessage.
+   * @param headerKey
+   */
+  @Getter
+  @Setter
   @NotBlank
   private String headerKey;
   
+  /**
+   * If left null, it is assumed that the Solace property value is a String, otherwise specify
+   * "Integer / Boolean / Long"
+   * @param dataType
+   */
+  @Getter
+  @Setter
   @NotBlank
   @AutoPopulated
   private String dataType;
@@ -51,44 +74,6 @@ public class SolaceJcsmpMetadataMapping {
     this.setMetadataKey(metadataKey);
     this.setHeaderKey(headerKey);
     this.setDataType(dataType);
-  }
-
-  public String getMetadataKey() {
-    return metadataKey;
-  }
-
-  /**
-   * Set the key of the Adaptris message metadata item.
-   * @param metadataKey
-   */
-  public void setMetadataKey(String metadataKey) {
-    this.metadataKey = metadataKey;
-  }
-
-  public String getHeaderKey() {
-    return headerKey;
-  }
-
-  /**
-   * Set the key of the Solace message header item.
-   * This will match the getter/setter of the property name of the Solace BytesXmlMessage.
-   * @param headerKey
-   */
-  public void setHeaderKey(String headerKey) {
-    this.headerKey = headerKey;
-  }
-
-  public String getDataType() {
-    return dataType;
-  }
-
-  /**
-   * If left null, it is assumed that the Solace property value is a String, otherwise specify
-   * "Integer / Boolean / Long"
-   * @param dataType
-   */
-  public void setDataType(String dataType) {
-    this.dataType = dataType;
   }
 
 }

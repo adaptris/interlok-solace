@@ -69,7 +69,6 @@ public class SolaceJcsmpTopicProducerTest {
     producer = new SolaceJcsmpTopicProducer();
     producer.setJcsmpFactory(mockJcsmpFactory);
     producer.registerConnection(mockConnection);
-    producer.setTraceLogTimings(true);
     producer.setMessageTranslator(mockTranslator);
     producer.setTopic("myDestination");
 

@@ -6,11 +6,11 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 
 import com.adaptris.annotation.AdapterComponent;
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AllowsRetriesConnection;
 import com.adaptris.core.CoreException;
@@ -19,11 +19,16 @@ import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.interlok.resolver.ExternalResolver;
 import com.adaptris.security.exc.PasswordException;
 import com.adaptris.security.password.Password;
+import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPProperties;
 import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.Session;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 
 
 /**
@@ -42,26 +47,54 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @DisplayOrder(order = {"host", "vpn", "username", "password"})
 public class SolaceJcsmpConnection extends AllowsRetriesConnection implements SolaceJcsmpSessionCreator {
   
+  /**
+   * The tcp address to your Solace router, such as "tcp://localhost:55555".
+   * @param host
+   */
   @NotNull
+  @Getter
+  @Setter
   private String host;
   
+  /**
+   * The Solace VPN name, such as "default".
+   * @param vpn
+   */
   @NotNull
+  @Getter
+  @Setter
   private String vpn;
   
+  /**
+   * How would you like to be authenticated when connecting to Solace.
+   * @param authenticationProvider
+   */
+  @NotNull
+  @Getter
+  @Setter
   private AuthenticationProvider authenticationProvider;
   
   @Deprecated
-  @ConfigDeprecated(removalVersion = "4.0.0", message = "Set the credentials via one of the authentication providers.", groups = Deprecated.class)
+  @ConfigDeprecated(removalVersion="4.0.0", message = "Set the credentials via one of the authentication providers.", groups = Deprecated.class)
+  @Getter
+  @Setter
   private String username;
   
   @Deprecated
-  @ConfigDeprecated(removalVersion = "4.0.0", message = "Set the credentials via one of the authentication providers.", groups = Deprecated.class)
+  @ConfigDeprecated(removalVersion="4.0.0", message = "Set the credentials via one of the authentication providers.", groups = Deprecated.class)
   @InputFieldHint(style = "PASSWORD", external=true)
+  @Getter
+  @Setter
   private String password;
   
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
   private transient JCSMPFactory jcsmpFactory;
 
+  @AdvancedConfig
   @InputFieldDefault(value = "false")
+  @Getter
+  @Setter
   private Boolean additionalDebug;
 
   public SolaceJcsmpConnection() {
@@ -139,7 +172,7 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
   private JCSMPProperties generateJcsmpProperties() throws CoreException, PasswordException {
     JCSMPProperties properties = null;
     if(getAuthenticationProvider() != null) {
-      properties = getAuthenticationProvider().setConnectionProperties();
+      properties = getAuthenticationProvider().initConnectionProperties();
     } else {
       properties = new JCSMPProperties();
       properties.setProperty(JCSMPProperties.AUTHENTICATION_SCHEME, JCSMPProperties.AUTHENTICATION_SCHEME_BASIC);
@@ -153,93 +186,12 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
     return properties;
   }
 
-  public String getHost() {
-    return host;
-  }
-
-  /**
-   * The tcp address to your Solace router, such as "tcp://localhost:55555".
-   * @param host
-   */
-  public void setHost(String host) {
-    this.host = host;
-  }
-
-  public String getVpn() {
-    return vpn;
-  }
-
-  /**
-   * The Solave VPN name, such as "default".
-   * @param vpn
-   */
-  public void setVpn(String vpn) {
-    this.vpn = vpn;
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  /**
-   * Your Solace username.
-   * @param username
-   */
-  public void setUsername(String username) {
-    this.username = username;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  /**
-   * Your Solace password (supports Interlok password encoding/decoding).
-   * @param password
-   */
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
   JCSMPFactory jcsmpFactory() {
     return ObjectUtils.defaultIfNull(this.getJcsmpFactory(), JCSMPFactory.onlyInstance());
-  }
-  
-  JCSMPFactory getJcsmpFactory() {
-    return jcsmpFactory;
-  }
-
-  void setJcsmpFactory(JCSMPFactory jcsmpFactory) {
-    this.jcsmpFactory = jcsmpFactory;
-  }
-  
-  public Boolean getAdditionalDebug() {
-    return additionalDebug;
-  }
-
-  /**
-   * Whether or not to generate additional TRACE level debug when attempting connections.
-   * 
-   * @param b true to enable additional logging; default false.
-   */
-  public void setAdditionalDebug(Boolean b) {
-    additionalDebug = b;
   }
 
   protected boolean additionalDebug() {
     return BooleanUtils.toBooleanDefaultIfNull(getAdditionalDebug(), false);
-  }
-
-  public AuthenticationProvider getAuthenticationProvider() {
-    return authenticationProvider;
-  }
-
-  /**
-   * How would you like to connect to Solace.
-   * @param authenticationProvider
-   */
-  public void setAuthenticationProvider(AuthenticationProvider authenticationProvider) {
-    this.authenticationProvider = authenticationProvider;
   }
 
 }

@@ -71,7 +71,6 @@ public class SolaceJcsmpQueueProducerTest {
 //    producer.setProducerEventHandler(callbackHandler);
     producer.setMessageTranslator(mockTranslator);
     producer.setQueue("myDestination");
-    producer.setTraceLogTimings(false);
 
     when(mockConnection.createSession())
         .thenReturn(mockSession);

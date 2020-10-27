@@ -5,6 +5,6 @@ import com.solacesystems.jcsmp.JCSMPProperties;
 
 public interface AuthenticationProvider {
   
-  public JCSMPProperties setConnectionProperties() throws CoreException; 
+  public JCSMPProperties initConnectionProperties() throws CoreException; 
 
 }
