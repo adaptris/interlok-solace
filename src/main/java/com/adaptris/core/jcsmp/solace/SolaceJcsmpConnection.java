@@ -10,7 +10,7 @@ import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.annotation.Removal;
+import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AllowsRetriesConnection;
 import com.adaptris.core.CoreException;
@@ -51,11 +51,11 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
   private AuthenticationProvider authenticationProvider;
   
   @Deprecated
-  @Removal(version = "4.0.0", message = "Set the credentials via one of the authentication providers.")
+  @ConfigDeprecated(removalVersion = "4.0.0", message = "Set the credentials via one of the authentication providers.", groups = Deprecated.class)
   private String username;
   
   @Deprecated
-  @Removal(version = "4.0.0", message = "Set the credentials via one of the authentication providers.")
+  @ConfigDeprecated(removalVersion = "4.0.0", message = "Set the credentials via one of the authentication providers.", groups = Deprecated.class)
   @InputFieldHint(style = "PASSWORD", external=true)
   private String password;
   
