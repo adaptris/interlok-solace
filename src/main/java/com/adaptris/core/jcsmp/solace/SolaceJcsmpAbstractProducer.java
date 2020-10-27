@@ -34,13 +34,13 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
 
   private transient JCSMPFactory jcsmpFactory;
 
-  private transient JCSMPSession currentSession;
-
   private transient XMLMessageProducer messageProducer;
 
   private transient Map<String, Destination> destinationCache;
   
   private transient SolaceJcsmpProduceEventHandler asynEventHandler;
+  
+  private transient SolaceJcsmpSessionHelper sessionHelper;
 
   @AdvancedConfig(rare=true)
   @InputFieldDefault(value = "false")
@@ -50,6 +50,7 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
     setMessageTranslator(new SolaceJcsmpTextMessageTranslator());
     setDestinationCache(new HashMap<String, Destination>());
     setAsynEventHandler(new SolaceJcsmpProduceEventHandler(this));
+    setSessionHelper(new SolaceJcsmpSessionHelper());
   }
 
   @Override
@@ -57,7 +58,13 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
     this.getAsynEventHandler().init();
     getDestinationCache().clear();
     setMessageProducer(null);
-    setCurrentSession(null);
+    getSessionHelper().setConnection(retrieveConnection(SolaceJcsmpConnection.class));
+    getSessionHelper().setTransacted(false);
+  }
+  
+  @Override
+  public void stop() {
+    getSessionHelper().close();
   }
 
   @Override
@@ -98,15 +105,15 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
       throws Exception;
 
   JCSMPSession session() throws Exception {
-    if((getCurrentSession() == null) || (getCurrentSession().isClosed()))
-      setCurrentSession(this.retrieveConnection(SolaceJcsmpConnection.class).createSession());
+    if(!getSessionHelper().isSessionActive())
+      getSessionHelper().createSession();
 
-    return getCurrentSession();
+    return getSessionHelper().getSession();
   }
 
   XMLMessageProducer messageProducer(AdaptrisMessage msg) throws JCSMPException, Exception {
-    if((getMessageProducer() == null) || (getCurrentSession() == null) || (getCurrentSession().isClosed()))
-    setMessageProducer(session().getMessageProducer(getAsynEventHandler()));
+    if((getMessageProducer() == null) || (session() == null))
+      setMessageProducer(session().getMessageProducer(getAsynEventHandler()));
     return getMessageProducer();
   }
 
@@ -133,14 +140,6 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
 
   void setJcsmpFactory(JCSMPFactory jcsmpFactory) {
     this.jcsmpFactory = jcsmpFactory;
-  }
-
-  JCSMPSession getCurrentSession() {
-    return currentSession;
-  }
-
-  void setCurrentSession(JCSMPSession currentSession) {
-    this.currentSession = currentSession;
   }
 
   XMLMessageProducer getMessageProducer() {
@@ -183,5 +182,13 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
 
   public void setAsynEventHandler(SolaceJcsmpProduceEventHandler asynEventHandler) {
     this.asynEventHandler = asynEventHandler;
+  }
+
+  public SolaceJcsmpSessionHelper getSessionHelper() {
+    return sessionHelper;
+  }
+
+  public void setSessionHelper(SolaceJcsmpSessionHelper sessionHelper) {
+    this.sessionHelper = sessionHelper;
   }
 }
