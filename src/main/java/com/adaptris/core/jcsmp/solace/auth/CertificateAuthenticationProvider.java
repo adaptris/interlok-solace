@@ -13,6 +13,9 @@ import com.adaptris.security.password.Password;
 import com.solacesystems.jcsmp.JCSMPProperties;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * <p>
  * A certificate based {@link AuthenticationProvider}.
@@ -25,22 +28,60 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("solace-jcsmp-certificate-authentication")
 public class CertificateAuthenticationProvider implements AuthenticationProvider {
 
+  /**
+   * The Solace session property to determine whether to validate the client certificate.
+   * @param validateCertificate
+   */
+  @Getter
+  @Setter
   private Boolean validateCertificate;
   
+  /**
+   * The Solace session property to determine whether to validate the client certificate date.
+   * @param validateCertificate
+   */
+  @Getter
+  @Setter
   private Boolean validateCertificateDate;
   
+  /**
+   * The Solace client property to specify the location of your trust store.
+   * @param validateCertificate
+   */
+  @Getter
+  @Setter
   private String sslTrustStoreLocation;
   
+  /**
+   * The Solace client property to specify the password of your trust store.
+   * Note this password can also be encoded using the appropriate {@link com.adaptris.security.password.Password} 
+   * @param validateCertificate
+   */
   @InputFieldHint(style = "PASSWORD", external=true)
+  @Getter
+  @Setter
   private String sslTrustStorePassword;
   
+  /**
+   * The Solace client property to specify the location of your key store.
+   * @param validateCertificate
+   */
+  @Getter
+  @Setter
   private String sslKeyStoreLocation;
   
+  /**
+   * The Solace client property to specify the password of your key store.
+   * Note this password can also be encoded using the appropriate {@link com.adaptris.security.password.Password} 
+   * @param validateCertificate
+   */
   @InputFieldHint(style = "PASSWORD", external=true)
+  @Getter
+  @Setter
   private String sslKeyStorePassword;
   
   @Override
-  public JCSMPProperties setConnectionProperties() throws CoreException {
+  public JCSMPProperties initConnectionProperties() throws CoreException {
     JCSMPProperties properties = new JCSMPProperties();
     try {
       properties.setProperty(JCSMPProperties.AUTHENTICATION_SCHEME, JCSMPProperties.AUTHENTICATION_SCHEME_CLIENT_CERTIFICATE);
@@ -88,80 +129,6 @@ public class CertificateAuthenticationProvider implements AuthenticationProvider
   
   private Function<Object, Object> noOpFunction() {
     return value -> value;
-  }
-
-  public Boolean getValidateCertificate() {
-    return validateCertificate;
-  }
-
-  public Boolean getValidateCertificateDate() {
-    return validateCertificateDate;
-  }
-
-  public String getSslTrustStoreLocation() {
-    return sslTrustStoreLocation;
-  }
-
-  public String getSslTrustStorePassword() {
-    return sslTrustStorePassword;
-  }
-
-  public String getSslKeyStoreLocation() {
-    return sslKeyStoreLocation;
-  }
-
-  public String getSslKeyStorePassword() {
-    return sslKeyStorePassword;
-  }
-
-  /**
-   * The Solace session property to determine whether to validate the client certificate.
-   * @param validateCertificate
-   */
-  public void setValidateCertificate(Boolean validateCertificate) {
-    this.validateCertificate = validateCertificate;
-  }
-
-  /**
-   * The Solace session property to determine whether to validate the client certificate date.
-   * @param validateCertificate
-   */
-  public void setValidateCertificateDate(Boolean validateCertificateDate) {
-    this.validateCertificateDate = validateCertificateDate;
-  }
-
-  /**
-   * The Solace client property to specify the location of your trust store.
-   * @param validateCertificate
-   */
-  public void setSslTrustStoreLocation(String sslTrustStoreLocation) {
-    this.sslTrustStoreLocation = sslTrustStoreLocation;
-  }
-
-  /**
-   * The Solace client property to specify the password of your trust store.
-   * Note this password can also be encoded using the appropriate {@link com.adaptris.security.password.Password} 
-   * @param validateCertificate
-   */
-  public void setSslTrustStorePassword(String sslTrustStorePassword) {
-    this.sslTrustStorePassword = sslTrustStorePassword;
-  }
-
-  /**
-   * The Solace client property to specify the location of your key store.
-   * @param validateCertificate
-   */
-  public void setSslKeyStoreLocation(String sslKeyStoreLocation) {
-    this.sslKeyStoreLocation = sslKeyStoreLocation;
-  }
-
-  /**
-   * The Solace client property to specify the password of your key store.
-   * Note this password can also be encoded using the appropriate {@link com.adaptris.security.password.Password} 
-   * @param validateCertificate
-   */
-  public void setSslKeyStorePassword(String sslKeyStorePassword) {
-    this.sslKeyStorePassword = sslKeyStorePassword;
   }
 
 }

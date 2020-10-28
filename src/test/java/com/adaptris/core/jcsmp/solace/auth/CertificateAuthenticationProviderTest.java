@@ -49,7 +49,7 @@ public class CertificateAuthenticationProviderTest {
     authenticationProvider.setSslTrustStoreLocation(TRUST_STORE_LOC);
     authenticationProvider.setSslTrustStorePassword(TRUST_STORE_PASSWORD);
     
-    JCSMPProperties properties = authenticationProvider.setConnectionProperties();
+    JCSMPProperties properties = authenticationProvider.initConnectionProperties();
     
     assertEquals(JCSMPProperties.AUTHENTICATION_SCHEME_CLIENT_CERTIFICATE, properties.getProperty(JCSMPProperties.AUTHENTICATION_SCHEME));
     
@@ -63,7 +63,7 @@ public class CertificateAuthenticationProviderTest {
   
   @Test
   public void testSetNoProperties() throws Exception {
-    JCSMPProperties properties = authenticationProvider.setConnectionProperties();
+    JCSMPProperties properties = authenticationProvider.initConnectionProperties();
     
     assertEquals(JCSMPProperties.AUTHENTICATION_SCHEME_CLIENT_CERTIFICATE, properties.getProperty(JCSMPProperties.AUTHENTICATION_SCHEME));
     
@@ -80,7 +80,7 @@ public class CertificateAuthenticationProviderTest {
     authenticationProvider.setSslTrustStorePassword(TRUST_STORE_PASSWORD_EXCEPTION);
     
     try {
-      authenticationProvider.setConnectionProperties();
+      authenticationProvider.initConnectionProperties();
       fail("Invalid password should throw exception");
     } catch (CoreException ex) {
       // expected
@@ -93,7 +93,7 @@ public class CertificateAuthenticationProviderTest {
     authenticationProvider.setSslKeyStorePassword(KEY_STORE_PASSWORD_EXCEPTION);
     
     try {
-      authenticationProvider.setConnectionProperties();
+      authenticationProvider.initConnectionProperties();
       fail("Invalid password should throw exception");
     } catch (CoreException ex) {
       // expected

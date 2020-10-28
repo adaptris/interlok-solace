@@ -3,7 +3,7 @@ package com.adaptris.core.jcsmp.solace;
 import javax.validation.Valid;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
-import com.adaptris.validation.constraints.ConfigDeprecated;
+import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisMessageConsumer;
 import com.adaptris.core.ConsumeDestination;
 import com.adaptris.core.CoreException;
@@ -47,7 +47,7 @@ public class SolaceJcsmpTopicConsumer extends SolaceJcsmpAbstractConsumer {
   @Setter
   @Deprecated
   @Valid
-  @ConfigDeprecated(removalVersion = "4.0.0", message = "Use 'topic' instead", groups = Deprecated.class)
+  @Removal(version = "4.0.0", message = "Use 'topic' instead")
   private ConsumeDestination destination;
   /**
    * The Solace Topic
