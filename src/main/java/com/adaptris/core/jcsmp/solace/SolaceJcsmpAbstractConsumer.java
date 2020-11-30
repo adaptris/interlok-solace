@@ -18,7 +18,6 @@ import com.adaptris.core.CoreConstants;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.jcsmp.solace.translator.SolaceJcsmpMessageTranslator;
 import com.adaptris.core.jcsmp.solace.translator.SolaceJcsmpTextMessageTranslator;
-import com.adaptris.core.jcsmp.solace.util.Timer;
 import com.adaptris.core.util.ExceptionHelper;
 import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.ConsumerFlowProperties;
@@ -26,8 +25,11 @@ import com.solacesystems.jcsmp.EndpointProperties;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPProperties;
-import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.Queue;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 
 public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsumerImp implements SolaceJcsmpReceiverStarter {
 
@@ -36,39 +38,78 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   private static final String DEFAULT_ENDPOINT_ACCESS_TYPE = "EXCLUSIVE";
 
   private static final String DEFAULT_ACKNOWLEDGE_MODE = "CLIENT";
-  
-  @AdvancedConfig(rare=true)
-  @InputFieldDefault(value = "false")
-  private Boolean traceLogTimings;
 
+  /**
+   * The message translator is responsible for translating the Solace JCSMP message object
+   * into an {@link AdaptrisMessage} and the reverse.  The translator will typically handle the payload and the headers/metadata.
+   * @param messageTranslator
+   */
   @NotNull
   @AutoPopulated
+  @Getter
+  @Setter
   private SolaceJcsmpMessageTranslator messageTranslator;
   
+  /**
+   * <p>"CONSUME" / "DELETE" / "READ_ONLY" / "NONE" / "MODIFY_TOPIC""</p>
+   * <p>This must match your end-point permissions on the Solace queue/topic.</p>
+   * @param endpointPermissions
+   */
   @NotBlank
   @AutoPopulated
   @InputFieldDefault(value = "CONSUME")
   @InputFieldHint(style="com.adaptris.core.jcsmp.solace.permissions")
   @Pattern(regexp = "CONSUME|DELETE|READ_ONLY|NONE|MODIFY_TOPIC")
+  @Getter
+  @Setter
   private String endpointPermissions;
   
+  /**
+   * <p>"EXCLUSIVE" / "NONEXCLUSIVE"</p>
+   * <p>This must match your end-point configuration on the Solace queue/topic.</p>
+   * @param endpointAccessType
+   */
   @NotBlank
   @AutoPopulated
   @InputFieldDefault(value = "EXCLUSIVE")
   @InputFieldHint(style="com.adaptris.core.jcsmp.solace.accessType")
   @Pattern(regexp = "NONEXCLUSIVE|EXCLUSIVE")
+  @Getter
+  @Setter
   private String endpointAccessType;
   
+  /**
+   * <p>"CLIENT" / "AUTO"</p>
+   * <p>Client acknowledge mode means Interlok will handle the Acknowledgements after the workflow has finished or the producer
+   * gives us a successful async callback.</p>
+   * @param acknowledgeMode
+   */
   @NotBlank
   @AutoPopulated
   @InputFieldDefault(value = "CLIENT")
   @InputFieldHint(style="com.adaptris.core.jcsmp.solace.ackMode")
   @Pattern(regexp = "CLIENT|AUTO")
+  @Getter
+  @Setter
   private String acknowledgeMode;
-    
-  private transient JCSMPFactory jcsmpFactory;
+
+  /**
+   * If set to 'true' will commit or rollback the consumed message upon success or failure during processing.
+   */
+  @AdvancedConfig(rare=true)
+  @AutoPopulated
+  @InputFieldDefault(value = "false")
+  @Getter
+  @Setter
+  private Boolean transacted;
   
-  private transient JCSMPSession currentSession;
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
+  private transient SolaceJcsmpSessionHelper sessionHelper;
+  
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
+  private transient JCSMPFactory jcsmpFactory;
   
   public enum permissions {
     CONSUME {
@@ -120,6 +161,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   
   public SolaceJcsmpAbstractConsumer() {
     setMessageTranslator(new SolaceJcsmpTextMessageTranslator());
+    setSessionHelper(new SolaceJcsmpSessionHelper());
   }
   
   @Override
@@ -132,33 +174,29 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   @Override
   public void onReceive(BytesXMLMessage message) {
     try {
-      Timer.start("OnReceive", 100);
-      Timer.start("OnReceive", "TranslateMessage", 100);
       AdaptrisMessage adaptrisMessage = getMessageTranslator().translate(message);
-      Timer.stop("OnReceive", "TranslateMessage");
       
       Consumer<AdaptrisMessage> successCallback = adpMessage -> {
         if(acknowledgeMode().equals(ackMode.CLIENT)) {
-          Timer.start("OnReceive", "AckMessage", 100);
-          message.ackMessage();
-          Timer.stop("OnReceive", "AckMessage");
+          getSessionHelper().commit(message);
         }
       };
       
       Consumer<AdaptrisMessage> failureCallback = adpMessage -> {
         log.error("Message failed.  Will not acknowledge.", adaptrisMessage.getObjectHeaders().get(CoreConstants.OBJ_METADATA_EXCEPTION_CAUSE));
+        getSessionHelper().rollback();
       };
       
-      Timer.start("OnReceive", "ProcessMessage", 100);
       retrieveAdaptrisMessageListener().onAdaptrisMessage(adaptrisMessage, successCallback, failureCallback);
-      Timer.stop("OnReceive", "ProcessMessage");
-      
-      Timer.stop("OnReceive");
-      if(traceLogTimings())
-        Timer.log("OnReceive");
     } catch (Exception e) {
       log.error("Failed to translate message.", e);
     }
+  }
+  
+  @Override
+  public void init() throws CoreException {
+    getSessionHelper().setConnection(retrieveConnection(SolaceJcsmpConnection.class));
+    getSessionHelper().setTransacted(transacted());
   }
   
   @Override
@@ -172,13 +210,16 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   
   @Override
   public void stop() {
-    getCurrentSession().closeSession();
+    getSessionHelper().close();
   }
   
   protected ConsumerFlowProperties createConsumerFlowProperties(Queue queue) {
     final ConsumerFlowProperties flowProps = new ConsumerFlowProperties();
     flowProps.setEndpoint(queue);
-    flowProps.setAckMode(acknowledgeMode().value());
+    if(transacted())
+      flowProps.setStartState(true);
+    else
+      flowProps.setAckMode(acknowledgeMode().value());
     
     return flowProps;
   }
@@ -198,102 +239,21 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   JCSMPFactory jcsmpFactory() {
     return ObjectUtils.defaultIfNull(getJcsmpFactory(), JCSMPFactory.onlyInstance());
   }
-  
-  JCSMPFactory getJcsmpFactory() {
-    return jcsmpFactory;
-  }
-
-  void setJcsmpFactory(JCSMPFactory jcsmpFactory) {
-    this.jcsmpFactory = jcsmpFactory;
-  }
-
-  JCSMPSession getCurrentSession() {
-    return currentSession;
-  }
-
-  void setCurrentSession(JCSMPSession currentSession) {
-    this.currentSession = currentSession;
-  }
-
-  public SolaceJcsmpMessageTranslator getMessageTranslator() {
-    return messageTranslator;
-  }
-
-  /**
-   * The message translator is responsible for translating the Solace JCSMP message object
-   * into an {@link AdaptrisMessage} and the reverse.  The translator will typically handle the payload and the headers/metadata.
-   * @param messageTranslator
-   */
-  public void setMessageTranslator(SolaceJcsmpMessageTranslator messageTranslator) {
-    this.messageTranslator = messageTranslator;
-  }
 
   permissions endpointPermissions() {
     return permissions.valueOf(ObjectUtils.defaultIfNull(getEndpointPermissions(), DEFAULT_ENDPOINT_PERMISSIONS));
   }
   
-  public String getEndpointPermissions() {
-    return endpointPermissions;
-  }
-
-  /**
-   * <p>"CONSUME" / "DELETE" / "READ_ONLY" / "NONE" / "MODIFY_TOPIC""</p>
-   * <p>This must match your end-point permissions on the Solace queue/topic.</p>
-   * @param endpointPermissions
-   */
-  public void setEndpointPermissions(String endpointPermissions) {
-    this.endpointPermissions = endpointPermissions;
-  }
-
   accessType endpointAccessType() {
     return accessType.valueOf(ObjectUtils.defaultIfNull(getEndpointAccessType(), DEFAULT_ENDPOINT_ACCESS_TYPE));
   }
   
-  public String getEndpointAccessType() {
-    return endpointAccessType;
-  }
-
-  /**
-   * <p>"EXCLUSIVE" / "NONEXCLUSIVE"</p>
-   * <p>This must match your end-point configuration on the Solace queue/topic.</p>
-   * @param endpointAccessType
-   */
-  public void setEndpointAccessType(String endpointAccessType) {
-    this.endpointAccessType = endpointAccessType;
-  }
-
   ackMode acknowledgeMode() {
     return ackMode.valueOf(ObjectUtils.defaultIfNull(getAcknowledgeMode(), DEFAULT_ACKNOWLEDGE_MODE));
   }
-  
-  public String getAcknowledgeMode() {
-    return acknowledgeMode;
+
+  boolean transacted() {
+    return ObjectUtils.defaultIfNull(getTransacted(), false);
   }
 
-  /**
-   * <p>"CLIENT" / "AUTO"</p>
-   * <p>Client acknowledge mode means Interlok will handle the Acknowledgements after the workflow has finished or the producer
-   * gives us a successful async callback.</p>
-   * @param acknowledgeMode
-   */
-  public void setAcknowledgeMode(String acknowledgeMode) {
-    this.acknowledgeMode = acknowledgeMode;
-  }
-
-  public Boolean getTraceLogTimings() {
-    return traceLogTimings;
-  }
-
-  /**
-   * For debugging purposes you may want to see trace logging (in the interlok logs) of the steps
-   * this consume will go through to consume, translate and process the incoming messages.  The default value is false.
-   * @param traceLogTimings
-   */
-  public void setTraceLogTimings(Boolean traceLogTimings) {
-    this.traceLogTimings = traceLogTimings;
-  }
-  
-  boolean traceLogTimings() {
-    return ObjectUtils.defaultIfNull(getTraceLogTimings(), false);
-  }
 }

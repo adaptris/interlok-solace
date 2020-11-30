@@ -64,13 +64,13 @@ public class SolaceJcsmpTopicConsumer extends SolaceJcsmpAbstractConsumer {
 
   @Override
   public void startReceive() throws Exception {
-    setCurrentSession(retrieveConnection(SolaceJcsmpConnection.class).createSession());
-    getCurrentSession().connect();
+    getSessionHelper().createSession();
+    getSessionHelper().getSession().connect();
 
-    setMessageConsumer(getCurrentSession().getMessageConsumer(this));
+    setMessageConsumer(getSessionHelper().getSession().getMessageConsumer(this));
 
     final Topic topic = jcsmpFactory().createTopic(topicName());
-    getCurrentSession().addSubscription(topic);
+    getSessionHelper().getSession().addSubscription(topic);
     getMessageConsumer().start();
   }
 

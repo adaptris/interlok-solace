@@ -21,6 +21,10 @@ import com.solacesystems.jcsmp.DeliveryMode;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.XMLMessage;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * <p>
  * Once a message has been consumed from Solace, this translator will generate an {@link AdaptrisMessage} from the 
@@ -67,21 +71,41 @@ public abstract class SolaceJcsmpBaseTranslatorImp implements SolaceJcsmpMessage
 
 private static final String DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT.name();
   
+/**
+ * Defaults to the standard {@link DefaultMessageFactory}.
+ * @param messageFactory
+ */
   @NotNull
   @AutoPopulated
+  @Getter
+  @Setter
   private AdaptrisMessageFactory messageFactory;
   
+  /**
+   * The mode of delivery; "PERSISTENT / NONPERSISTENT"
+   * @param deliveryMode
+   */
   @NotBlank
   @AutoPopulated
   @InputFieldDefault(value = "PERSISTENT")
   @InputFieldHint(style="com.solacesystems.jcsmp.DeliveryMode")
   @Pattern(regexp = "PERSISTENT|NON_PERSISTENT|DIRECT")
+  @Getter
+  @Setter
   private String deliveryMode;
   
+  /**
+   * A list of mappings between Adaptris message metadata and Solace headers.
+   * @param mappings
+   */
   @NotNull
   @AutoPopulated
+  @Getter
+  @Setter
   private List<SolaceJcsmpMetadataMapping> mappings;
 
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
   private transient JCSMPFactory jcsmpFactory;
     
   protected enum HeaderDataType {
@@ -193,28 +217,8 @@ private static final String DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT.name
     return ObjectUtils.defaultIfNull(this.getMessageFactory(), DefaultMessageFactory.getDefaultInstance());
   }
   
-  public AdaptrisMessageFactory getMessageFactory() {
-    return messageFactory;
-  }
-
-  /**
-   * Defaults to the standard {@link DefaultMessageFactory}.
-   * @param messageFactory
-   */
-  public void setMessageFactory(AdaptrisMessageFactory messageFactory) {
-    this.messageFactory = messageFactory;
-  }
-  
   JCSMPFactory jcsmpFactory() {
     return ObjectUtils.defaultIfNull(this.getJcsmpFactory(), JCSMPFactory.onlyInstance());
-  }
-  
-  JCSMPFactory getJcsmpFactory() {
-    return jcsmpFactory;
-  }
-
-  void setJcsmpFactory(JCSMPFactory jcsmpFactory) {
-    this.jcsmpFactory = jcsmpFactory;
   }
   
   String deliveryMode() {
@@ -222,30 +226,6 @@ private static final String DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT.name
       return this.getDeliveryMode().toUpperCase();
     else
       return DEFAULT_DELIVERY_MODE;
-  }
-
-  public String getDeliveryMode() {
-    return deliveryMode;
-  }
-
-  /**
-   * The mode of delivery; "PERSISTENT / NONPERSISTENT"
-   * @param deliveryMode
-   */
-  public void setDeliveryMode(String deliveryMode) {
-    this.deliveryMode = deliveryMode;
-  }
-
-  public List<SolaceJcsmpMetadataMapping> getMappings() {
-    return mappings;
-  }
-
-  /**
-   * A list of mappings between Adaptris message metadata and Solace headers.
-   * @param mappings
-   */
-  public void setMappings(List<SolaceJcsmpMetadataMapping> mappings) {
-    this.mappings = mappings;
   }
 
 }

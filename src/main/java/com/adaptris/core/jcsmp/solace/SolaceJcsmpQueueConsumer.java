@@ -1,6 +1,7 @@
 package com.adaptris.core.jcsmp.solace;
 
 import javax.validation.Valid;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.Removal;
@@ -13,6 +14,8 @@ import com.solacesystems.jcsmp.FlowReceiver;
 import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.Queue;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -39,7 +42,11 @@ import lombok.Setter;
 @NoArgsConstructor
 public class SolaceJcsmpQueueConsumer extends SolaceJcsmpAbstractConsumer {
 
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
   private transient FlowReceiver flowReceiver;
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
   private transient boolean destinationWarningLogged = false;
 
   /**
@@ -64,12 +71,12 @@ public class SolaceJcsmpQueueConsumer extends SolaceJcsmpAbstractConsumer {
 
   @Override
   public void startReceive() throws Exception {
-    setCurrentSession(retrieveConnection(SolaceJcsmpConnection.class).createSession());
+    getSessionHelper().createSession();
 
     final Queue queue = jcsmpFactory().createQueue(queueName());
     // Actually provision it, and do not fail if it already exists
-    getCurrentSession().provision(queue, createEndpointProperties(), JCSMPSession.FLAG_IGNORE_ALREADY_EXISTS);
-    setFlowReceiver(getCurrentSession().createFlow(this, createConsumerFlowProperties(queue), createEndpointProperties()));
+    getSessionHelper().getSession().provision(queue, createEndpointProperties(), JCSMPSession.FLAG_IGNORE_ALREADY_EXISTS);
+    setFlowReceiver(getSessionHelper().getSession().createFlow(this, createConsumerFlowProperties(queue), createEndpointProperties()));
 
     getFlowReceiver().start();
   }
@@ -88,18 +95,11 @@ public class SolaceJcsmpQueueConsumer extends SolaceJcsmpAbstractConsumer {
     super.close();
   }
 
-  FlowReceiver getFlowReceiver() {
-    return flowReceiver;
-  }
-
-  void setFlowReceiver(FlowReceiver flowReceiver) {
-    this.flowReceiver = flowReceiver;
-  }
-
+  @SuppressWarnings("deprecation")
   @Override
   public void prepare() throws CoreException {
-    DestinationHelper.logConsumeDestinationWarning(destinationWarningLogged,
-        () -> destinationWarningLogged = true, getDestination(),
+    DestinationHelper.logConsumeDestinationWarning(getDestinationWarningLogged(),
+        () -> setDestinationWarningLogged(true), getDestination(),
         "{} uses destination, use 'queue' instead", LoggingHelper.friendlyName(this));
     DestinationHelper.mustHaveEither(getQueue(), getDestination());
   }

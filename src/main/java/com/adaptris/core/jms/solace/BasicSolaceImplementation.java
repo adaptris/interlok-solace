@@ -3,8 +3,10 @@ package com.adaptris.core.jms.solace;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.validation.constraints.NotNull;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
@@ -22,6 +24,10 @@ import com.adaptris.interlok.util.Args;
 import com.solacesystems.jms.SolConnectionFactory;
 import com.solacesystems.jms.SolJmsUtility;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * <p>
@@ -45,24 +51,39 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
 
   private static final int DEFAULT_CREATE_CONSUMER_RETRIES = 0;
 
+  /**
+   * Sets the amount of time in seconds to wait before each attempt to create the message consumer.
+   */
   @AdvancedConfig
   @AutoPopulated
   @InputFieldDefault(value = "30")
+  @Getter
+  @Setter
   private Integer createConsumerRetryWaitSeconds;
 
+  /**
+   * <p>Sets the maximum amount of times to retry attempting to create the message consumer.</p>
+   * <p>A value of zero means continue trying forever</p>
+   */
   @AutoPopulated
   @AdvancedConfig
   @InputFieldDefault(value = "0")
+  @Getter
+  @Setter
   private Integer createConsumerMaxRetries;
-
-  private static final int DEFAULT_SMF_PORT = 55555;
-  private static boolean warningLogged = false;
-
+  
+  /**
+   * Message VPN name. Default: default
+   */
   @NotNull
   @AutoPopulated
   @InputFieldDefault(value = "default")
+  @Getter
+  @Setter
   private String messageVpn;
 
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
   private transient ConsumerCreator consumerCreator;
 
   public BasicSolaceImplementation() {
@@ -120,17 +141,6 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
     return consumerCreator.createTopicSubscriber(topicName, selector, subscriptionId, c);
   }
 
-  public String getMessageVpn() {
-    return messageVpn;
-  }
-
-  /**
-   * Message VPN name. Default: default
-   */
-  public void setMessageVpn(String messageVpn) {
-    this.messageVpn = messageVpn;
-  }
-
   private String messageVpn() {
     return ObjectUtils.defaultIfNull(getMessageVpn(), "default");
   }
@@ -164,37 +174,8 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
     return getCreateConsumerRetryWaitSeconds() == null? DEFAULT_CREATE_CONSUMER_RETRY_WAIT_SECONDS : getCreateConsumerRetryWaitSeconds();
   }
 
-  /**
-   * Returns the amount of time in seconds to wait before each attempt to create the message consumer.
-   */
-  public Integer getCreateConsumerRetryWaitSeconds() {
-    return createConsumerRetryWaitSeconds;
-  }
-
-  /**
-   * Sets the amount of time in seconds to wait before each attempt to create the message consumer.
-   */
-  public void setCreateConsumerRetryWaitSeconds(Integer createConsumerRetryWaitSeconds) {
-    this.createConsumerRetryWaitSeconds = createConsumerRetryWaitSeconds;
-  }
-
   public Integer createConsumerMaxRetries() {
     return getCreateConsumerMaxRetries() == null? DEFAULT_CREATE_CONSUMER_RETRIES : getCreateConsumerMaxRetries();
   }
 
-  /**
-   * <p>Returns the maximum amount of times to retry attempting to create the message consumer.</p>
-   * <p>A value of zero means continue trying forever</p>
-   */
-  public Integer getCreateConsumerMaxRetries() {
-    return createConsumerMaxRetries;
-  }
-
-  /**
-   * <p>Sets the maximum amount of times to retry attempting to create the message consumer.</p>
-   * <p>A value of zero means continue trying forever</p>
-   */
-  public void setCreateConsumerMaxRetries(Integer createConsumerMaxRetries) {
-    this.createConsumerMaxRetries = createConsumerMaxRetries;
-  }
 }

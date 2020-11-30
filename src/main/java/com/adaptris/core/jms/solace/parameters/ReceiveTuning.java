@@ -3,13 +3,47 @@ package com.adaptris.core.jms.solace.parameters;
 import com.solacesystems.jms.SolConnectionFactory;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @XStreamAlias("solace-receive-tuning")
 public class ReceiveTuning implements Parameter {
+  
+  /**
+   * This property specifies the threshold for sending an acknowledgement to the appliance.
+   */
+  @Getter
+  @Setter
   private Integer receiveAdAckThreshold;
+  /**
+   * This property specifies the duration of the acknowledgement timer.
+   */
+  @Getter
+  @Setter
   private Integer receiveAdAckTimerInMillis;
+  /**
+   * This property specifies the size of the sliding acknowledgement window.
+   */
+  @Getter
+  @Setter
   private Integer receiveAdWindowSize;
+  /**
+   * This property is used to configure the socket’s receive buffer size in bytes.
+   */
+  @Getter
+  @Setter
   private Integer receiveBufferSize;
+  /**
+   * This property specifies the priority that a client’s subscriptions have for receiving Deliver-To-One messages published on the Solace appliance that the client is directly connected to.
+   */
+  @Getter
+  @Setter
   private Integer subscriberLocalPriority;
+  /**
+   * This property specifies the priority that a client’s subscriptions have for receiving Deliver-To-One messages published by other Solace appliances in the Solace Messaging Platform.
+   */
+  @Getter
+  @Setter
   private Integer subscriberNetworkPriority;
   
   @Override
@@ -20,72 +54,6 @@ public class ReceiveTuning implements Parameter {
     cf.setReceiveBufferSize(getReceiveBufferSize());
     cf.setSubscriberLocalPriority(getSubscriberLocalPriority());
     cf.setSubscriberNetworkPriority(getSubscriberNetworkPriority());
-  }
-  
-  public Integer getReceiveAdAckThreshold() {
-    return receiveAdAckThreshold;
-  }
-
-  /**
-   * This property specifies the threshold for sending an acknowledgement to the appliance.
-   */
-  public void setReceiveAdAckThreshold(Integer receiveAdAckThreshold) {
-    this.receiveAdAckThreshold = receiveAdAckThreshold;
-  }
-
-  public Integer getReceiveAdAckTimerInMillis() {
-    return receiveAdAckTimerInMillis;
-  }
-
-  /**
-   * This property specifies the duration of the acknowledgement timer.
-   */
-  public void setReceiveAdAckTimerInMillis(Integer receiveAdAckTimerInMillis) {
-    this.receiveAdAckTimerInMillis = receiveAdAckTimerInMillis;
-  }
-
-  public Integer getReceiveAdWindowSize() {
-    return receiveAdWindowSize;
-  }
-
-  /**
-   * This property specifies the size of the sliding acknowledgement window.
-   */
-  public void setReceiveAdWindowSize(Integer receiveAdWindowSize) {
-    this.receiveAdWindowSize = receiveAdWindowSize;
-  }
-
-  public Integer getReceiveBufferSize() {
-    return receiveBufferSize;
-  }
-
-  /**
-   * This property is used to configure the socket’s receive buffer size in bytes.
-   */
-  public void setReceiveBufferSize(Integer receiveBufferSize) {
-    this.receiveBufferSize = receiveBufferSize;
-  }
-
-  public Integer getSubscriberLocalPriority() {
-    return subscriberLocalPriority;
-  }
-
-  /**
-   * This property specifies the priority that a client’s subscriptions have for receiving Deliver-To-One messages published on the Solace appliance that the client is directly connected to.
-   */
-  public void setSubscriberLocalPriority(Integer subscriberLocalPriority) {
-    this.subscriberLocalPriority = subscriberLocalPriority;
-  }
-
-  public Integer getSubscriberNetworkPriority() {
-    return subscriberNetworkPriority;
-  }
-
-  /**
-   * This property specifies the priority that a client’s subscriptions have for receiving Deliver-To-One messages published by other Solace appliances in the Solace Messaging Platform.
-   */
-  public void setSubscriberNetworkPriority(Integer subscriberNetworkPriority) {
-    this.subscriberNetworkPriority = subscriberNetworkPriority;
   }
 
 }

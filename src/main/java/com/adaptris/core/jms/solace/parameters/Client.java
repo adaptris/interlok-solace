@@ -3,11 +3,24 @@ package com.adaptris.core.jms.solace.parameters;
 import com.solacesystems.jms.SolConnectionFactory;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @XStreamAlias("solace-client")
 public class Client implements Parameter {
 
+  /**
+   * This property is used to specify the application description on the appliance for the data connection.
+   */
+  @Getter
+  @Setter
   private String clientDescription;
   
+  /**
+   * This property is used to specify the client name on the appliance for the data connection.
+   */
+  @Getter
+  @Setter
   private String clientId;
   
   @Override
@@ -19,28 +32,6 @@ public class Client implements Parameter {
     if(getClientId() != null) {
       cf.setClientID(getClientId());
     }
-  }
-
-  public String getClientDescription() {
-    return clientDescription;
-  }
-
-  /**
-   * This property is used to specify the application description on the appliance for the data connection.
-   */
-  public void setClientDescription(String clientDescription) {
-    this.clientDescription = clientDescription;
-  }
-
-  /**
-   * This property is used to specify the client name on the appliance for the data connection.
-   */
-  public String getClientId() {
-    return clientId;
-  }
-
-  public void setClientId(String clientId) {
-    this.clientId = clientId;
   }
 
 }

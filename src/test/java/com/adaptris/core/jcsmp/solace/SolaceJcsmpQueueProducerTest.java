@@ -71,7 +71,6 @@ public class SolaceJcsmpQueueProducerTest {
 //    producer.setProducerEventHandler(callbackHandler);
     producer.setMessageTranslator(mockTranslator);
     producer.setQueue("myDestination");
-    producer.setTraceLogTimings(false);
 
     when(mockConnection.createSession())
         .thenReturn(mockSession);
@@ -100,7 +99,7 @@ public class SolaceJcsmpQueueProducerTest {
         .thenReturn(mockSession)
         .thenReturn(mockSession2);
 
-    assertNull(producer.getCurrentSession());
+    assertNull(producer.getSessionHelper().getSession());
 
     JCSMPSession session1 = producer.session();
     JCSMPSession session2 = producer.session();
@@ -116,7 +115,7 @@ public class SolaceJcsmpQueueProducerTest {
     when(mockSession.isClosed())
         .thenReturn(true);
 
-    assertNull(producer.getCurrentSession());
+    assertNull(producer.getSessionHelper().getSession());
 
     JCSMPSession session1 = producer.session();
     JCSMPSession session2 = producer.session();
