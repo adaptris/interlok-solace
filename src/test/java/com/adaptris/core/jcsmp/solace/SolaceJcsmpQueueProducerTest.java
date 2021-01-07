@@ -3,7 +3,7 @@ package com.adaptris.core.jcsmp.solace;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -13,10 +13,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.DefaultMessageFactory;
+import com.adaptris.core.MockBaseTest;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.jcsmp.solace.translator.SolaceJcsmpMessageTranslator;
 import com.adaptris.core.util.LifecycleHelper;
@@ -24,12 +24,11 @@ import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPSession;
-import com.solacesystems.jcsmp.JCSMPStreamingPublishCorrelatingEventHandler;
 import com.solacesystems.jcsmp.JCSMPStreamingPublishEventHandler;
 import com.solacesystems.jcsmp.Queue;
 import com.solacesystems.jcsmp.XMLMessageProducer;
 
-public class SolaceJcsmpQueueProducerTest {
+public class SolaceJcsmpQueueProducerTest extends MockBaseTest {
 
   private SolaceJcsmpQueueProducer producer;
 
@@ -58,9 +57,7 @@ public class SolaceJcsmpQueueProducerTest {
   @Mock private BytesXMLMessage mockMessage;
 
   @Before
-  public void setup() throws Exception {
-    MockitoAnnotations.initMocks(this);
-
+  public void setUp() throws Exception {
     adaptrisMessage = DefaultMessageFactory.getDefaultInstance().newMessage();
 
     produceDestination = "myDestination";
@@ -68,22 +65,22 @@ public class SolaceJcsmpQueueProducerTest {
     producer = new SolaceJcsmpQueueProducer();
     producer.setJcsmpFactory(mockJcsmpFactory);
     producer.registerConnection(mockConnection);
-//    producer.setProducerEventHandler(callbackHandler);
+    //    producer.setProducerEventHandler(callbackHandler);
     producer.setMessageTranslator(mockTranslator);
     producer.setQueue("myDestination");
 
     when(mockConnection.createSession())
-        .thenReturn(mockSession);
+    .thenReturn(mockSession);
     when(mockConnection.getConnectionErrorHandler())
-        .thenReturn(mockConnectionErrorHandler);
+    .thenReturn(mockConnectionErrorHandler);
     when(mockJcsmpFactory.createQueue(any(String.class)))
-        .thenReturn(mockQueue);
+    .thenReturn(mockQueue);
     when(mockConnection.retrieveConnection(SolaceJcsmpConnection.class))
-        .thenReturn(mockConnection);
-    when(mockSession.getMessageProducer(any(JCSMPStreamingPublishCorrelatingEventHandler.class)))
-        .thenReturn(mockProducer);
+    .thenReturn(mockConnection);
+    when(mockSession.getMessageProducer(any(JCSMPStreamingPublishEventHandler.class)))
+    .thenReturn(mockProducer);
     when(mockTranslator.translate(adaptrisMessage))
-        .thenReturn(mockMessage);
+    .thenReturn(mockMessage);
 
     LifecycleHelper.initAndStart(producer);
   }
@@ -96,8 +93,8 @@ public class SolaceJcsmpQueueProducerTest {
   @Test
   public void testSessionCache() throws Exception {
     when(mockConnection.createSession())
-        .thenReturn(mockSession)
-        .thenReturn(mockSession2);
+    .thenReturn(mockSession)
+    .thenReturn(mockSession2);
 
     assertNull(producer.getSessionHelper().getSession());
 
@@ -110,10 +107,10 @@ public class SolaceJcsmpQueueProducerTest {
   @Test
   public void testSessionCacheFirstSessiongetsClosed() throws Exception {
     when(mockConnection.createSession())
-        .thenReturn(mockSession)
-        .thenReturn(mockSession2);
+    .thenReturn(mockSession)
+    .thenReturn(mockSession2);
     when(mockSession.isClosed())
-        .thenReturn(true);
+    .thenReturn(true);
 
     assertNull(producer.getSessionHelper().getSession());
 
@@ -126,8 +123,8 @@ public class SolaceJcsmpQueueProducerTest {
   @Test
   public void testMessageProducerCache() throws Exception {
     when(mockSession.getMessageProducer(any(JCSMPStreamingPublishEventHandler.class)))
-        .thenReturn(mockProducer)
-        .thenReturn(mockProducer2);
+    .thenReturn(mockProducer)
+    .thenReturn(mockProducer2);
 
     assertNull(producer.getMessageProducer());
   }
@@ -152,13 +149,13 @@ public class SolaceJcsmpQueueProducerTest {
   @Test
   public void testPublishFailure() throws Exception {
     doThrow(new JCSMPException("Expected"))
-        .when(mockProducer).send(mockMessage, mockQueue);
+    .when(mockProducer).send(mockMessage, mockQueue);
 
     try {
       producer.doProduce(adaptrisMessage, produceDestination);
       fail("Produce should fail.");
     } catch (ProduceException ex) {
-   // expected
+      // expected
     }
   }
 

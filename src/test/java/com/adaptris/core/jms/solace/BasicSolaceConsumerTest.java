@@ -4,13 +4,10 @@ import com.adaptris.core.StandaloneConsumer;
 import com.adaptris.core.jms.JmsConnection;
 import com.adaptris.core.jms.JmsConnectionErrorHandler;
 import com.adaptris.core.jms.JmsConsumer;
-import com.adaptris.core.jms.JmsConsumerCase;
+import com.adaptris.interlok.junit.scaffolding.jms.JmsConsumerCase;
 
 public class BasicSolaceConsumerTest extends JmsConsumerCase {
-  @Override
-  public boolean isAnnotatedForJunit4() {
-    return true;
-  }
+
   @Override
   protected String createBaseFileName(Object object) {
     return ((StandaloneConsumer) object).getConsumer().getClass().getName() + "-SolaceJMS";

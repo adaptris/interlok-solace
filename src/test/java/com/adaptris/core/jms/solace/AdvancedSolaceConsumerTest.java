@@ -8,12 +8,10 @@ import com.adaptris.util.KeyValuePair;
 
 public class AdvancedSolaceConsumerTest extends BasicSolaceConsumerTest {
 
-
   @Override
   protected String createBaseFileName(Object object) {
     return ((StandaloneConsumer) object).getConsumer().getClass().getName() + "-Advanced-SolaceJMS";
   }
-
 
   @Override
   protected AdvancedSolaceImplementation createVendorImpl() {

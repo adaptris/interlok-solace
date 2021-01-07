@@ -1,7 +1,7 @@
 package com.adaptris.core.jcsmp.solace;
 
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -10,13 +10,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageProducer;
 import com.adaptris.core.ConnectionErrorHandler;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.DefaultMessageFactory;
+import com.adaptris.core.MockBaseTest;
 import com.adaptris.core.jcsmp.solace.translator.SolaceJcsmpMessageTranslator;
 import com.adaptris.core.stubs.MockMessageListener;
 import com.adaptris.core.util.LifecycleHelper;
@@ -28,7 +28,7 @@ import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.Queue;
 import com.solacesystems.jcsmp.XMLMessageListener;
 
-public class SolaceJcsmpQueueConsumerTest {
+public class SolaceJcsmpQueueConsumerTest extends MockBaseTest {
 
   private SolaceJcsmpQueueConsumer consumer;
 
@@ -56,10 +56,8 @@ public class SolaceJcsmpQueueConsumerTest {
 
   @Before
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
-    
     mockAdpMessage = DefaultMessageFactory.getDefaultInstance().newMessage();
-    
+
     mockListener = new MockMessageListener();
 
     consumer = new SolaceJcsmpQueueConsumer();
@@ -74,17 +72,17 @@ public class SolaceJcsmpQueueConsumerTest {
     consumer.setTransacted(false);
 
     when(mockConnection.createSession())
-        .thenReturn(mockSession);
+    .thenReturn(mockSession);
     when(mockConnection.retrieveConnection(SolaceJcsmpConnection.class))
-        .thenReturn(mockConnection);
+    .thenReturn(mockConnection);
     when(mockSession.createFlow(any(XMLMessageListener.class), any(), any()))
-        .thenReturn(mockFlowReceiver);
+    .thenReturn(mockFlowReceiver);
     when(mockJcsmpFactory.createQueue(any(String.class)))
-        .thenReturn(mockQueue);
+    .thenReturn(mockQueue);
     when(mockTranslator.translate(mockBytesMessage))
-        .thenReturn(mockAdpMessage);
+    .thenReturn(mockAdpMessage);
     when(mockConnection.getConnectionErrorHandler())
-        .thenReturn(mockConnectionErrorHandler);
+    .thenReturn(mockConnectionErrorHandler);
   }
 
   @After
@@ -102,7 +100,7 @@ public class SolaceJcsmpQueueConsumerTest {
   @Test
   public void testReceiveStartFails() throws Exception {
     doThrow(new JCSMPException("Expected"))
-        .when(mockConnection).createSession();
+    .when(mockConnection).createSession();
 
     try {
       LifecycleHelper.initAndStart(consumer);
@@ -125,7 +123,7 @@ public class SolaceJcsmpQueueConsumerTest {
   @Test
   public void testOnReceiveTranslatorFails() throws Exception {
     doThrow(new Exception("Expected"))
-        .when(mockTranslator).translate(mockBytesMessage);
+    .when(mockTranslator).translate(mockBytesMessage);
 
     LifecycleHelper.initAndStart(consumer);
 
