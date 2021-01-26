@@ -4,27 +4,30 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.Topic;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+
+import com.adaptris.core.MockBaseTest;
 import com.adaptris.core.jms.JmsActorConfig;
 import com.adaptris.core.jms.JmsDestination;
 import com.adaptris.core.jms.JmsDestination.DestinationType;
 import com.adaptris.core.jms.jndi.StandardJndiImplementation;
 
-public class SolaceJndiVendorImplementationTest {
+public class SolaceJndiVendorImplementationTest extends MockBaseTest {
 
   @Mock private Session mockSession;
   @Mock private JmsActorConfig mockActorConfig;
@@ -38,24 +41,23 @@ public class SolaceJndiVendorImplementationTest {
 
   @Before
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
-
     sol = new SolaceJndiVendorImplementation();
     sol.setCreateConsumerMaxRetries(5);
     sol.setCreateConsumerRetryWaitSeconds(0);
     sol.setJndiName("MyJndiLookup");
 
     when(mockActorConfig.currentSession())
-        .thenReturn(mockSession);
+    .thenReturn(mockSession);
 
     when(mockSession.createQueue(any(String.class)))
-        .thenReturn(mockQueue);
+    .thenReturn(mockQueue);
 
     when(mockSession.createTopic(any(String.class)))
-        .thenReturn(mockTopic);
+    .thenReturn(mockTopic);
 
-    when(mockSession.createConsumer(any(Destination.class), any(String.class), any(boolean.class)))
-      .thenReturn(mockMessageConsumer);
+    // any() meaning null or any string
+    when(mockSession.createConsumer(any(Destination.class), any(), any(boolean.class)))
+    .thenReturn(mockMessageConsumer);
   }
 
   @Test
@@ -82,11 +84,11 @@ public class SolaceJndiVendorImplementationTest {
   @Test
   public void testCreateDurableSubscriber() throws Exception {
     when(mockJmsDestination.destinationType())
-        .thenReturn(DestinationType.TOPIC);
+    .thenReturn(DestinationType.TOPIC);
     when(mockJmsDestination.subscriptionId())
-        .thenReturn("MySubId");
+    .thenReturn("MySubId");
     when(mockJmsDestination.getDestination())
-        .thenReturn(mockTopic);
+    .thenReturn(mockTopic);
 
     sol.createConsumer(mockJmsDestination, null, mockActorConfig);
 
@@ -96,9 +98,9 @@ public class SolaceJndiVendorImplementationTest {
   @Test
   public void testCreateMessageConsumer() throws Exception {
     when(mockJmsDestination.destinationType())
-        .thenReturn(DestinationType.QUEUE);
+    .thenReturn(DestinationType.QUEUE);
     when(mockJmsDestination.getDestination())
-        .thenReturn(mockQueue);
+    .thenReturn(mockQueue);
 
     sol.createConsumer(mockJmsDestination, null, mockActorConfig);
 
@@ -108,15 +110,15 @@ public class SolaceJndiVendorImplementationTest {
   @Test
   public void testCreateMessageConsumerWithRetry() throws Exception {
     when(mockJmsDestination.destinationType())
-        .thenReturn(DestinationType.QUEUE);
+    .thenReturn(DestinationType.QUEUE);
     when(mockJmsDestination.getDestination())
-        .thenReturn(mockQueue);
+    .thenReturn(mockQueue);
 
     when(mockSession.createConsumer(mockQueue, null, false))
-        .thenThrow(new JMSException("Expected1"))
-        .thenThrow(new JMSException("Expected2"))
-        .thenThrow(new JMSException("Expected3"))
-        .thenReturn(mockMessageConsumer);
+    .thenThrow(new JMSException("Expected1"))
+    .thenThrow(new JMSException("Expected2"))
+    .thenThrow(new JMSException("Expected3"))
+    .thenReturn(mockMessageConsumer);
 
     sol.createConsumer(mockJmsDestination, null, mockActorConfig);
 
@@ -128,15 +130,15 @@ public class SolaceJndiVendorImplementationTest {
     sol.setCreateConsumerMaxRetries(0); // infinite
 
     when(mockJmsDestination.destinationType())
-        .thenReturn(DestinationType.QUEUE);
+    .thenReturn(DestinationType.QUEUE);
     when(mockJmsDestination.getDestination())
-        .thenReturn(mockQueue);
+    .thenReturn(mockQueue);
 
     when(mockSession.createConsumer(mockQueue, null, false))
-        .thenThrow(new JMSException("Expected1"))
-        .thenThrow(new JMSException("Expected2"))
-        .thenThrow(new JMSException("Expected3"))
-        .thenReturn(mockMessageConsumer);
+    .thenThrow(new JMSException("Expected1"))
+    .thenThrow(new JMSException("Expected2"))
+    .thenThrow(new JMSException("Expected3"))
+    .thenReturn(mockMessageConsumer);
 
     sol.createConsumer(mockJmsDestination, null, mockActorConfig);
 
@@ -146,12 +148,12 @@ public class SolaceJndiVendorImplementationTest {
   @Test
   public void testCreateMessageConsumerWithMaxRetry() throws Exception {
     when(mockJmsDestination.destinationType())
-        .thenReturn(DestinationType.QUEUE);
+    .thenReturn(DestinationType.QUEUE);
     when(mockJmsDestination.getDestination())
-        .thenReturn(mockQueue);
+    .thenReturn(mockQueue);
 
     when(mockSession.createConsumer(mockQueue, null, false))
-        .thenThrow(new JMSException("Expected"));
+    .thenThrow(new JMSException("Expected"));
 
     try {
       sol.createConsumer(mockJmsDestination, null, mockActorConfig);
