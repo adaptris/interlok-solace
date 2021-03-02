@@ -157,8 +157,8 @@ dependencies {
     exclude group: "org.apache.logging.log4j"
   }
   testCompile ("com.adaptris:interlok-licensing-stub:$interlokCoreVersion") { changing= true}
-  testCompile ("org.mockito:mockito-core:3.7.7")
-  testCompile ("org.mockito:mockito-inline:3.7.7")
+  testCompile ("org.mockito:mockito-core:3.8.0")
+  testCompile ("org.mockito:mockito-inline:3.8.0")
 
   testCompile ("org.apache.geronimo.specs:geronimo-jms_1.1_spec:1.1.1")
   javadoc("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
