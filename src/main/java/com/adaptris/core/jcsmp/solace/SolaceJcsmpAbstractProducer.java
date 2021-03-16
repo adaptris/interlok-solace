@@ -1,12 +1,9 @@
 package com.adaptris.core.jcsmp.solace;
 
-import java.util.HashMap;
 import java.util.Map;
-
+import java.util.concurrent.TimeUnit;
 import javax.validation.constraints.NotNull;
-
 import org.apache.commons.lang3.ObjectUtils;
-
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
@@ -24,13 +21,15 @@ import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.XMLMessage;
 import com.solacesystems.jcsmp.XMLMessageProducer;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import net.jodah.expiringmap.ExpirationPolicy;
+import net.jodah.expiringmap.ExpiringMap;
 
 public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp {
 
+  private static final int MAX_CACHE_SIZE = 50;
   /**
    * The message translator is responsible for translating the Solace JCSMP message object
    * into an {@link AdaptrisMessage} and the reverse.  The translator will typically handle the payload and the headers/metadata.
@@ -53,11 +52,11 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
   @Getter(AccessLevel.PACKAGE)
   @Setter(AccessLevel.PACKAGE)
   private transient Map<String, Destination> destinationCache;
-  
+
   @Getter(AccessLevel.PACKAGE)
   @Setter(AccessLevel.PACKAGE)
   private transient SolaceJcsmpProduceEventHandler asynEventHandler;
-  
+
   @Getter(AccessLevel.PACKAGE)
   @Setter(AccessLevel.PACKAGE)
   private transient SolaceJcsmpSessionHelper sessionHelper;
@@ -68,20 +67,22 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
 
   public SolaceJcsmpAbstractProducer() {
     setMessageTranslator(new SolaceJcsmpTextMessageTranslator());
-    setDestinationCache(new HashMap<String, Destination>());
+    setDestinationCache(
+        ExpiringMap.builder().maxSize(MAX_CACHE_SIZE).expirationPolicy(ExpirationPolicy.ACCESSED)
+            .expiration(1L, TimeUnit.HOURS).variableExpiration().build());
     setAsynEventHandler(new SolaceJcsmpProduceEventHandler(this));
     setSessionHelper(new SolaceJcsmpSessionHelper());
   }
 
   @Override
   public void init() throws CoreException {
-    this.getAsynEventHandler().init();
+    getAsynEventHandler().init();
     getDestinationCache().clear();
     setMessageProducer(null);
     getSessionHelper().setConnection(retrieveConnection(SolaceJcsmpConnection.class));
     getSessionHelper().setTransacted(false);
   }
-  
+
   @Override
   public void stop() {
     getSessionHelper().close();
@@ -94,12 +95,12 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
 
       XMLMessageProducer jcsmpMessageProducer = messageProducer(msg);
       XMLMessage translatedMessage = getMessageTranslator().translate(msg);
-      
+
       translatedMessage.setCorrelationKey(msg.getUniqueId());
 
       jcsmpMessageProducer.send(translatedMessage, dest);
       getAsynEventHandler().addUnAckedMessage(translatedMessage.getMessageId(), msg);
-      // Standard workflow will attempt to execute this after the produce, 
+      // Standard workflow will attempt to execute this after the produce,
       // let's remove them so it's handled by our async event handler.
       msg.getObjectHeaders().remove(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK);
       msg.getObjectHeaders().remove(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK);

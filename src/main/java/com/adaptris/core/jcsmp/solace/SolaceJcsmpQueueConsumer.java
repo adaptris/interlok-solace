@@ -1,20 +1,17 @@
 package com.adaptris.core.jcsmp.solace;
 
-import javax.validation.Valid;
-
+import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
-import com.adaptris.annotation.Removal;
+import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessageConsumer;
-import com.adaptris.core.ConsumeDestination;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.DestinationHelper;
-import com.adaptris.core.util.LoggingHelper;
+import com.adaptris.interlok.util.Args;
 import com.solacesystems.jcsmp.FlowReceiver;
 import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.Queue;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,32 +37,20 @@ import lombok.Setter;
 @ComponentProfile(summary="A Solace native JCSMP component that consumes your messages from the Solace VPN.", tag="queue,consumer,solace,jcsmp", since="3.9.3")
 @XStreamAlias("solace-jcsmp-queue-consumer")
 @NoArgsConstructor
+@DisplayOrder(order = {"queue", "acknowledgeMode", "endpointPermissions", "endpointAccessType"})
 public class SolaceJcsmpQueueConsumer extends SolaceJcsmpAbstractConsumer {
 
   @Getter(AccessLevel.PACKAGE)
   @Setter(AccessLevel.PACKAGE)
   private transient FlowReceiver flowReceiver;
-  @Getter(AccessLevel.PACKAGE)
-  @Setter(AccessLevel.PACKAGE)
-  private transient boolean destinationWarningLogged = false;
 
-  /**
-   * The consume destination is the queue that we receive messages from.
-   *
-   */
-  @Getter
-  @Setter
-  @Deprecated
-  @Valid
-  @Removal(version = "4.0.0", message = "Use 'queue' instead")
-  private ConsumeDestination destination;
   /**
    * The Solace Queue
    *
    */
   @Getter
   @Setter
-  // Needs to be @NotBlank when destination is removed.
+  @NotBlank
   private String queue;
 
 
@@ -98,18 +83,15 @@ public class SolaceJcsmpQueueConsumer extends SolaceJcsmpAbstractConsumer {
   @SuppressWarnings("deprecation")
   @Override
   public void prepare() throws CoreException {
-    DestinationHelper.logConsumeDestinationWarning(getDestinationWarningLogged(),
-        () -> setDestinationWarningLogged(true), getDestination(),
-        "{} uses destination, use 'queue' instead", LoggingHelper.friendlyName(this));
-    DestinationHelper.mustHaveEither(getQueue(), getDestination());
+    Args.notBlank(getQueue(), "queue");
   }
 
   @Override
   protected String newThreadName() {
-    return DestinationHelper.threadName(retrieveAdaptrisMessageListener(), getDestination());
+    return DestinationHelper.threadName(retrieveAdaptrisMessageListener());
   }
 
   private String queueName() {
-    return DestinationHelper.consumeDestination(getQueue(), getDestination());
+    return getQueue();
   }
 }

@@ -1,14 +1,13 @@
 package com.adaptris.core.jcsmp.solace;
 
-import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
-import com.adaptris.annotation.Removal;
+import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessageConsumer;
-import com.adaptris.core.ConsumeDestination;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.DestinationHelper;
-import com.adaptris.core.util.LoggingHelper;
+import com.adaptris.interlok.util.Args;
 import com.solacesystems.jcsmp.Topic;
 import com.solacesystems.jcsmp.XMLMessageConsumer;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -34,28 +33,18 @@ import lombok.Setter;
 @AdapterComponent
 @ComponentProfile(summary="A Solace native JCSMP component that consumes your topic messages from the Solace VPN.", tag="subscription,topic,consumer,solace,jcsmp", since="3.9.3")
 @XStreamAlias("solace-jcsmp-topic-consumer")
+@DisplayOrder(order = {"topic", "acknowledgeMode", "endpointPermissions", "endpointAccessType"})
 public class SolaceJcsmpTopicConsumer extends SolaceJcsmpAbstractConsumer {
 
   private transient XMLMessageConsumer messageConsumer;
-  private transient boolean destinationWarningLogged = false;
 
-  /**
-   * The consume destination is the topic that we receive messages from.
-   *
-   */
-  @Getter
-  @Setter
-  @Deprecated
-  @Valid
-  @Removal(version = "4.0.0", message = "Use 'topic' instead")
-  private ConsumeDestination destination;
   /**
    * The Solace Topic
    *
    */
   @Getter
   @Setter
-  // Needs to be @NotBlank when destination is removed.
+  @NotBlank
   private String topic;
 
   public SolaceJcsmpTopicConsumer() {
@@ -98,19 +87,16 @@ public class SolaceJcsmpTopicConsumer extends SolaceJcsmpAbstractConsumer {
 
   @Override
   public void prepare() throws CoreException {
-    DestinationHelper.logConsumeDestinationWarning(destinationWarningLogged,
-        () -> destinationWarningLogged = true, getDestination(),
-        "{} uses destination, use 'queue' instead", LoggingHelper.friendlyName(this));
-    DestinationHelper.mustHaveEither(getTopic(), getDestination());
+    Args.notBlank(getTopic(), "topic");
   }
 
   @Override
   protected String newThreadName() {
-    return DestinationHelper.threadName(retrieveAdaptrisMessageListener(), getDestination());
+    return DestinationHelper.threadName(retrieveAdaptrisMessageListener());
   }
 
   private String topicName() {
-    return DestinationHelper.consumeDestination(getTopic(), getDestination());
+    return getTopic();
   }
 
 }
