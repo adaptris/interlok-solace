@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import com.adaptris.core.jcsmp.solace.auth.BasicAuthenticationProvider;
 import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.ConsumerFlowProperties;
 import com.solacesystems.jcsmp.DeliveryMode;
@@ -80,8 +80,9 @@ public class TestBridge implements XMLMessageListener {
   private void doBridge() {
       connection = new SolaceJcsmpConnection();
       connection.setHost(HOST);
-      connection.setUsername(USER);
-      connection.setPassword(PASS);
+      BasicAuthenticationProvider provider = new BasicAuthenticationProvider();
+      provider.setUsername(USER);
+      provider.setPassword(PASS);
       connection.setVpn(VPN);
       
       try {
