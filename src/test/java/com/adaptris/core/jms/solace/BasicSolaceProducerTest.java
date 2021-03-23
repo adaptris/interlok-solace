@@ -4,13 +4,10 @@ import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.jms.JmsConnection;
 import com.adaptris.core.jms.JmsConnectionErrorHandler;
 import com.adaptris.core.jms.JmsProducer;
-import com.adaptris.core.jms.JmsProducerExample;
+import com.adaptris.interlok.junit.scaffolding.jms.JmsProducerExample;
 
 public class BasicSolaceProducerTest extends JmsProducerExample {
-  @Override
-  public boolean isAnnotatedForJunit4() {
-    return true;
-  }
+
   @Override
   protected String createBaseFileName(Object object) {
     return ((StandaloneProducer) object).getProducer().getClass().getName() + "-SolaceJMS";
