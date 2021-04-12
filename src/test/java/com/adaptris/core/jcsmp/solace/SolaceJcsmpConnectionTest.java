@@ -5,14 +5,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.util.concurrent.TimeUnit;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
 import com.adaptris.core.ConnectionErrorHandler;
 import com.adaptris.core.MockBaseTest;
 import com.adaptris.core.fs.FsConsumer;
@@ -45,8 +42,10 @@ public class SolaceJcsmpConnectionTest extends MockBaseTest {
     connection.setConnectionAttempts(2);
     connection.setConnectionRetryInterval(new TimeInterval(100l, TimeUnit.MILLISECONDS));
     connection.setHost("myHost");
-    connection.setUsername("myUsername");
-    connection.setPassword("myPassword");
+    BasicAuthenticationProvider provider = new BasicAuthenticationProvider();
+    provider.setUsername("myUsername");
+    provider.setPassword("myPassword");
+    connection.setAuthenticationProvider(provider);
     connection.setVpn("myVpn");
     connection.setAdditionalDebug(true);
     connection.setConnectionErrorHandler(mockConnectionErrorHandler);

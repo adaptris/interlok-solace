@@ -1,18 +1,15 @@
 package com.adaptris.core.jcsmp.solace;
 
-import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageProducer;
 import com.adaptris.core.CoreException;
-import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
-import com.adaptris.core.util.DestinationHelper;
-import com.adaptris.core.util.LoggingHelper;
+import com.adaptris.interlok.util.Args;
 import com.solacesystems.jcsmp.Destination;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
@@ -35,39 +32,25 @@ import lombok.Setter;
 public class SolaceJcsmpTopicProducer extends SolaceJcsmpAbstractProducer {
 
   /**
-   * The destination is the Solace Topic
-   *
-   */
-  @Getter
-  @Setter
-  @Deprecated
-  @Valid
-  @Removal(version = "4.0.0", message = "Use 'topic' instead")
-  private ProduceDestination destination;
-
-  /**
    * The Solace Topic
    *
    */
   @InputFieldHint(expression = true)
   @Getter
   @Setter
-  // Needs to be @NotBlank when destination is removed.
+  @NotBlank
   private String topic;
-  private transient boolean destWarning;
 
 
   @Override
   public void prepare() throws CoreException {
-    DestinationHelper.logWarningIfNotNull(destWarning, () -> destWarning = true, getDestination(),
-        "{} uses destination, use 'topic' instead", LoggingHelper.friendlyName(this));
-    DestinationHelper.mustHaveEither(getTopic(), getDestination());
+    Args.notBlank(getTopic(), "topic");
   }
 
 
   @Override
   public String endpoint(AdaptrisMessage msg) throws ProduceException {
-    return DestinationHelper.resolveProduceDestination(getTopic(), getDestination(), msg);
+    return msg.resolve(getTopic());
   }
 
   @Override
