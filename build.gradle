@@ -23,7 +23,6 @@ ext {
   defaultNexusRepo = project.findProperty('defaultNexusRepo') ?: 'unknown'
   interlokJavadocs= project.findProperty('interlokJavadocs') ?: javadocsBaseUrl + "/interlok-core/" + interlokCoreVersion
   interlokCommonJavadocs= project.findProperty('interlokCommonJavadocs') ?: javadocsBaseUrl + "/interlok-common/" + interlokCoreVersion
-  interlokLicenseJavadocs= project.findProperty('interlokLicenseJavadocs') ?: javadocsBaseUrl + "/interlok-licensing/" + interlokCoreVersion
   offlineJavadocPackageDir = new File(project.buildDir, "offline-javadoc-packages")
 
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
@@ -103,13 +102,6 @@ repositories {
       allowInsecureProtocol true
     }
   }
-  maven {
-      credentials {
-        username repoUsername
-        password repoPassword
-      }
-      url "$nexusBaseUrl/content/groups/private"
-    }
   maven { url "$nexusBaseUrl/content/groups/public" }
   maven { url "$nexusBaseUrl/content/groups/interlok" }
 }
@@ -144,7 +136,6 @@ configurations.all {
 dependencies {
   api ("com.adaptris:interlok-core:$interlokCoreVersion") { changing= true}
   api ("com.adaptris:interlok-common:$interlokCoreVersion") { changing= true}
-  api ("com.adaptris:interlok-licensing:$interlokCoreVersion") { changing= true}
 
   api "com.solacesystems:sol-common:$solaceVersion"
   api "com.solacesystems:sol-jcsmp:$solaceVersion"
@@ -161,13 +152,10 @@ dependencies {
   testImplementation ("org.mockito:mockito-core:$mockitoVersion")
   testImplementation ("org.mockito:mockito-inline:$mockitoVersion")
 
-  testImplementation ("com.adaptris:interlok-licensing-stub:$interlokCoreVersion") { changing= true}
-
   testImplementation ("org.apache.geronimo.specs:geronimo-jms_1.1_spec:1.1.1")
   javadoc("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
   offlineJavadocPackages ("com.adaptris:interlok-core:$interlokCoreVersion:javadoc@jar") { changing= true}
   offlineJavadocPackages ("com.adaptris:interlok-common:$interlokCoreVersion:javadoc@jar") { changing= true}
-  offlineJavadocPackages ("com.adaptris:interlok-licensing:$interlokCoreVersion:javadoc@jar") { changing= true}
 
 }
 
@@ -239,7 +227,6 @@ javadoc {
   configure(options) {
     options.linksOffline(interlokJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-core-$interlokCoreVersion-javadoc.jar")
     options.linksOffline(interlokCommonJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-common-$interlokCoreVersion-javadoc.jar")
-    options.linksOffline(interlokLicenseJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-licensing-$interlokCoreVersion-javadoc.jar")
 
     taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
     options.addStringOption "tagletpath", configurations.javadoc.asPath
@@ -261,7 +248,6 @@ task umlJavadoc(type: Javadoc) {
   configure(options) {
     options.linksOffline(interlokJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-core-$interlokCoreVersion-javadoc.jar")
     options.linksOffline(interlokCommonJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-common-$interlokCoreVersion-javadoc.jar")
-    options.linksOffline(interlokLicenseJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-licensing-$interlokCoreVersion-javadoc.jar")
 
     taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
     options.addStringOption "tagletpath", configurations.javadoc.asPath
