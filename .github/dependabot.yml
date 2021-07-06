@@ -15,7 +15,8 @@ updates:
   - package-ecosystem: "gradle"
     directory: "/"
     registries:
-      - "*"
+      - "interlok"
+      - "public"
     schedule:
       interval: "daily"
     allow:
