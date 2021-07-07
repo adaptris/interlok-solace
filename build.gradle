@@ -311,7 +311,9 @@ publishing {
         def properties = asNode().appendNode("properties")
         properties.appendNode("target", "3.8.0+")
         properties.appendNode("tags", "solace,jms")
-        properties.appendNode("license", "true")
+        properties.appendNode("license", "false")
+        properties.appendNode("externalUrl", "https://solace.com")
+        properties.appendNode("repository", "https://github.com/adaptris/interlok-solace")
       }
     }
   }
