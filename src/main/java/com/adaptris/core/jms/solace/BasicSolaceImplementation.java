@@ -3,10 +3,8 @@ package com.adaptris.core.jms.solace;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.validation.constraints.NotNull;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
-
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
@@ -16,15 +14,10 @@ import com.adaptris.core.jms.JmsDestination;
 import com.adaptris.core.jms.UrlVendorImplementation;
 import com.adaptris.core.jms.VendorImplementation;
 import com.adaptris.core.jms.VendorImplementationBase;
-import com.adaptris.core.licensing.License;
-import com.adaptris.core.licensing.License.LicenseType;
-import com.adaptris.core.licensing.LicenseChecker;
-import com.adaptris.core.licensing.LicensedComponent;
 import com.adaptris.interlok.util.Args;
 import com.solacesystems.jms.SolConnectionFactory;
 import com.solacesystems.jms.SolJmsUtility;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,7 +38,7 @@ import lombok.Setter;
  * @license BASIC
  */
 @XStreamAlias("basic-solace-implementation")
-public class BasicSolaceImplementation extends UrlVendorImplementation implements LicensedComponent {
+public class BasicSolaceImplementation extends UrlVendorImplementation {
 
   private static final int DEFAULT_CREATE_CONSUMER_RETRY_WAIT_SECONDS = 30;
 
@@ -71,7 +64,7 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
   @Getter
   @Setter
   private Integer createConsumerMaxRetries;
-  
+
   /**
    * Message VPN name. Default: default
    */
@@ -161,13 +154,7 @@ public class BasicSolaceImplementation extends UrlVendorImplementation implement
   @Override
   public void prepare() throws CoreException {
     Args.notBlank(getBrokerUrl(), "broker-url");
-    LicenseChecker.newChecker().checkLicense(this);
     super.prepare();
-  }
-
-  @Override
-  public boolean isEnabled(License license) {
-    return license.isEnabled(LicenseType.Standard);
   }
 
   public Integer createConsumerRetryWaitSeconds() {
