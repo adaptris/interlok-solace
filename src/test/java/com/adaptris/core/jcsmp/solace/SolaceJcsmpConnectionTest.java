@@ -50,6 +50,29 @@ public class SolaceJcsmpConnectionTest extends MockBaseTest {
     connection.setAdditionalDebug(true);
     connection.setConnectionErrorHandler(mockConnectionErrorHandler);
 
+    connection.getAdvancedProperties().setAckEventMode("SUPPORTED_ACK_EVENT_MODE_PER_MSG");
+    connection.getAdvancedProperties().setApplicationDescription("Interlok");
+    connection.getAdvancedProperties().setCalculateMessageExpiration(false);
+    connection.getAdvancedProperties().setClientAckMode(true);
+    connection.getAdvancedProperties().setGdReconnectFailAction("GD_RECONNECT_FAIL_ACTION_AUTO_RETRY");
+    connection.getAdvancedProperties().setGenerateRcvTimestamps(false);
+    connection.getAdvancedProperties().setGenerateSenderId(false);
+    connection.getAdvancedProperties().setGenerateSendTimestamps(false);
+    connection.getAdvancedProperties().setGenerateSequenceNumbers(false);
+    connection.getAdvancedProperties().setIgnoreDuplicateSubscriptionError(false);
+    connection.getAdvancedProperties().setIgnoreSubscriptionNotFoundError(false);
+    connection.getAdvancedProperties().setKrbServiceName(null);
+    connection.getAdvancedProperties().setMessageCallbackOnReactor(false);
+    connection.getAdvancedProperties().setNoLocal(false);
+    connection.getAdvancedProperties().setPubAckTime(1000);
+    connection.getAdvancedProperties().setPubAckWindowSize(1);
+    connection.getAdvancedProperties().setPubUseIntermediateDirectBuf(true);
+    connection.getAdvancedProperties().setReapplySubscriptions(false);
+    connection.getAdvancedProperties().setReapplySubscriptions(false);
+    connection.getAdvancedProperties().setSubAckTime(1000);
+    connection.getAdvancedProperties().setSubAckWindowSize(1);
+    connection.getAdvancedProperties().setSubAckWindowThreshold(60);
+    
     connection.prepareConnection();
 
     when(mockJcsmpFactory.createSession(any(JCSMPProperties.class)))
