@@ -99,7 +99,7 @@ public abstract class SolaceJcsmpAbstractProducer extends ProduceOnlyProducerImp
       translatedMessage.setCorrelationKey(msg.getUniqueId());
 
       jcsmpMessageProducer.send(translatedMessage, dest);
-      getAsynEventHandler().addUnAckedMessage(translatedMessage.getMessageId(), msg);
+      getAsynEventHandler().addUnAckedMessage(msg);
       // Standard workflow will attempt to execute this after the produce,
       // let's remove them so it's handled by our async event handler.
       msg.getObjectHeaders().remove(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK);

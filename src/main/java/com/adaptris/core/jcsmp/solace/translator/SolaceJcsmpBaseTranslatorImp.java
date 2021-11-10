@@ -10,6 +10,7 @@ import javax.validation.constraints.Pattern;
 
 import org.apache.commons.lang3.ObjectUtils;
 
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
@@ -17,6 +18,7 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.DefaultMessageFactory;
 import com.adaptris.core.jcsmp.solace.SolaceJcsmpMetadataMapping;
+import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.solacesystems.jcsmp.DeliveryMode;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.XMLMessage;
@@ -97,13 +99,35 @@ private static final String DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT.name
   /**
    * A list of mappings between Adaptris message metadata and Solace headers.
    * @param mappings
+   * @deprecated since 4.3 Use per-message-properties instead.
    */
   @NotNull
   @AutoPopulated
   @Getter
   @Setter
+  @AdvancedConfig(rare=true)
+  @Deprecated
+  @ConfigDeprecated(removalVersion = "5.0", message = "Use per-message-properties instead.", groups = Deprecated.class)
   private List<SolaceJcsmpMetadataMapping> mappings;
 
+  @Getter
+  @Setter
+  private SolaceJcsmpPerMessageProperties perMessageProperties;
+  
+  /**
+   * Apply per message properties resolution when we produce a JCSMP message.
+   */
+  @Getter
+  @Setter
+  private boolean applyPerMessagePropertiesOnProduce;
+  
+  /**
+   * Copy the JCSMP message properties into metadata when we consume a message.
+   */
+  @Getter
+  @Setter
+  private boolean applyPerMessagePropertiesOnConsume;
+  
   @Getter(AccessLevel.PACKAGE)
   @Setter(AccessLevel.PACKAGE)
   private transient JCSMPFactory jcsmpFactory;
@@ -172,8 +196,9 @@ private static final String DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT.name
   
   public SolaceJcsmpBaseTranslatorImp() {
     this.setMessageFactory(messageFactory);
+    this.setPerMessageProperties(new SolaceJcsmpPerMessageProperties());
     this.setMappings(new ArrayList<>());
-  }
+  } 
   
   @Override
   public AdaptrisMessage translate(XMLMessage message) throws Exception {
@@ -181,6 +206,8 @@ private static final String DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT.name
     
     performPayloadTranslation(message, adaptrisMessage);
     performMetadataMappings(message, adaptrisMessage);
+    if(getApplyPerMessagePropertiesOnConsume())
+      getPerMessageProperties().applyPerMessageProperties(adaptrisMessage, message);
     
     return adaptrisMessage;
   }
@@ -189,6 +216,8 @@ private static final String DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT.name
   public XMLMessage translate(AdaptrisMessage message) throws Exception {
     XMLMessage solaceMessage = performPayloadTranslation(message);
     performHeaderMappings(message, solaceMessage);
+    if(getApplyPerMessagePropertiesOnProduce())
+      getPerMessageProperties().applyPerMessageProperties(solaceMessage, message);
     
     return solaceMessage;
   }

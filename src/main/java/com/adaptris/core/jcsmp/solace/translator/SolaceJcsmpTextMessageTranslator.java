@@ -27,7 +27,7 @@ public class SolaceJcsmpTextMessageTranslator extends SolaceJcsmpBaseTranslatorI
 
   private transient TextMessage textMessage;
   
-  public SolaceJcsmpTextMessageTranslator() {
+  public SolaceJcsmpTextMessageTranslator() { 
     super();
     textMessage = this.jcsmpFactory().createMessage(TextMessage.class);
   }

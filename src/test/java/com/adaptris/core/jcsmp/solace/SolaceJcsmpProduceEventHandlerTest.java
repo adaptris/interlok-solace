@@ -22,7 +22,7 @@ public class SolaceJcsmpProduceEventHandlerTest extends MockBaseTest {
 
   private SolaceJcsmpProduceEventHandler eventHandler;
 
-  private AdaptrisMessage message;
+  private AdaptrisMessage message, message2, message3;
 
   @Mock private SolaceJcsmpAbstractProducer mockProducer;
   @Mock private SolaceJcsmpConnection mockConnection;
@@ -31,6 +31,8 @@ public class SolaceJcsmpProduceEventHandlerTest extends MockBaseTest {
   @Before
   public void setUp() throws Exception {
     message = DefaultMessageFactory.getDefaultInstance().newMessage();
+    message2 = DefaultMessageFactory.getDefaultInstance().newMessage();
+    message3 = DefaultMessageFactory.getDefaultInstance().newMessage();
 
     eventHandler = new SolaceJcsmpProduceEventHandler(mockProducer);
     LifecycleHelper.init(eventHandler);
@@ -50,9 +52,9 @@ public class SolaceJcsmpProduceEventHandlerTest extends MockBaseTest {
     message.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK, successCallback);
     message.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK, failureCallback);
 
-    eventHandler.addUnAckedMessage("messageId", message);
+    eventHandler.addUnAckedMessage(message);
 
-    eventHandler.handleError("messageId", new JCSMPException("Expected"), 1l);
+    eventHandler.handleErrorEx(message.getUniqueId(), new JCSMPException("Expected"), 1l);
 
     assertEquals(0, eventHandler.getUnAckedMessages().size());
 
@@ -61,7 +63,7 @@ public class SolaceJcsmpProduceEventHandlerTest extends MockBaseTest {
 
   @Test
   public void testHandleErrorWithUnknownMessage() throws Exception {
-    eventHandler.handleError("messageId", new JCSMPException("Expected"), 1l);
+    eventHandler.handleErrorEx(message.getUniqueId(), new JCSMPException("Expected"), 1l);
 
     assertEquals(0, eventHandler.getUnAckedMessages().size());
   }
@@ -74,9 +76,9 @@ public class SolaceJcsmpProduceEventHandlerTest extends MockBaseTest {
     message.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK, successCallback);
     message.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK, failureCallback);
 
-    eventHandler.addUnAckedMessage("messageId", message);
+    eventHandler.addUnAckedMessage(message);
 
-    eventHandler.responseReceived("messageId");
+    eventHandler.responseReceivedEx(message.getUniqueId());
 
     assertEquals(0, eventHandler.getUnAckedMessages().size());
   }
@@ -88,17 +90,20 @@ public class SolaceJcsmpProduceEventHandlerTest extends MockBaseTest {
 
     message.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK, successCallback);
     message.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK, failureCallback);
+    
+    message2.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK, successCallback);
+    message2.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK, failureCallback);
 
-    eventHandler.addUnAckedMessage("messageId", message);
-    eventHandler.addUnAckedMessage("messageId2", message);
+    eventHandler.addUnAckedMessage(message);
+    eventHandler.addUnAckedMessage(message2);
 
-    eventHandler.handleError("messageId", new JCSMPException("Expected"), 1l);
-    eventHandler.responseReceived("messageId"); //  should not fire success callback
+    eventHandler.handleErrorEx(message.getUniqueId(), new JCSMPException("Expected"), 1l);
+    eventHandler.responseReceivedEx(message2.getUniqueId()); //  should not fire success callback
   }
 
   @Test
   public void testHandleSuccessWithUnknownMessage() throws Exception {
-    eventHandler.responseReceived("messageId");
+    eventHandler.responseReceivedEx(message.getUniqueId());
 
     assertEquals(0, eventHandler.getUnAckedMessages().size());
   }
@@ -110,18 +115,24 @@ public class SolaceJcsmpProduceEventHandlerTest extends MockBaseTest {
 
     message.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK, successCallback);
     message.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK, failureCallback);
+    
+    message2.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK, successCallback);
+    message2.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK, failureCallback);
 
-    eventHandler.addUnAckedMessage("messageId", message);
-    eventHandler.addUnAckedMessage("messageId2", message);
-    eventHandler.addUnAckedMessage("messageId3", message);
+    message2.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK, successCallback);
+    message3.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK, failureCallback);
+    
+    eventHandler.addUnAckedMessage(message);
+    eventHandler.addUnAckedMessage(message2);
+    eventHandler.addUnAckedMessage(message3);
 
-    eventHandler.responseReceived("messageId");
+    eventHandler.responseReceivedEx(message.getUniqueId());
     assertEquals(2, eventHandler.getUnAckedMessages().size());
 
-    eventHandler.responseReceived("messageId2");
+    eventHandler.responseReceivedEx(message2.getUniqueId());
     assertEquals(1, eventHandler.getUnAckedMessages().size());
 
-    eventHandler.responseReceived("messageId3");
+    eventHandler.responseReceivedEx(message3.getUniqueId());
     assertEquals(0, eventHandler.getUnAckedMessages().size());
   }
 
