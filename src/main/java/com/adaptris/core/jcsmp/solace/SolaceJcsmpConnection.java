@@ -75,9 +75,15 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
   @Getter
   @Setter
   private Boolean additionalDebug;
+  
+  @AdvancedConfig
+  @Getter
+  @Setter
+  private SolaceJcsmpAdvancedConnectionProperties advancedProperties;
 
   public SolaceJcsmpConnection() {
     super();
+    setAdvancedProperties(new SolaceJcsmpAdvancedConnectionProperties());
   }
 
   @Override
@@ -155,6 +161,8 @@ public class SolaceJcsmpConnection extends AllowsRetriesConnection implements So
     }
     properties.setProperty(JCSMPProperties.HOST, getHost());
     properties.setProperty(JCSMPProperties.VPN_NAME, getVpn());
+    
+    getAdvancedProperties().applyAdvancedProperties(properties);
 
     return properties;
   }

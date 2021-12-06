@@ -11,6 +11,8 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.DefaultMessageFactory;
 import com.adaptris.core.MockBaseTest;
 import com.adaptris.core.jcsmp.solace.SolaceJcsmpMetadataMapping;
+import com.adaptris.util.KeyValuePair;
+import com.adaptris.util.KeyValuePairList;
 import com.solacesystems.jcsmp.DeliveryMode;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.TextMessage;
@@ -52,6 +54,7 @@ public class SolaceJcsmpTextMessageTranslatorTest extends MockBaseTest {
   public void testTranslateAdaptrisTextMessage() throws Exception {
     AdaptrisMessage adaptrisMessage = DefaultMessageFactory.getDefaultInstance().newMessage(MESSAGE_CONTENT);
 
+    translator.setApplyPerMessagePropertiesOnProduce(true);
     TextMessage translatedMessage = (TextMessage) translator.translate(adaptrisMessage);
 
     assertEquals(MESSAGE_CONTENT, translatedMessage.getText());
@@ -68,6 +71,73 @@ public class SolaceJcsmpTextMessageTranslatorTest extends MockBaseTest {
     assertEquals(DeliveryMode.NON_PERSISTENT, translatedMessage.getDeliveryMode());
   }
 
+  @Test
+  public void testTranslateAdaptrisTextMessageWithPerMessageProperties() throws Exception {
+    AdaptrisMessage adaptrisMessage = DefaultMessageFactory.getDefaultInstance().newMessage(MESSAGE_CONTENT);
+    
+    SolaceJcsmpPerMessageProperties pmp = new SolaceJcsmpPerMessageProperties();
+    pmp.setAckImmediately("true");
+    pmp.setAsReplyMessage("false");
+    pmp.setCorrelationId("correlation-1");
+    pmp.setCorrelationKey("correlation-key");
+    pmp.setClassOfService("2");
+    pmp.setDeliveryMode("PERSISTENT");
+    pmp.setElidingEligible("false");
+    pmp.setExpiration(Long.toString(System.currentTimeMillis()));
+    pmp.setHttpContentEncoding("http-encoding");
+    pmp.setHttpContentType("http-type");
+    pmp.setReplyToQueue("reply-queue");
+    pmp.setReplyToSuffix("reply-suffix");
+    pmp.setSenderId("sender-id");
+    pmp.setSequenceNumber("56");
+    pmp.setTimeToLive("60000");
+    
+    pmp.setApplicationMessageId("%message{app-message-id}");
+    pmp.setSenderTimestamp("%message{sender-timestamp}");
+    pmp.setPriority("%message{priority}");
+    pmp.setDmqEligible("%message{dmq-eligible}");
+    
+    adaptrisMessage.addMessageHeader("app-message-id", "123");
+    adaptrisMessage.addMessageHeader("sender-timestamp", Long.toString(timestamp));
+    adaptrisMessage.addMessageHeader("priority", "1");
+    adaptrisMessage.addMessageHeader("dmq-eligible", "true");
+
+    translator.setPerMessageProperties(pmp);
+    translator.setApplyPerMessagePropertiesOnProduce(true);
+    TextMessage translatedMessage = (TextMessage) translator.translate(adaptrisMessage);
+
+    assertEquals(MESSAGE_CONTENT, translatedMessage.getText());
+    assertEquals("123", translatedMessage.getApplicationMessageId());
+    assertEquals(1, translatedMessage.getPriority());
+    assertEquals(timestamp, translatedMessage.getSenderTimestamp());
+    assertEquals("correlation-1", translatedMessage.getCorrelationId());
+    assertEquals("correlation-key", translatedMessage.getCorrelationKey());
+    assertEquals("reply-queue", translatedMessage.getReplyTo().getName());
+  }
+  
+  @Test
+  public void testTranslateAdaptrisTextMessageWithPerMessagePropertiesAndSDT() throws Exception {
+    AdaptrisMessage adaptrisMessage = DefaultMessageFactory.getDefaultInstance().newMessage(MESSAGE_CONTENT);
+    
+    SolaceJcsmpPerMessageProperties pmp = new SolaceJcsmpPerMessageProperties();
+    KeyValuePairList list = new KeyValuePairList();
+    list.add(new KeyValuePair("key1", "value1"));
+    list.add(new KeyValuePair("key2", "value2"));
+    list.add(new KeyValuePair("key3", "value3"));
+    
+    translator.setPerMessageProperties(pmp);
+    translator.setApplyPerMessagePropertiesOnProduce(true);
+    translator.setApplyPerMessagePropertiesOnConsume(true);
+    pmp.setUserProperties(list);
+    
+    TextMessage translatedMessage = (TextMessage) translator.translate(adaptrisMessage);
+    AdaptrisMessage adaptrisMessage2 = translator.translate(translatedMessage);
+    
+    assertEquals("value1", adaptrisMessage2.getMetadataValue("key1"));
+    assertEquals("value2", adaptrisMessage2.getMetadataValue("key2"));
+    assertEquals("value3", adaptrisMessage2.getMetadataValue("key3"));
+  }
+  
   @Test
   public void testTranslateAdaptrisTextMessageWithMappings() throws Exception {
     AdaptrisMessage adaptrisMessage = DefaultMessageFactory.getDefaultInstance().newMessage(MESSAGE_CONTENT);
@@ -103,9 +173,54 @@ public class SolaceJcsmpTextMessageTranslatorTest extends MockBaseTest {
 
   @Test
   public void testTranslateSolaceTextMessageWithDeliveryMode() throws Exception {
+    translator.setApplyPerMessagePropertiesOnConsume(true);
     AdaptrisMessage adaptrisMessage = translator.translate(mockTextMessage);
 
     assertEquals(MESSAGE_CONTENT, adaptrisMessage.getContent());
+  }
+  
+  @Test
+  public void testTranslateSolaceTextMessageWithApplyProperties() throws Exception {
+    AdaptrisMessage adaptrisMessage = DefaultMessageFactory.getDefaultInstance().newMessage(MESSAGE_CONTENT);
+    
+    SolaceJcsmpPerMessageProperties pmp = new SolaceJcsmpPerMessageProperties();
+    pmp.setAckImmediately("true");
+    pmp.setAsReplyMessage("false");
+    pmp.setCorrelationId("correlation-1");
+    pmp.setCorrelationKey("correlation-key");
+    pmp.setClassOfService("2");
+    pmp.setDeliveryMode("PERSISTENT");
+    pmp.setElidingEligible("false");
+    pmp.setExpiration(Long.toString(System.currentTimeMillis()));
+    pmp.setHttpContentEncoding("http-encoding");
+    pmp.setHttpContentType("http-type");
+    pmp.setReplyToQueue("reply-queue");
+    pmp.setReplyToSuffix("reply-suffix");
+    pmp.setSenderId("sender-id");
+    pmp.setSequenceNumber("56");
+    pmp.setTimeToLive("60000");
+    
+    pmp.setApplicationMessageId("%message{app-message-id}");
+    pmp.setSenderTimestamp("%message{sender-timestamp}");
+    pmp.setPriority("%message{priority}");
+    pmp.setDmqEligible("%message{dmq-eligible}");
+    
+    adaptrisMessage.addMessageHeader("app-message-id", "123");
+    adaptrisMessage.addMessageHeader("sender-timestamp", Long.toString(timestamp));
+    adaptrisMessage.addMessageHeader("priority", "1");
+    adaptrisMessage.addMessageHeader("dmq-eligible", "true");
+
+    translator.setPerMessageProperties(pmp);
+    translator.setApplyPerMessagePropertiesOnProduce(true);
+    translator.setApplyPerMessagePropertiesOnConsume(true);
+    TextMessage translatedMessage = (TextMessage) translator.translate(adaptrisMessage);
+    
+    AdaptrisMessage secondTranslatedMessage = translator.translate(translatedMessage);
+
+    assertEquals(MESSAGE_CONTENT, adaptrisMessage.getContent());
+    assertEquals(true, Boolean.parseBoolean(secondTranslatedMessage.getMetadataValue("%message{dmq-eligible}")));
+    assertEquals("56", secondTranslatedMessage.getMetadataValue("56"));
+    assertEquals("reply-queue", secondTranslatedMessage.getMetadataValue("replyTo"));
   }
 
   @Test

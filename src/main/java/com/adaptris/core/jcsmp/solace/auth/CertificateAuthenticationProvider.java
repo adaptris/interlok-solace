@@ -5,6 +5,7 @@ import java.util.function.Function;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.CoreException;
 import com.adaptris.interlok.resolver.ExternalResolver;
@@ -63,6 +64,26 @@ public class CertificateAuthenticationProvider implements AuthenticationProvider
   private String sslTrustStorePassword;
   
   /**
+   * (Optional) This property is used to specify the format of the truststore given in SSL_TRUST_STORE.
+   */
+  @Getter
+  @Setter
+  private String sslTrustStoreFormat;
+  
+  /**
+   * This property is used to specify a comma separated list of acceptable common 
+   * names for matching with server certificates. The API performs a case insensitive 
+   * comparison of the common names provided in this property with the common name in the 
+   * server certificate. Note that leading and trailing whitespaces are considered to be 
+   * part of the common names and are not ignored. An empty string means accept all common 
+   * names. No common name validation will be performed (overriding this property) 
+   * if SSL_VALIDATE_CERTIFICATE is set to false.
+   */
+  @Getter
+  @Setter
+  private String sslTrustedCommonNameList;
+  
+  /**
    * The Solace client property to specify the location of your key store.
    * @param validateCertificate
    */
@@ -79,6 +100,22 @@ public class CertificateAuthenticationProvider implements AuthenticationProvider
   @Getter
   @Setter
   private String sslKeyStorePassword;
+  
+  /**
+   * (Optional) This property is used to specify the format of the keystore given in SSL_KEY_STORE.
+   */
+  @Getter
+  @Setter
+  private String sslKeyStoreFormat;
+  
+  /**
+   * This property is used to specify the alias of the private key to use for client certificate authentication. 
+   * If there is only one private key entry in the keystore specified by SSL_KEY_STORE, then this property doesn't have to be set.
+   */
+  @Getter
+  @Setter
+  @InputFieldDefault(value="")
+  private String sslPrivateKeyAlias;
   
   @Override
   public JCSMPProperties initConnectionProperties() throws CoreException {
@@ -98,12 +135,24 @@ public class CertificateAuthenticationProvider implements AuthenticationProvider
       setProperty(properties, JCSMPProperties.SSL_TRUST_STORE_PASSWORD, 
           decodeFunction(), 
           Optional.ofNullable(getSslTrustStorePassword()));
+      setProperty(properties, JCSMPProperties.SSL_TRUST_STORE_FORMAT, 
+          noOpFunction(), 
+          Optional.ofNullable(getSslTrustStoreFormat()));
+      setProperty(properties, JCSMPProperties.SSL_TRUSTED_COMMON_NAME_LIST, 
+          noOpFunction(), 
+          Optional.ofNullable(getSslTrustedCommonNameList()));
       setProperty(properties, JCSMPProperties.SSL_KEY_STORE, 
           noOpFunction(), 
           Optional.ofNullable(getSslKeyStoreLocation()));
+      setProperty(properties, JCSMPProperties.SSL_PRIVATE_KEY_ALIAS, 
+          noOpFunction(), 
+          Optional.ofNullable(getSslPrivateKeyAlias()));
       setProperty(properties, JCSMPProperties.SSL_KEY_STORE_PASSWORD, 
           decodeFunction(), 
           Optional.ofNullable(getSslKeyStorePassword()));
+      setProperty(properties, JCSMPProperties.SSL_KEY_STORE_FORMAT, 
+          decodeFunction(), 
+          Optional.ofNullable(getSslKeyStoreFormat()));
 
     } catch (Exception pe) {
       throw new CoreException(pe);

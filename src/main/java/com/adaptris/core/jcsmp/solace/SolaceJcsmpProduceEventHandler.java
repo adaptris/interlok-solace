@@ -2,8 +2,7 @@ package com.adaptris.core.jcsmp.solace;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
@@ -13,10 +12,13 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ComponentLifecycle;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.CoreException;
+import com.adaptris.core.cache.CacheEventListener;
+import com.adaptris.core.cache.ExpiringMapCache;
 import com.adaptris.core.jms.JmsConsumer;
 import com.adaptris.core.jms.JmsPollingConsumer;
+import com.adaptris.util.TimeInterval;
 import com.solacesystems.jcsmp.JCSMPException;
-import com.solacesystems.jcsmp.JCSMPStreamingPublishEventHandler;
+import com.solacesystems.jcsmp.JCSMPStreamingPublishCorrelatingEventHandler;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -45,15 +47,17 @@ import lombok.Setter;
  * @author Aaron
  *
  */
-public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishEventHandler, ComponentLifecycle {
+public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishCorrelatingEventHandler, ComponentLifecycle, CacheEventListener {
+  
+  private static final long EXPIRE_FAILED_MESSAGES_SECONDS = 120;
+  
+  private static final int EVICT_MESSAGES_MAX = 5000;
   
   protected transient Logger log = LoggerFactory.getLogger(this.getClass().getName());
   
-  public static final String SOLACE_LATCH_KEY = "solaceJcsmpLath";
-  
   @Getter(AccessLevel.PACKAGE)
   @Setter(AccessLevel.PACKAGE)
-  private transient Map<String, CallbackConsumers> unAckedMessages;
+  private transient ExpiringMapCache unAckedMessages;
   
   @Getter(AccessLevel.PACKAGE)
   @Setter(AccessLevel.PACKAGE)
@@ -68,56 +72,72 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishEven
   }
   
   @Override
-  public void handleError(String messageId, JCSMPException ex, long arg2) {
+  public void handleErrorEx(Object obj, JCSMPException ex, long arg2) {
+    String messageId = (String) obj;
+    
     setAcceptSuccessCallbacks(false);
     log.error("Received failure callback from Solace for message id {}", messageId);
-    logRemainingUnAckedMessages();
-    
-    CallbackConsumers callbackConsumers = this.getUnAckedMessages().get(messageId);
-    if(callbackConsumers == null) {
-      log.warn("Received failure callback for an unknown message {}", messageId);
-    } else {
-      defaultIfNull(callbackConsumers.getOnFailure(), (msg) -> {   }).accept(callbackConsumers.getMessage());
-      getUnAckedMessages().remove(messageId);
+    try {
+      logRemainingUnAckedMessages();
+      
+      CallbackConsumers callbackConsumers = (CallbackConsumers) this.getUnAckedMessages().get(messageId);
+      if(callbackConsumers == null) {
+        log.warn("Received failure callback for an unknown message {}", messageId, ex);
+      } else {
+        defaultIfNull(callbackConsumers.getOnFailure(), (msg) -> {   }).accept(callbackConsumers.getMessage());
+        getUnAckedMessages().remove(messageId);
+      }
+    } catch (CoreException cex) {
+      log.warn("Attempting to handle failure callback.", cex);
     }
-    
     getProducer().retrieveConnection(SolaceJcsmpConnection.class).getConnectionErrorHandler().handleConnectionException();
   }
 
   @Override
-  public void responseReceived(String messageId) {
+  public void responseReceivedEx(Object obj) {
+    String messageId = (String) obj;
+    
     log.debug("Success callback received from Solace for message id {}", messageId);
     if(this.getAcceptSuccessCallbacks()) {
-      CallbackConsumers callbackConsumers = this.getUnAckedMessages().get(messageId);
-      if(callbackConsumers == null) {
-        log.warn("Received success callback for an unknown message {}", messageId);
-      } else {
-        defaultIfNull(callbackConsumers.getOnSuccess(), (msg) -> {   }).accept(callbackConsumers.getMessage());
-        getUnAckedMessages().remove(messageId);
+      try {
+        CallbackConsumers callbackConsumers = (CallbackConsumers) this.getUnAckedMessages().get(messageId);
+        if(callbackConsumers == null) {
+          log.warn("Received success callback for an unknown message {}", messageId);
+        } else {
+          defaultIfNull(callbackConsumers.getOnSuccess(), (msg) -> {   }).accept(callbackConsumers.getMessage());
+          getUnAckedMessages().remove(messageId);
+        }
+        logRemainingUnAckedMessages();
+      } catch (CoreException cex) {
+        log.warn("Error trying to handle success callback.", cex);
+        handleErrorEx(obj, new JCSMPException("", cex), 0l);
       }
-      
-      logRemainingUnAckedMessages();
     } else {
       log.warn("Executing producer restart, not accepting further success callbacks until complete.");
+      handleErrorEx(obj, new JCSMPException("Success callbacks not available at this moment."), 0l);
     }
   }
 
   @SuppressWarnings("unchecked")
-  public void addUnAckedMessage(String messageId, AdaptrisMessage message) {
-    log.trace("Adding message to un'acked list with id {}", messageId);
+  public void addUnAckedMessage(AdaptrisMessage message) throws CoreException {
+    log.trace("Adding message to un'acked list with id {}", message.getUniqueId());
     CallbackConsumers callbackConsumers = new CallbackConsumers(message,
         (Consumer<AdaptrisMessage>) message.getObjectHeaders().get(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK),
         (Consumer<AdaptrisMessage>) message.getObjectHeaders().get(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK));
-    this.getUnAckedMessages().put(messageId, callbackConsumers);
+    this.getUnAckedMessages().put(message.getUniqueId(), callbackConsumers);
   }
 
-  private void logRemainingUnAckedMessages() {
+  private void logRemainingUnAckedMessages() throws CoreException {
     log.trace("{} messages waiting for async callback.", this.getUnAckedMessages().size());
   }
   
   @Override
   public void init() throws CoreException {
-    this.setUnAckedMessages(new HashMap<>());
+    this.setUnAckedMessages(new ExpiringMapCache());
+    this.getUnAckedMessages().setExpiration(new TimeInterval(EXPIRE_FAILED_MESSAGES_SECONDS, TimeUnit.SECONDS));
+    this.getUnAckedMessages().setMaxEntries(EVICT_MESSAGES_MAX);
+    this.getUnAckedMessages().getEventListener().addEventListener(this);
+    this.getUnAckedMessages().init();
     this.setAcceptSuccessCallbacks(true);
   }
   
@@ -140,5 +160,34 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishEven
       setOnFailure(onFailure);
     }
   }
+
+  @Override
+  public void handleError(String messageId, JCSMPException ex, long arg2) {
+    log.warn("handleErrorEx called", ex);
+  }
+
+  @Override
+  public void responseReceived(String arg0) {
+    log.debug("responseReceivedEx called:: {}", arg0);
+  }
+
+  @Override
+  public void itemEvicted(String key, Object value) {
+    log.warn("Evicting message with ID {} from un-ack'd cache.", key);
+  }
+
+  @Override
+  public void itemExpired(String key, Object value) {
+    log.warn("Expired message with ID {} from un-ack'd cache.", key);
+  }
+
+  @Override
+  public void itemPut(String key, Object value) { }
+
+  @Override
+  public void itemRemoved(String key, Object value) { }
+
+  @Override
+  public void itemUpdated(String key, Object value) { }
 
 }
