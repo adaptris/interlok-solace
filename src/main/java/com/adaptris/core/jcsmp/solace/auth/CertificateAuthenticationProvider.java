@@ -83,6 +83,8 @@ public class CertificateAuthenticationProvider implements AuthenticationProvider
    * part of the common names and are not ignored. An empty string means accept all common
    * names. No common name validation will be performed (overriding this property)
    * if SSL_VALIDATE_CERTIFICATE is set to false.
+   *
+   * @param sslTrustedCommonNameList
    */
   @Getter
   @Setter
@@ -90,16 +92,18 @@ public class CertificateAuthenticationProvider implements AuthenticationProvider
 
   /**
    * The Solace client property to specify the location of your key store.
-   * @param validateCertificate
+   *
+   * @param sslKeyStoreLocation
    */
   @Getter
   @Setter
   private String sslKeyStoreLocation;
 
   /**
-   * The Solace client property to specify the password of your key store.
-   * Note this password can also be encoded using the appropriate {@link com.adaptris.security.password.Password}
-   * @param validateCertificate
+   * The Solace client property to specify the password of your key store. Note this password can also be encoded using the appropriate
+   * {@link com.adaptris.security.password.Password}
+   *
+   * @param sslKeyStorePassword
    */
   @InputFieldHint(style = "PASSWORD", external=true)
   @Getter
@@ -108,14 +112,18 @@ public class CertificateAuthenticationProvider implements AuthenticationProvider
 
   /**
    * (Optional) This property is used to specify the format of the keystore given in SSL_KEY_STORE.
+   *
+   * @param sslKeyStoreFormat
    */
   @Getter
   @Setter
   private String sslKeyStoreFormat;
 
   /**
-   * This property is used to specify the alias of the private key to use for client certificate authentication.
-   * If there is only one private key entry in the keystore specified by SSL_KEY_STORE, then this property doesn't have to be set.
+   * This property is used to specify the alias of the private key to use for client certificate authentication. If there is only one
+   * private key entry in the keystore specified by SSL_KEY_STORE, then this property doesn't have to be set.
+   *
+   * @param sslPrivateKeyAlias
    */
   @Getter
   @Setter
