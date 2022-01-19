@@ -49,7 +49,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   @Getter
   @Setter
   private SolaceJcsmpMessageTranslator messageTranslator;
-  
+
   /**
    * <p>"CONSUME" / "DELETE" / "READ_ONLY" / "NONE" / "MODIFY_TOPIC""</p>
    * <p>This must match your end-point permissions on the Solace queue/topic.</p>
@@ -63,7 +63,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   @Getter
   @Setter
   private String endpointPermissions;
-  
+
   /**
    * <p>"EXCLUSIVE" / "NONEXCLUSIVE"</p>
    * <p>This must match your end-point configuration on the Solace queue/topic.</p>
@@ -77,7 +77,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   @Getter
   @Setter
   private String endpointAccessType;
-  
+
   /**
    * <p>"CLIENT" / "AUTO"</p>
    * <p>Client acknowledge mode means Interlok will handle the Acknowledgements after the workflow has finished or the producer
@@ -102,15 +102,15 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   @Getter
   @Setter
   private Boolean transacted;
-  
+
   @Getter(AccessLevel.PACKAGE)
   @Setter(AccessLevel.PACKAGE)
   private transient SolaceJcsmpSessionHelper sessionHelper;
-  
+
   @Getter(AccessLevel.PACKAGE)
   @Setter(AccessLevel.PACKAGE)
   private transient JCSMPFactory jcsmpFactory;
-  
+
   public enum permissions {
     CONSUME {
       @Override
@@ -119,7 +119,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
     DELETE {
       @Override
       int value() { return EndpointProperties.PERMISSION_DELETE; }
-    }, 
+    },
     READ_ONLY {
       @Override
       int value() { return EndpointProperties.PERMISSION_READ_ONLY; }
@@ -134,7 +134,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
     };
     abstract int value();
   }
-  
+
   public enum accessType {
     EXCLUSIVE {
       @Override
@@ -146,7 +146,7 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
     };
     abstract int value();
   }
-  
+
   public enum ackMode {
     CLIENT {
       @Override
@@ -158,12 +158,12 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
     };
     abstract String value();
   }
-  
+
   public SolaceJcsmpAbstractConsumer() {
     setMessageTranslator(new SolaceJcsmpTextMessageTranslator());
     setSessionHelper(new SolaceJcsmpSessionHelper());
   }
-  
+
   @Override
   public void onException(JCSMPException exception) {
     // Assumes a connection error handler...
@@ -175,30 +175,31 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   public void onReceive(BytesXMLMessage message) {
     try {
       AdaptrisMessage adaptrisMessage = getMessageTranslator().translate(message);
-      
+
       Consumer<AdaptrisMessage> successCallback = adpMessage -> {
         if(acknowledgeMode().equals(ackMode.CLIENT)) {
           getSessionHelper().commit(message);
         }
       };
-      
+
       Consumer<AdaptrisMessage> failureCallback = adpMessage -> {
-        log.error("Message failed.  Will not acknowledge.", adaptrisMessage.getObjectHeaders().get(CoreConstants.OBJ_METADATA_EXCEPTION_CAUSE));
+        log.error("Message failed.  Will not acknowledge. {}",
+            adaptrisMessage.getObjectHeaders().get(CoreConstants.OBJ_METADATA_EXCEPTION_CAUSE));
         getSessionHelper().rollback();
       };
-      
+
       retrieveAdaptrisMessageListener().onAdaptrisMessage(adaptrisMessage, successCallback, failureCallback);
     } catch (Exception e) {
       log.error("Failed to translate message.", e);
     }
   }
-  
+
   @Override
   public void init() throws CoreException {
     getSessionHelper().setConnection(retrieveConnection(SolaceJcsmpConnection.class));
     getSessionHelper().setTransacted(transacted());
   }
-  
+
   @Override
   public void start() throws CoreException {
     try {
@@ -207,29 +208,30 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
       throw ExceptionHelper.wrapCoreException("JCSMP Consumer, failed to start.", e);
     }
   }
-  
+
   @Override
   public void stop() {
     getSessionHelper().close();
   }
-  
+
   protected ConsumerFlowProperties createConsumerFlowProperties(Queue queue) {
     final ConsumerFlowProperties flowProps = new ConsumerFlowProperties();
     flowProps.setEndpoint(queue);
-    if(transacted())
+    if(transacted()) {
       flowProps.setStartState(true);
-    else
+    } else {
       flowProps.setAckMode(acknowledgeMode().value());
-    
+    }
+
     return flowProps;
   }
-  
+
   protected EndpointProperties createEndpointProperties() {
     final EndpointProperties endpointProps = new EndpointProperties();
     // set queue permissions to "consume" and access-type to "exclusive"
     endpointProps.setPermission(endpointPermissions().value());
     endpointProps.setAccessType(endpointAccessType().value());
-    
+
     return endpointProps;
   }
 
@@ -243,11 +245,11 @@ public abstract class SolaceJcsmpAbstractConsumer  extends AdaptrisMessageConsum
   permissions endpointPermissions() {
     return permissions.valueOf(ObjectUtils.defaultIfNull(getEndpointPermissions(), DEFAULT_ENDPOINT_PERMISSIONS));
   }
-  
+
   accessType endpointAccessType() {
     return accessType.valueOf(ObjectUtils.defaultIfNull(getEndpointAccessType(), DEFAULT_ENDPOINT_ACCESS_TYPE));
   }
-  
+
   ackMode acknowledgeMode() {
     return ackMode.valueOf(ObjectUtils.defaultIfNull(getAcknowledgeMode(), DEFAULT_ACKNOWLEDGE_MODE));
   }
