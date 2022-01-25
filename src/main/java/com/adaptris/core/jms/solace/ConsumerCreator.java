@@ -1,14 +1,17 @@
 package com.adaptris.core.jms.solace;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.Topic;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.adaptris.core.jms.JmsActorConfig;
 import com.adaptris.core.jms.JmsDestination;
 import com.adaptris.core.jms.JmsDestination.DestinationType;
@@ -25,7 +28,7 @@ public class ConsumerCreator {
    */
   public MessageConsumer createQueueReceiver(String queueName, String selector, JmsActorConfig c,
       int maxRetries, int waitBetweenRetries)
-      throws JMSException {
+          throws JMSException {
     Session s = c.currentSession();
     Queue q = s.createQueue(queueName);
     return createConsumerWithRetry(s, q, selector, false, maxRetries, waitBetweenRetries);
@@ -73,7 +76,7 @@ public class ConsumerCreator {
     JMSException lastException = null;
 
     int retries = 0;
-    while((returnedConsumer == null) && ((retries <= maxRetries) || (maxRetries <= 0) )) {
+    while(returnedConsumer == null && (retries <= maxRetries || maxRetries <= 0 )) {
       try {
         returnedConsumer = session.createConsumer(destination, selector, noLocal);
       } catch(JMSException ex) {
@@ -81,7 +84,7 @@ public class ConsumerCreator {
         retries ++;
         log.error("Failed to create consumer, will retry ({}) and after {} seconds.", retries, waitBetweenRetries, ex);
         try {
-          Thread.sleep(waitBetweenRetries * 1000);
+          Thread.sleep(waitBetweenRetries * 1000L);
         } catch (InterruptedException e) {
           log.warn("Interrupted while trying to create a message consumer.  Exiting.");
           break;
@@ -90,8 +93,9 @@ public class ConsumerCreator {
       }
     }
 
-    if(returnedConsumer == null)
+    if(returnedConsumer == null) {
       throw lastException;
+    }
 
     return returnedConsumer;
   }
