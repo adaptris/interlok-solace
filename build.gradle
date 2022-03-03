@@ -33,7 +33,7 @@ ext {
   organizationUrl = "http://interlok.adaptris.net"
   slf4jVersion = '1.7.36'
   mockitoVersion = '4.3.1'
-  solaceVersion='10.13.0'
+  solaceVersion='10.13.1'
 }
 
 ext.hostname = { ->
