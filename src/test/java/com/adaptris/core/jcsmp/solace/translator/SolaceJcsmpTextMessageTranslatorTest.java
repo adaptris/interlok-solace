@@ -11,8 +11,7 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.DefaultMessageFactory;
 import com.adaptris.core.MockBaseTest;
 import com.adaptris.core.jcsmp.solace.SolaceJcsmpMetadataMapping;
-import com.adaptris.util.KeyValuePair;
-import com.adaptris.util.KeyValuePairList;
+import com.adaptris.core.metadata.RegexMetadataFilter;
 import com.solacesystems.jcsmp.DeliveryMode;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.TextMessage;
@@ -118,17 +117,12 @@ public class SolaceJcsmpTextMessageTranslatorTest extends MockBaseTest {
   @Test
   public void testTranslateAdaptrisTextMessageWithPerMessagePropertiesAndSDT() throws Exception {
     AdaptrisMessage adaptrisMessage = DefaultMessageFactory.getDefaultInstance().newMessage(MESSAGE_CONTENT);
+    adaptrisMessage.addMetadata("key1", "value1");
+    adaptrisMessage.addMetadata("key2", "value2");
+    adaptrisMessage.addMetadata("key3", "value3");
     
-    SolaceJcsmpPerMessageProperties pmp = new SolaceJcsmpPerMessageProperties();
-    KeyValuePairList list = new KeyValuePairList();
-    list.add(new KeyValuePair("key1", "value1"));
-    list.add(new KeyValuePair("key2", "value2"));
-    list.add(new KeyValuePair("key3", "value3"));
-    
-    translator.setPerMessageProperties(pmp);
-    translator.setApplyPerMessagePropertiesOnProduce(true);
-    translator.setApplyPerMessagePropertiesOnConsume(true);
-    pmp.setUserProperties(list);
+    RegexMetadataFilter filter = new RegexMetadataFilter();
+    filter.addIncludePattern("key.*");
     
     TextMessage translatedMessage = (TextMessage) translator.translate(adaptrisMessage);
     AdaptrisMessage adaptrisMessage2 = translator.translate(translatedMessage);
