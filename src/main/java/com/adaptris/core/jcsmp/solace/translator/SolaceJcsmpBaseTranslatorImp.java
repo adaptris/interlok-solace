@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -11,6 +12,7 @@ import javax.validation.constraints.Pattern;
 import org.apache.commons.lang3.ObjectUtils;
 
 import com.adaptris.annotation.AdvancedConfig;
+import com.adaptris.annotation.AffectsMetadata;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
@@ -18,6 +20,8 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.DefaultMessageFactory;
 import com.adaptris.core.jcsmp.solace.SolaceJcsmpMetadataMapping;
+import com.adaptris.core.metadata.MetadataFilter;
+import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.solacesystems.jcsmp.DeliveryMode;
 import com.solacesystems.jcsmp.JCSMPFactory;
@@ -38,32 +42,13 @@ import lombok.Setter;
  * </p>
  * <p>
  * The payload mapping is straight forward, but the metadata and header mapping does require a little configuration.
- * Most of the header values on a Solace XMLMessage are strings and in fact we assume every mapping will be a String, 
- * unless you configure the data-type for any mapping to be anything else.
+ * In the advanced settings you can specify metadata keys against each Solace message property; when consuming we will copy the value
+ * from the Solace message into the specified metadata key and when producing we will source the value for the
+ * Solace header from the specified metadata key.
  * </p>
  * <p>
- * An example of the XML configuration for a producer (therefore translating the AdaptrisMessage to a Solace message) with a simple mapping might be;
- * <pre>
- *   <message-translator class="solace-jcsmp-bytes-message-translator">
- *     <delivery-mode>PERSISTENT</delivery-mode>
- *     <mappings>
- *       <solace-jcsmp-metadata-mapping>
- *         <header-key>MessageId</header-key>
- *         <metadata-key>message-id</metadata-key>
- *       <solace-jcsmp-metadata-mapping>
- *       <solace-jcsmp-metadata-mapping>
- *         <header-key>Priority</header-key>
- *         <metadata-key>message-priority</metadata-key>
- *         <data-type>Integer</data-type>
- *       <solace-jcsmp-metadata-mapping>
- *     </mappings>
- *   </message-translator>
- * </pre>
- * The above example will use the AdaptrisMessage metadata value from the key named "message-id" call the setter method
- * "setMessageId()" on the Solace message. 
- * <br />
- * The second mapping will use the AdaptrisMessage metadata value, turn it into an integer value and call the setter "setPriority()"
- * on the Solace message.
+ * User data is slightly different however, when consuming we will copy all Solace User data into metadata, when producing 
+ * you will set a metadata filter where we will copy metadata keys and values into the outgoing Solace message User data.
  * </p>
  * @author aaron
  * @config solace-jcsmp-bytes-message-translator
@@ -71,7 +56,9 @@ import lombok.Setter;
  */
 public abstract class SolaceJcsmpBaseTranslatorImp implements SolaceJcsmpMessageTranslator {
 
-private static final String DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT.name();
+  private static final String DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT.name();
+
+  private static final MetadataFilter DEFAULT_FILTER = new NoOpMetadataFilter();
   
 /**
  * Defaults to the standard {@link DefaultMessageFactory}.
@@ -112,6 +99,7 @@ private static final String DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT.name
 
   @Getter
   @Setter
+  @AdvancedConfig(rare=true)
   private SolaceJcsmpPerMessageProperties perMessageProperties;
   
   /**
@@ -119,6 +107,7 @@ private static final String DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT.name
    */
   @Getter
   @Setter
+  @AdvancedConfig(rare=true)
   private boolean applyPerMessagePropertiesOnProduce;
   
   /**
@@ -126,7 +115,20 @@ private static final String DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT.name
    */
   @Getter
   @Setter
+  @AdvancedConfig(rare=true)
   private boolean applyPerMessagePropertiesOnConsume;
+  
+  @Valid
+  @AutoPopulated
+  @AffectsMetadata
+  @InputFieldDefault(value = "no-op-metadata-filter")
+  @Getter
+  @Setter
+  private MetadataFilter metadataFilter;
+  
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
+  private transient SolaceJcsmpUserDataTranslator userDataTranslator;
   
   @Getter(AccessLevel.PACKAGE)
   @Setter(AccessLevel.PACKAGE)
@@ -197,6 +199,7 @@ private static final String DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT.name
   public SolaceJcsmpBaseTranslatorImp() {
     this.setMessageFactory(messageFactory);
     this.setPerMessageProperties(new SolaceJcsmpPerMessageProperties());
+    this.setUserDataTranslator(new SolaceJcsmpUserDataTranslator());
     this.setMappings(new ArrayList<>());
   } 
   
@@ -208,6 +211,7 @@ private static final String DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT.name
     performMetadataMappings(message, adaptrisMessage);
     if(getApplyPerMessagePropertiesOnConsume())
       getPerMessageProperties().applyPerMessageProperties(adaptrisMessage, message);
+    getUserDataTranslator().translate(message, adaptrisMessage);
     
     return adaptrisMessage;
   }
@@ -218,6 +222,7 @@ private static final String DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT.name
     performHeaderMappings(message, solaceMessage);
     if(getApplyPerMessagePropertiesOnProduce())
       getPerMessageProperties().applyPerMessageProperties(solaceMessage, message);
+    getUserDataTranslator().translate(message, solaceMessage, metadataFilter());
     
     return solaceMessage;
   }
@@ -255,6 +260,10 @@ private static final String DEFAULT_DELIVERY_MODE = DeliveryMode.PERSISTENT.name
       return this.getDeliveryMode().toUpperCase();
     else
       return DEFAULT_DELIVERY_MODE;
+  }
+  
+  public MetadataFilter metadataFilter() {
+    return ObjectUtils.defaultIfNull(getMetadataFilter(), DEFAULT_FILTER);
   }
 
 }
