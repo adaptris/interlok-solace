@@ -2,12 +2,9 @@ package com.adaptris.core.jcsmp.solace.translator;
 
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.util.KeyValuePair;
-import com.adaptris.util.KeyValuePairList;
 import com.solacesystems.jcsmp.DeliveryMode;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.SDTException;
-import com.solacesystems.jcsmp.SDTMap;
 import com.solacesystems.jcsmp.User_Cos;
 import com.solacesystems.jcsmp.XMLMessage;
 
@@ -15,14 +12,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class SolaceJcsmpPerMessageProperties {
-
-  /**
-   * Set the user data through name/values pairs
-   */
-  @Getter
-  @Setter
-  @InputFieldHint(expression=true)
-  private KeyValuePairList userProperties;
   
   /**
    * Set the ACK Immediately message property.
@@ -256,27 +245,6 @@ public class SolaceJcsmpPerMessageProperties {
     
     if(getTimeToLive() != null)
       destMessage.addMetadata(getTimeToLive(), Long.toString(sourceMessage.getTimeToLive()));
-    
-    if(sourceMessage.getProperties() != null) {
-      for(String key : sourceMessage.getProperties().keySet()) {
-        Object object = sourceMessage.getProperties().get(key);
-        
-        if(object instanceof String)
-          destMessage.addMetadata(key, (String) object);
-        else if(object instanceof Integer || object.getClass().equals(int.class))
-          destMessage.addMetadata(key, Integer.toString((int) object));
-        else if(object instanceof Boolean || object.getClass().equals(boolean.class))
-          destMessage.addMetadata(key, Boolean.toString((boolean) object));
-        else if(object instanceof Long || object.getClass().equals(long.class))
-          destMessage.addMetadata(key, Long.toString((long) object));
-        else if(object instanceof Double || object.getClass().equals(double.class))
-          destMessage.addMetadata(key, Double.toString((double) object));
-        else if(object instanceof Float || object.getClass().equals(float.class))
-          destMessage.addMetadata(key, Float.toString((float) object));
-        else if(object instanceof Short || object.getClass().equals(short.class))
-          destMessage.addMetadata(key, Short.toString((short) object));
-      }
-    }
   }
   
   public void applyPerMessageProperties(XMLMessage destMessage, AdaptrisMessage sourceMessage) throws SDTException {
@@ -343,14 +311,6 @@ public class SolaceJcsmpPerMessageProperties {
     
     if(getTimeToLive() != null)
       destMessage.setTimeToLive(Long.parseLong(sourceMessage.resolve(getTimeToLive())));
-    
-    if(getUserProperties() != null) {
-      SDTMap map = JCSMPFactory.onlyInstance().createMap();
-      for(KeyValuePair kvp : getUserProperties().getKeyValuePairs()) {
-        map.putString(kvp.getKey(), sourceMessage.resolve(kvp.getValue()));
-      }
-      destMessage.setProperties(map);
-    }
     
   }
   
