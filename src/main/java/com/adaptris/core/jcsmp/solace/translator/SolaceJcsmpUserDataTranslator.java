@@ -1,5 +1,7 @@
 package com.adaptris.core.jcsmp.solace.translator;
 
+import java.util.List;
+
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.MetadataCollection;
 import com.adaptris.core.MetadataElement;
@@ -34,12 +36,20 @@ public class SolaceJcsmpUserDataTranslator {
     }
   }
   
-  public void translate(AdaptrisMessage source, XMLMessage destination, MetadataFilter metadataFilter) throws SDTException {
+  public void translate(AdaptrisMessage source, XMLMessage destination, MetadataFilter metadataFilter, List<SolaceJcsmpUserDataTypeMapping> dataTypeMappings) throws SDTException {
     MetadataCollection metadataCollection = metadataFilter.filter(source);
     
     SDTMap map = JCSMPFactory.onlyInstance().createMap();
     for(MetadataElement element : metadataCollection) {
       map.putString(element.getKey(), source.resolve(element.getValue()));
+      
+      if(dataTypeMappings != null) {
+        for(SolaceJcsmpUserDataTypeMapping mapping : dataTypeMappings) {
+          if(mapping.getMetadataKey().equals(element.getKey())) {
+            mapping.getDataType().addToMap(mapping.getMetadataKey(), source.resolve(element.getValue()), map);
+          }
+        }
+      }
     }
     destination.setProperties(map);
   }
