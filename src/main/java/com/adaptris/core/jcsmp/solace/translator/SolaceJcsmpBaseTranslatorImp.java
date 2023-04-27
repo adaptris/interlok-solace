@@ -118,6 +118,11 @@ public abstract class SolaceJcsmpBaseTranslatorImp implements SolaceJcsmpMessage
   @AdvancedConfig(rare=true)
   private boolean applyPerMessagePropertiesOnConsume;
   
+  @Getter
+  @Setter
+  @AdvancedConfig(rare=true)
+  private List<SolaceJcsmpUserDataTypeMapping> typeMappings;
+  
   @Valid
   @AutoPopulated
   @AffectsMetadata
@@ -222,7 +227,7 @@ public abstract class SolaceJcsmpBaseTranslatorImp implements SolaceJcsmpMessage
     performHeaderMappings(message, solaceMessage);
     if(getApplyPerMessagePropertiesOnProduce())
       getPerMessageProperties().applyPerMessageProperties(solaceMessage, message);
-    getUserDataTranslator().translate(message, solaceMessage, metadataFilter());
+    getUserDataTranslator().translate(message, solaceMessage, metadataFilter(), getTypeMappings());
     
     return solaceMessage;
   }
