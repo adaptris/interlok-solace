@@ -1,15 +1,18 @@
 package com.adaptris.core.jcsmp.solace;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+
 import com.adaptris.core.ConnectionErrorHandler;
 import com.adaptris.core.MockBaseTest;
 import com.adaptris.core.fs.FsConsumer;
@@ -25,17 +28,22 @@ public class SolaceJcsmpConnectionTest extends MockBaseTest {
 
   private SolaceJcsmpConnection connection;
 
-  @Mock private JCSMPFactory mockJcsmpFactory;
+  @Mock
+  private JCSMPFactory mockJcsmpFactory;
 
-  @Mock private JCSMPSession mockSession;
+  @Mock
+  private JCSMPSession mockSession;
 
-  @Mock private SolaceJcsmpQueueConsumer mockConsumer;
+  @Mock
+  private SolaceJcsmpQueueConsumer mockConsumer;
 
-  @Mock private FsConsumer mockWrongTypeConsumer;
+  @Mock
+  private FsConsumer mockWrongTypeConsumer;
 
-  @Mock private ConnectionErrorHandler mockConnectionErrorHandler;
+  @Mock
+  private ConnectionErrorHandler mockConnectionErrorHandler;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     connection = new SolaceJcsmpConnection();
     connection.setJcsmpFactory(mockJcsmpFactory);
@@ -72,14 +80,13 @@ public class SolaceJcsmpConnectionTest extends MockBaseTest {
     connection.getAdvancedProperties().setSubAckTime(1000);
     connection.getAdvancedProperties().setSubAckWindowSize(1);
     connection.getAdvancedProperties().setSubAckWindowThreshold(60);
-    
+
     connection.prepareConnection();
 
-    when(mockJcsmpFactory.createSession(any(JCSMPProperties.class)))
-    .thenReturn(mockSession);
+    when(mockJcsmpFactory.createSession(any(JCSMPProperties.class))).thenReturn(mockSession);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     LifecycleHelper.stopAndClose(connection);
   }

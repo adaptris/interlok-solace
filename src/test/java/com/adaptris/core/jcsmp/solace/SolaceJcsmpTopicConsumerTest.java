@@ -1,6 +1,6 @@
 package com.adaptris.core.jcsmp.solace;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -9,9 +9,10 @@ import static org.mockito.Mockito.when;
 
 import java.util.function.Consumer;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 
 import com.adaptris.core.AdaptrisMessage;
@@ -33,27 +34,37 @@ public class SolaceJcsmpTopicConsumerTest extends MockBaseTest {
 
   private SolaceJcsmpTopicConsumer consumer;
 
-  @Mock private SolaceJcsmpConnection mockConnection;
+  @Mock
+  private SolaceJcsmpConnection mockConnection;
 
-  @Mock private JCSMPSession mockSession;
+  @Mock
+  private JCSMPSession mockSession;
 
-  @Mock private JCSMPFactory mockJcsmpFactory;
+  @Mock
+  private JCSMPFactory mockJcsmpFactory;
 
-  @Mock private Topic mockTopic;
+  @Mock
+  private Topic mockTopic;
 
-  @Mock private XMLMessageConsumer mockMessageConsumer;
+  @Mock
+  private XMLMessageConsumer mockMessageConsumer;
 
-  @Mock private BytesXMLMessage mockBytesMessage;
+  @Mock
+  private BytesXMLMessage mockBytesMessage;
 
-  @Mock private SolaceJcsmpMessageTranslator mockTranslator;
+  @Mock
+  private SolaceJcsmpMessageTranslator mockTranslator;
 
-  @Mock private AdaptrisMessageListener mockMessageListener;
+  @Mock
+  private AdaptrisMessageListener mockMessageListener;
 
-  @Mock private AdaptrisMessage mockAdpMessage;
+  @Mock
+  private AdaptrisMessage mockAdpMessage;
 
-  @Mock private ConnectionErrorHandler mockConnectionErrorHandler;
+  @Mock
+  private ConnectionErrorHandler mockConnectionErrorHandler;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     consumer = new SolaceJcsmpTopicConsumer();
     consumer.registerConnection(mockConnection);
@@ -62,21 +73,15 @@ public class SolaceJcsmpTopicConsumerTest extends MockBaseTest {
     consumer.setMessageTranslator(mockTranslator);
     consumer.registerAdaptrisMessageListener(mockMessageListener);
 
-    when(mockConnection.createSession())
-    .thenReturn(mockSession);
-    when(mockConnection.retrieveConnection(SolaceJcsmpConnection.class))
-    .thenReturn(mockConnection);
-    when(mockSession.getMessageConsumer(any(XMLMessageListener.class)))
-    .thenReturn(mockMessageConsumer);
-    when(mockJcsmpFactory.createTopic(any(String.class)))
-    .thenReturn(mockTopic);
-    when(mockTranslator.translate(mockBytesMessage))
-    .thenReturn(mockAdpMessage);
-    when(mockConnection.getConnectionErrorHandler())
-    .thenReturn(mockConnectionErrorHandler);
+    when(mockConnection.createSession()).thenReturn(mockSession);
+    when(mockConnection.retrieveConnection(SolaceJcsmpConnection.class)).thenReturn(mockConnection);
+    when(mockSession.getMessageConsumer(any(XMLMessageListener.class))).thenReturn(mockMessageConsumer);
+    when(mockJcsmpFactory.createTopic(any(String.class))).thenReturn(mockTopic);
+    when(mockTranslator.translate(mockBytesMessage)).thenReturn(mockAdpMessage);
+    when(mockConnection.getConnectionErrorHandler()).thenReturn(mockConnectionErrorHandler);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     LifecycleHelper.stopAndClose(consumer);
   }
@@ -90,14 +95,13 @@ public class SolaceJcsmpTopicConsumerTest extends MockBaseTest {
 
   @Test
   public void testReceiveStartFails() throws Exception {
-    doThrow(new JCSMPException("Expected"))
-    .when(mockConnection).createSession();
+    doThrow(new JCSMPException("Expected")).when(mockConnection).createSession();
 
     try {
       LifecycleHelper.initAndStart(consumer);
       fail("Should throw an error on start.");
     } catch (CoreException ex) {
-      //expected
+      // expected
     }
   }
 
@@ -108,20 +112,19 @@ public class SolaceJcsmpTopicConsumerTest extends MockBaseTest {
     consumer.onReceive(mockBytesMessage);
 
     verify(mockTranslator).translate(mockBytesMessage);
-    verify(mockMessageListener).onAdaptrisMessage(any(AdaptrisMessage.class), any(Consumer.class), any(Consumer.class));
+    verify(mockMessageListener).onAdaptrisMessage(any(AdaptrisMessage.class), anyConsumer(), anyConsumer());
   }
 
   @Test
   public void testOnReceiveTranslatorFails() throws Exception {
-    doThrow(new Exception("Expected"))
-    .when(mockTranslator).translate(mockBytesMessage);
+    doThrow(new Exception("Expected")).when(mockTranslator).translate(mockBytesMessage);
 
     LifecycleHelper.initAndStart(consumer);
 
     consumer.onReceive(mockBytesMessage);
 
     verify(mockTranslator).translate(mockBytesMessage);
-    verify(mockMessageListener, times(0)).onAdaptrisMessage(any(AdaptrisMessage.class), any(Consumer.class), any(Consumer.class));
+    verify(mockMessageListener, times(0)).onAdaptrisMessage(any(AdaptrisMessage.class), anyConsumer(), anyConsumer());
   }
 
   @Test
@@ -132,4 +135,9 @@ public class SolaceJcsmpTopicConsumerTest extends MockBaseTest {
 
     verify(mockConnectionErrorHandler).handleConnectionException();
   }
+
+  private Consumer<AdaptrisMessage> anyConsumer() {
+    return ArgumentMatchers.<Consumer<AdaptrisMessage>> any();
+  }
+
 }

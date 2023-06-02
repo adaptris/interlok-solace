@@ -1,10 +1,10 @@
 package com.adaptris.core.jcsmp.solace.translator;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import com.adaptris.core.AdaptrisMessage;
@@ -22,31 +22,27 @@ public class SolaceJcsmpTextMessageTranslatorTest extends MockBaseTest {
 
   private SolaceJcsmpTextMessageTranslator translator;
 
-  @Mock private JCSMPFactory mockJcsmpFactory;
+  @Mock
+  private JCSMPFactory mockJcsmpFactory;
 
-  @Mock private TextMessage mockTextMessage;
+  @Mock
+  private TextMessage mockTextMessage;
 
   private Long timestamp;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     translator = new SolaceJcsmpTextMessageTranslator();
     translator.setJcsmpFactory(mockJcsmpFactory);
 
-    timestamp = new Long(System.currentTimeMillis());
+    timestamp = Long.valueOf(System.currentTimeMillis());
 
-    when(mockJcsmpFactory.createMessage(TextMessage.class))
-    .thenReturn(mockTextMessage);
-    when(mockTextMessage.getText())
-    .thenReturn(MESSAGE_CONTENT);
-    when(mockTextMessage.getPriority())
-    .thenReturn(3);
-    when(mockTextMessage.getSenderTimestamp())
-    .thenReturn(timestamp);
-    when(mockTextMessage.getApplicationMessageId())
-    .thenReturn("xyz");
-    when(mockTextMessage.getDiscardIndication())
-    .thenReturn(true);
+    when(mockJcsmpFactory.createMessage(TextMessage.class)).thenReturn(mockTextMessage);
+    when(mockTextMessage.getText()).thenReturn(MESSAGE_CONTENT);
+    when(mockTextMessage.getPriority()).thenReturn(3);
+    when(mockTextMessage.getSenderTimestamp()).thenReturn(timestamp);
+    when(mockTextMessage.getApplicationMessageId()).thenReturn("xyz");
+    when(mockTextMessage.getDiscardIndication()).thenReturn(true);
   }
 
   @Test
@@ -73,7 +69,7 @@ public class SolaceJcsmpTextMessageTranslatorTest extends MockBaseTest {
   @Test
   public void testTranslateAdaptrisTextMessageWithPerMessageProperties() throws Exception {
     AdaptrisMessage adaptrisMessage = DefaultMessageFactory.getDefaultInstance().newMessage(MESSAGE_CONTENT);
-    
+
     SolaceJcsmpPerMessageProperties pmp = new SolaceJcsmpPerMessageProperties();
     pmp.setAckImmediately("true");
     pmp.setAsReplyMessage("false");
@@ -90,12 +86,12 @@ public class SolaceJcsmpTextMessageTranslatorTest extends MockBaseTest {
     pmp.setSenderId("sender-id");
     pmp.setSequenceNumber("56");
     pmp.setTimeToLive("60000");
-    
+
     pmp.setApplicationMessageId("%message{app-message-id}");
     pmp.setSenderTimestamp("%message{sender-timestamp}");
     pmp.setPriority("%message{priority}");
     pmp.setDmqEligible("%message{dmq-eligible}");
-    
+
     adaptrisMessage.addMessageHeader("app-message-id", "123");
     adaptrisMessage.addMessageHeader("sender-timestamp", Long.toString(timestamp));
     adaptrisMessage.addMessageHeader("priority", "1");
@@ -113,25 +109,25 @@ public class SolaceJcsmpTextMessageTranslatorTest extends MockBaseTest {
     assertEquals("correlation-key", translatedMessage.getCorrelationKey());
     assertEquals("reply-queue", translatedMessage.getReplyTo().getName());
   }
-  
+
   @Test
   public void testTranslateAdaptrisTextMessageWithPerMessagePropertiesAndSDT() throws Exception {
     AdaptrisMessage adaptrisMessage = DefaultMessageFactory.getDefaultInstance().newMessage(MESSAGE_CONTENT);
     adaptrisMessage.addMetadata("key1", "value1");
     adaptrisMessage.addMetadata("key2", "value2");
     adaptrisMessage.addMetadata("key3", "value3");
-    
+
     RegexMetadataFilter filter = new RegexMetadataFilter();
     filter.addIncludePattern("key.*");
-    
+
     TextMessage translatedMessage = (TextMessage) translator.translate(adaptrisMessage);
     AdaptrisMessage adaptrisMessage2 = translator.translate(translatedMessage);
-    
+
     assertEquals("value1", adaptrisMessage2.getMetadataValue("key1"));
     assertEquals("value2", adaptrisMessage2.getMetadataValue("key2"));
     assertEquals("value3", adaptrisMessage2.getMetadataValue("key3"));
   }
-  
+
   @Test
   public void testTranslateAdaptrisTextMessageWithMappings() throws Exception {
     AdaptrisMessage adaptrisMessage = DefaultMessageFactory.getDefaultInstance().newMessage(MESSAGE_CONTENT);
@@ -172,11 +168,11 @@ public class SolaceJcsmpTextMessageTranslatorTest extends MockBaseTest {
 
     assertEquals(MESSAGE_CONTENT, adaptrisMessage.getContent());
   }
-  
+
   @Test
   public void testTranslateSolaceTextMessageWithApplyProperties() throws Exception {
     AdaptrisMessage adaptrisMessage = DefaultMessageFactory.getDefaultInstance().newMessage(MESSAGE_CONTENT);
-    
+
     SolaceJcsmpPerMessageProperties pmp = new SolaceJcsmpPerMessageProperties();
     pmp.setAckImmediately("true");
     pmp.setAsReplyMessage("false");
@@ -193,12 +189,12 @@ public class SolaceJcsmpTextMessageTranslatorTest extends MockBaseTest {
     pmp.setSenderId("sender-id");
     pmp.setSequenceNumber("56");
     pmp.setTimeToLive("60000");
-    
+
     pmp.setApplicationMessageId("%message{app-message-id}");
     pmp.setSenderTimestamp("%message{sender-timestamp}");
     pmp.setPriority("%message{priority}");
     pmp.setDmqEligible("%message{dmq-eligible}");
-    
+
     adaptrisMessage.addMessageHeader("app-message-id", "123");
     adaptrisMessage.addMessageHeader("sender-timestamp", Long.toString(timestamp));
     adaptrisMessage.addMessageHeader("priority", "1");
@@ -208,7 +204,7 @@ public class SolaceJcsmpTextMessageTranslatorTest extends MockBaseTest {
     translator.setApplyPerMessagePropertiesOnProduce(true);
     translator.setApplyPerMessagePropertiesOnConsume(true);
     TextMessage translatedMessage = (TextMessage) translator.translate(adaptrisMessage);
-    
+
     AdaptrisMessage secondTranslatedMessage = translator.translate(translatedMessage);
 
     assertEquals(MESSAGE_CONTENT, adaptrisMessage.getContent());

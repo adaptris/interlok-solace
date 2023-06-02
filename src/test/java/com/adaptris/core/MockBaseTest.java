@@ -1,19 +1,19 @@
 package com.adaptris.core;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.MockitoAnnotations;
 
 public abstract class MockBaseTest {
 
   private AutoCloseable closeable;
 
-  @Before
+  @BeforeEach
   public void mockSetUp() throws Exception {
     closeable = MockitoAnnotations.openMocks(this);
   }
 
-  @After
+  @AfterEach
   public void mockTearDown() throws Exception {
     closeable.close();
   }
