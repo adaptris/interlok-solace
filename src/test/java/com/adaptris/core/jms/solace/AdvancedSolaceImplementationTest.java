@@ -100,4 +100,5 @@ public class AdvancedSolaceImplementationTest extends BasicSolaceImplementationT
     assertEquals(VALUE1, cf.getProperty(KEY1));
     assertEquals(VALUE2, cf.getProperty(KEY2));
   }
+
 }
