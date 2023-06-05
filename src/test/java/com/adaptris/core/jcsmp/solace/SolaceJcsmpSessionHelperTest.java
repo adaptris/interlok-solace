@@ -1,15 +1,15 @@
 package com.adaptris.core.jcsmp.solace;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import com.adaptris.core.MockBaseTest;
@@ -18,7 +18,7 @@ import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPProperties;
 import com.solacesystems.jcsmp.JCSMPSession;
-import com.solacesystems.jcsmp.JCSMPStreamingPublishEventHandler;
+import com.solacesystems.jcsmp.JCSMPStreamingPublishCorrelatingEventHandler;
 import com.solacesystems.jcsmp.XMLMessageProducer;
 import com.solacesystems.jcsmp.transaction.TransactedSession;
 
@@ -28,19 +28,25 @@ public class SolaceJcsmpSessionHelperTest extends MockBaseTest {
 
   private SolaceJcsmpConnection connection;
 
-  @Mock private JCSMPFactory mockJcsmpFactory;
+  @Mock
+  private JCSMPFactory mockJcsmpFactory;
 
-  @Mock private JCSMPSession mockSession;
+  @Mock
+  private JCSMPSession mockSession;
 
-  @Mock private TransactedSession mockTransactedSession;
+  @Mock
+  private TransactedSession mockTransactedSession;
 
-  @Mock private BytesXMLMessage mockMessage;
+  @Mock
+  private BytesXMLMessage mockMessage;
 
-  @Mock private JCSMPStreamingPublishEventHandler eventHandler;
+  @Mock
+  private JCSMPStreamingPublishCorrelatingEventHandler eventHandler;
 
-  @Mock private XMLMessageProducer mockMessageProducer;
+  @Mock
+  private XMLMessageProducer mockMessageProducer;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     when(mockJcsmpFactory.createSession(any(JCSMPProperties.class)))
     .thenReturn(mockSession);
@@ -110,8 +116,7 @@ public class SolaceJcsmpSessionHelperTest extends MockBaseTest {
 
   @Test
   public void testRollbackFailsNoExceptionThrown() throws Exception {
-    doThrow(new JCSMPException("expected"))
-    .when(mockTransactedSession).rollback();
+    doThrow(new JCSMPException("expected")).when(mockTransactedSession).rollback();
 
     sessionHelper.setTransacted(true);
 
@@ -121,8 +126,7 @@ public class SolaceJcsmpSessionHelperTest extends MockBaseTest {
 
   @Test
   public void testCommitFailsTransactedSession() throws Exception {
-    doThrow(new JCSMPException("expected"))
-    .when(mockTransactedSession).commit();
+    doThrow(new JCSMPException("expected")).when(mockTransactedSession).commit();
 
     sessionHelper.setTransacted(true);
 
@@ -160,4 +164,5 @@ public class SolaceJcsmpSessionHelperTest extends MockBaseTest {
     verify(mockSession).getMessageProducer(eventHandler);
     assertEquals(mockMessageProducer, messageProducer);
   }
+
 }

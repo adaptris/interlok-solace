@@ -1,6 +1,6 @@
 package com.adaptris.core.jms.solace;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -13,8 +13,8 @@ import javax.jms.Connection;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import com.adaptris.core.AdaptrisMessageConsumer;
@@ -32,12 +32,18 @@ public class SolaceConsumerConnectionErrorHandlerTest extends MockBaseTest {
 
   private SolaceConsumerConnectionErrorHandler errorHandler;
 
-  @Mock private Channel mockChannel;
-  @Mock private MessageConsumer mockMessageConsumer;
-  @Mock private SolMessageConsumer mockSolMessageConsumer;
-  @Mock private JmsConnection mockConnection;
-  @Mock private Connection mockJmsConnection;
-  @Mock private SolConsumerEvent mockEvent;
+  @Mock
+  private Channel mockChannel;
+  @Mock
+  private MessageConsumer mockMessageConsumer;
+  @Mock
+  private SolMessageConsumer mockSolMessageConsumer;
+  @Mock
+  private JmsConnection mockConnection;
+  @Mock
+  private Connection mockJmsConnection;
+  @Mock
+  private SolConsumerEvent mockEvent;
 
   private MockAdaptrisMessageConsumer mockAdpConsumer;
   private MessageConsumer actualMessageConsumer;
@@ -45,7 +51,7 @@ public class SolaceConsumerConnectionErrorHandlerTest extends MockBaseTest {
   private ActiveFlowIndicationEvent activeQueueEvent;
   private ActiveFlowIndicationEvent inactiveQueueEvent;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     errorHandler = new SolaceConsumerConnectionErrorHandler();
     errorHandler.registerConnection(mockConnection);
@@ -61,13 +67,9 @@ public class SolaceConsumerConnectionErrorHandlerTest extends MockBaseTest {
     Set<AdaptrisMessageConsumer> consumers = new HashSet<>();
     consumers.add(mockAdpConsumer);
 
-    when(mockConnection.retrieveMessageConsumers())
-    .thenReturn(consumers);
-    when(mockConnection.currentConnection())
-    .thenReturn(mockJmsConnection);
-    when(mockConnection.retrieveExceptionListeners())
-    .thenReturn(exListeners);
-
+    when(mockConnection.retrieveMessageConsumers()).thenReturn(consumers);
+    when(mockConnection.currentConnection()).thenReturn(mockJmsConnection);
+    when(mockConnection.retrieveExceptionListeners()).thenReturn(exListeners);
 
     activeQueueEvent = new ActiveFlowIndicationEvent(ActiveFlowIndicationEvent.FLOW_ACTIVE);
     inactiveQueueEvent = new ActiveFlowIndicationEvent(ActiveFlowIndicationEvent.FLOW_INACTIVE);
@@ -89,7 +91,7 @@ public class SolaceConsumerConnectionErrorHandlerTest extends MockBaseTest {
       errorHandler.start();
       fail("Should fail becauyse the consumer is not a solace one.");
     } catch (Exception ex) {
-      //expected
+      // expected
     }
   }
 
@@ -114,12 +116,11 @@ public class SolaceConsumerConnectionErrorHandlerTest extends MockBaseTest {
     verify(mockConnection, times(1)).requestStop();
   }
 
-  /*
-   *
-   */
   class MockAdaptrisMessageConsumer extends JmsConsumerImpl {
     @Override
-    public void prepare() throws CoreException {}
+    public void prepare() throws CoreException {
+    }
+
     @Override
     protected MessageConsumer createConsumer() throws JMSException, CoreException {
       return actualMessageConsumer;
@@ -130,4 +131,5 @@ public class SolaceConsumerConnectionErrorHandlerTest extends MockBaseTest {
       return "";
     }
   }
+
 }

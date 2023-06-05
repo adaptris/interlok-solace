@@ -34,4 +34,5 @@ public class BasicSolaceConsumerTest extends JmsConsumerCase {
     mq.setMessageVpn("default");
     return mq;
   }
+
 }

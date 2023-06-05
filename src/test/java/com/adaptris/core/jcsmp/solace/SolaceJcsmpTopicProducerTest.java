@@ -1,17 +1,17 @@
 package com.adaptris.core.jcsmp.solace;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import com.adaptris.core.AdaptrisMessage;
@@ -25,7 +25,7 @@ import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPSession;
-import com.solacesystems.jcsmp.JCSMPStreamingPublishEventHandler;
+import com.solacesystems.jcsmp.JCSMPStreamingPublishCorrelatingEventHandler;
 import com.solacesystems.jcsmp.Topic;
 import com.solacesystems.jcsmp.XMLMessageProducer;
 
@@ -37,27 +37,37 @@ public class SolaceJcsmpTopicProducerTest extends MockBaseTest {
 
   private String produceDestination;
 
-  @Mock private SolaceJcsmpConnection mockConnection;
+  @Mock
+  private SolaceJcsmpConnection mockConnection;
 
-  @Mock private JCSMPFactory mockJcsmpFactory;
+  @Mock
+  private JCSMPFactory mockJcsmpFactory;
 
-  @Mock private Topic mockTopic;
+  @Mock
+  private Topic mockTopic;
 
-  @Mock private JCSMPSession mockSession;
+  @Mock
+  private JCSMPSession mockSession;
 
-  @Mock private JCSMPSession mockSession2;
+  @Mock
+  private JCSMPSession mockSession2;
 
-  @Mock private XMLMessageProducer mockProducer;
+  @Mock
+  private XMLMessageProducer mockProducer;
 
-  @Mock private XMLMessageProducer mockProducer2;
+  @Mock
+  private XMLMessageProducer mockProducer2;
 
-  @Mock private SolaceJcsmpMessageTranslator mockTranslator;
+  @Mock
+  private SolaceJcsmpMessageTranslator mockTranslator;
 
-  @Mock private BytesXMLMessage mockMessage;
+  @Mock
+  private BytesXMLMessage mockMessage;
 
-  @Mock private ConnectionErrorHandler mockConnectionErrorHandler;
+  @Mock
+  private ConnectionErrorHandler mockConnectionErrorHandler;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     adaptrisMessage = DefaultMessageFactory.getDefaultInstance().newMessage();
 
@@ -69,23 +79,17 @@ public class SolaceJcsmpTopicProducerTest extends MockBaseTest {
     producer.setMessageTranslator(mockTranslator);
     producer.setTopic("myDestination");
 
-    when(mockConnection.createSession())
-    .thenReturn(mockSession);
-    when(mockConnection.getConnectionErrorHandler())
-    .thenReturn(mockConnectionErrorHandler);
-    when(mockJcsmpFactory.createTopic(any(String.class)))
-    .thenReturn(mockTopic);
-    when(mockConnection.retrieveConnection(SolaceJcsmpConnection.class))
-    .thenReturn(mockConnection);
-    when(mockSession.getMessageProducer(any(JCSMPStreamingPublishEventHandler.class)))
-    .thenReturn(mockProducer);
-    when(mockTranslator.translate(adaptrisMessage))
-    .thenReturn(mockMessage);
+    when(mockConnection.createSession()).thenReturn(mockSession);
+    when(mockConnection.getConnectionErrorHandler()).thenReturn(mockConnectionErrorHandler);
+    when(mockJcsmpFactory.createTopic(any(String.class))).thenReturn(mockTopic);
+    when(mockConnection.retrieveConnection(SolaceJcsmpConnection.class)).thenReturn(mockConnection);
+    when(mockSession.getMessageProducer(any(JCSMPStreamingPublishCorrelatingEventHandler.class))).thenReturn(mockProducer);
+    when(mockTranslator.translate(adaptrisMessage)).thenReturn(mockMessage);
 
     LifecycleHelper.initAndStart(producer);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     LifecycleHelper.stopAndClose(producer);
   }
@@ -122,7 +126,7 @@ public class SolaceJcsmpTopicProducerTest extends MockBaseTest {
 
   @Test
   public void testMessageProducerCache() throws Exception {
-    when(mockSession.getMessageProducer(any(JCSMPStreamingPublishEventHandler.class)))
+    when(mockSession.getMessageProducer(any(JCSMPStreamingPublishCorrelatingEventHandler.class)))
     .thenReturn(mockProducer)
     .thenReturn(mockProducer2);
 
@@ -148,8 +152,7 @@ public class SolaceJcsmpTopicProducerTest extends MockBaseTest {
 
   @Test
   public void testPublishFailure() throws Exception {
-    doThrow(new JCSMPException("Expected"))
-    .when(mockProducer).send(mockMessage, mockTopic);
+    doThrow(new JCSMPException("Expected")).when(mockProducer).send(mockMessage, mockTopic);
 
     try {
       producer.doProduce(adaptrisMessage, produceDestination);
@@ -158,4 +161,5 @@ public class SolaceJcsmpTopicProducerTest extends MockBaseTest {
       // expected
     }
   }
+
 }

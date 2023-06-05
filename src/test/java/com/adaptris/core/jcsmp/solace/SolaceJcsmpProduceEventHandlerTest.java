@@ -1,14 +1,14 @@
 package com.adaptris.core.jcsmp.solace;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.function.Consumer;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import com.adaptris.core.AdaptrisMessage;
@@ -24,11 +24,14 @@ public class SolaceJcsmpProduceEventHandlerTest extends MockBaseTest {
 
   private AdaptrisMessage message, message2, message3;
 
-  @Mock private SolaceJcsmpAbstractProducer mockProducer;
-  @Mock private SolaceJcsmpConnection mockConnection;
-  @Mock private SolaceJcsmpConnectionErrorHandler mockErrorHandler;
+  @Mock
+  private SolaceJcsmpAbstractProducer mockProducer;
+  @Mock
+  private SolaceJcsmpConnection mockConnection;
+  @Mock
+  private SolaceJcsmpConnectionErrorHandler mockErrorHandler;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     message = DefaultMessageFactory.getDefaultInstance().newMessage();
     message2 = DefaultMessageFactory.getDefaultInstance().newMessage();
@@ -37,17 +40,18 @@ public class SolaceJcsmpProduceEventHandlerTest extends MockBaseTest {
     eventHandler = new SolaceJcsmpProduceEventHandler(mockProducer);
     LifecycleHelper.init(eventHandler);
 
-    when(mockProducer.retrieveConnection(SolaceJcsmpConnection.class))
-    .thenReturn(mockConnection);
+    when(mockProducer.retrieveConnection(SolaceJcsmpConnection.class)).thenReturn(mockConnection);
 
-    when(mockConnection.getConnectionErrorHandler())
-    .thenReturn(mockErrorHandler);
+    when(mockConnection.getConnectionErrorHandler()).thenReturn(mockErrorHandler);
   }
 
   @Test
   public void testHandleError() throws Exception {
-    Consumer<AdaptrisMessage> successCallback = message -> { fail("Success callback called."); };
-    Consumer<AdaptrisMessage> failureCallback = message -> { };
+    Consumer<AdaptrisMessage> successCallback = message -> {
+      fail("Success callback called.");
+    };
+    Consumer<AdaptrisMessage> failureCallback = message -> {
+    };
 
     message.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK, successCallback);
     message.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK, failureCallback);
@@ -70,8 +74,11 @@ public class SolaceJcsmpProduceEventHandlerTest extends MockBaseTest {
 
   @Test
   public void testHandleSuccess() throws Exception {
-    Consumer<AdaptrisMessage> successCallback = message -> { };
-    Consumer<AdaptrisMessage> failureCallback = message -> { fail("Failure callback called."); };
+    Consumer<AdaptrisMessage> successCallback = message -> {
+    };
+    Consumer<AdaptrisMessage> failureCallback = message -> {
+      fail("Failure callback called.");
+    };
 
     message.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK, successCallback);
     message.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK, failureCallback);
@@ -85,12 +92,15 @@ public class SolaceJcsmpProduceEventHandlerTest extends MockBaseTest {
 
   @Test
   public void testDoNotHandleSuccessAfterFailure() throws Exception {
-    Consumer<AdaptrisMessage> successCallback = message -> { fail("Failure callback called."); };
-    Consumer<AdaptrisMessage> failureCallback = message -> { };
+    Consumer<AdaptrisMessage> successCallback = message -> {
+      fail("Failure callback called.");
+    };
+    Consumer<AdaptrisMessage> failureCallback = message -> {
+    };
 
     message.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK, successCallback);
     message.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK, failureCallback);
-    
+
     message2.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK, successCallback);
     message2.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK, failureCallback);
 
@@ -98,7 +108,7 @@ public class SolaceJcsmpProduceEventHandlerTest extends MockBaseTest {
     eventHandler.addUnAckedMessage(message2);
 
     eventHandler.handleErrorEx(message.getUniqueId(), new JCSMPException("Expected"), 1l);
-    eventHandler.responseReceivedEx(message2.getUniqueId()); //  should not fire success callback
+    eventHandler.responseReceivedEx(message2.getUniqueId()); // should not fire success callback
   }
 
   @Test
@@ -110,18 +120,21 @@ public class SolaceJcsmpProduceEventHandlerTest extends MockBaseTest {
 
   @Test
   public void testHandleMultipleSuccess() throws Exception {
-    Consumer<AdaptrisMessage> successCallback = message -> { };
-    Consumer<AdaptrisMessage> failureCallback = message -> { fail("Failure callback called."); };
+    Consumer<AdaptrisMessage> successCallback = message -> {
+    };
+    Consumer<AdaptrisMessage> failureCallback = message -> {
+      fail("Failure callback called.");
+    };
 
     message.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK, successCallback);
     message.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK, failureCallback);
-    
+
     message2.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK, successCallback);
     message2.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK, failureCallback);
 
     message2.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK, successCallback);
     message3.getObjectHeaders().put(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK, failureCallback);
-    
+
     eventHandler.addUnAckedMessage(message);
     eventHandler.addUnAckedMessage(message2);
     eventHandler.addUnAckedMessage(message3);

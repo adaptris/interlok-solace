@@ -1,14 +1,14 @@
 package com.adaptris.core.jcsmp.solace;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import com.adaptris.core.AdaptrisMessage;
@@ -32,29 +32,38 @@ public class SolaceJcsmpQueueConsumerTest extends MockBaseTest {
 
   private SolaceJcsmpQueueConsumer consumer;
 
-  @Mock private SolaceJcsmpConnection mockConnection;
+  @Mock
+  private SolaceJcsmpConnection mockConnection;
 
-  @Mock private JCSMPSession mockSession;
+  @Mock
+  private JCSMPSession mockSession;
 
-  @Mock private JCSMPFactory mockJcsmpFactory;
+  @Mock
+  private JCSMPFactory mockJcsmpFactory;
 
-  @Mock private Queue mockQueue;
+  @Mock
+  private Queue mockQueue;
 
-  @Mock private FlowReceiver mockFlowReceiver;
+  @Mock
+  private FlowReceiver mockFlowReceiver;
 
-  @Mock private BytesXMLMessage mockBytesMessage;
+  @Mock
+  private BytesXMLMessage mockBytesMessage;
 
-  @Mock private SolaceJcsmpMessageTranslator mockTranslator;
+  @Mock
+  private SolaceJcsmpMessageTranslator mockTranslator;
 
-  @Mock private AdaptrisMessageProducer mockProducer;
+  @Mock
+  private AdaptrisMessageProducer mockProducer;
 
   private MockMessageListener mockListener;
 
   private AdaptrisMessage mockAdpMessage;
 
-  @Mock private ConnectionErrorHandler mockConnectionErrorHandler;
+  @Mock
+  private ConnectionErrorHandler mockConnectionErrorHandler;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     mockAdpMessage = DefaultMessageFactory.getDefaultInstance().newMessage();
 
@@ -71,21 +80,15 @@ public class SolaceJcsmpQueueConsumerTest extends MockBaseTest {
     consumer.setEndpointPermissions("CONSUME");
     consumer.setTransacted(false);
 
-    when(mockConnection.createSession())
-    .thenReturn(mockSession);
-    when(mockConnection.retrieveConnection(SolaceJcsmpConnection.class))
-    .thenReturn(mockConnection);
-    when(mockSession.createFlow(any(XMLMessageListener.class), any(), any()))
-    .thenReturn(mockFlowReceiver);
-    when(mockJcsmpFactory.createQueue(any(String.class)))
-    .thenReturn(mockQueue);
-    when(mockTranslator.translate(mockBytesMessage))
-    .thenReturn(mockAdpMessage);
-    when(mockConnection.getConnectionErrorHandler())
-    .thenReturn(mockConnectionErrorHandler);
+    when(mockConnection.createSession()).thenReturn(mockSession);
+    when(mockConnection.retrieveConnection(SolaceJcsmpConnection.class)).thenReturn(mockConnection);
+    when(mockSession.createFlow(any(XMLMessageListener.class), any(), any())).thenReturn(mockFlowReceiver);
+    when(mockJcsmpFactory.createQueue(any(String.class))).thenReturn(mockQueue);
+    when(mockTranslator.translate(mockBytesMessage)).thenReturn(mockAdpMessage);
+    when(mockConnection.getConnectionErrorHandler()).thenReturn(mockConnectionErrorHandler);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     LifecycleHelper.stopAndClose(consumer);
   }
@@ -99,14 +102,13 @@ public class SolaceJcsmpQueueConsumerTest extends MockBaseTest {
 
   @Test
   public void testReceiveStartFails() throws Exception {
-    doThrow(new JCSMPException("Expected"))
-    .when(mockConnection).createSession();
+    doThrow(new JCSMPException("Expected")).when(mockConnection).createSession();
 
     try {
       LifecycleHelper.initAndStart(consumer);
       fail("Should throw an error on start.");
     } catch (CoreException ex) {
-      //expected
+      // expected
     }
   }
 
@@ -122,8 +124,7 @@ public class SolaceJcsmpQueueConsumerTest extends MockBaseTest {
 
   @Test
   public void testOnReceiveTranslatorFails() throws Exception {
-    doThrow(new Exception("Expected"))
-    .when(mockTranslator).translate(mockBytesMessage);
+    doThrow(new Exception("Expected")).when(mockTranslator).translate(mockBytesMessage);
 
     LifecycleHelper.initAndStart(consumer);
 
