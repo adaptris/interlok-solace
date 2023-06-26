@@ -82,20 +82,6 @@ public abstract class SolaceJcsmpBaseTranslatorImp implements SolaceJcsmpMessage
   @Getter
   @Setter
   private String deliveryMode;
-  
-  /**
-   * A list of mappings between Adaptris message metadata and Solace headers.
-   * @param mappings
-   * @deprecated since 4.3 Use per-message-properties instead.
-   */
-  @NotNull
-  @AutoPopulated
-  @Getter
-  @Setter
-  @AdvancedConfig(rare=true)
-  @Deprecated
-  @ConfigDeprecated(removalVersion = "5.0", message = "Use per-message-properties instead.", groups = Deprecated.class)
-  private List<SolaceJcsmpMetadataMapping> mappings;
 
   @Getter
   @Setter
@@ -205,7 +191,6 @@ public abstract class SolaceJcsmpBaseTranslatorImp implements SolaceJcsmpMessage
     this.setMessageFactory(messageFactory);
     this.setPerMessageProperties(new SolaceJcsmpPerMessageProperties());
     this.setUserDataTranslator(new SolaceJcsmpUserDataTranslator());
-    this.setMappings(new ArrayList<>());
   } 
   
   @Override
@@ -213,7 +198,6 @@ public abstract class SolaceJcsmpBaseTranslatorImp implements SolaceJcsmpMessage
     AdaptrisMessage adaptrisMessage = this.messageFactory().newMessage();
     
     performPayloadTranslation(message, adaptrisMessage);
-    performMetadataMappings(message, adaptrisMessage);
     if(getApplyPerMessagePropertiesOnConsume())
       getPerMessageProperties().applyPerMessageProperties(adaptrisMessage, message);
     getUserDataTranslator().translate(message, adaptrisMessage);
@@ -224,7 +208,6 @@ public abstract class SolaceJcsmpBaseTranslatorImp implements SolaceJcsmpMessage
   @Override
   public XMLMessage translate(AdaptrisMessage message) throws Exception {
     XMLMessage solaceMessage = performPayloadTranslation(message);
-    performHeaderMappings(message, solaceMessage);
     if(getApplyPerMessagePropertiesOnProduce())
       getPerMessageProperties().applyPerMessageProperties(solaceMessage, message);
     getUserDataTranslator().translate(message, solaceMessage, metadataFilter(), getTypeMappings());
@@ -235,22 +218,6 @@ public abstract class SolaceJcsmpBaseTranslatorImp implements SolaceJcsmpMessage
   protected abstract XMLMessage performPayloadTranslation(AdaptrisMessage source);
 
   protected abstract void performPayloadTranslation(XMLMessage source, AdaptrisMessage destination);
-
-  protected void performMetadataMappings(XMLMessage message, AdaptrisMessage adaptrisMessage) throws Exception {
-    for(SolaceJcsmpMetadataMapping mapping : this.getMappings()) {
-      String headerValue = HeaderDataType.valueOf(((String) ObjectUtils.defaultIfNull(mapping.getDataType(), "String")).toUpperCase())
-          .getHeader(message, mapping.getHeaderKey());
-      
-      adaptrisMessage.addMessageHeader(mapping.getMetadataKey(), headerValue);
-    }
-  }
-  
-  protected void performHeaderMappings(AdaptrisMessage message, XMLMessage xmlMessage) throws Exception {
-    for(SolaceJcsmpMetadataMapping mapping : this.getMappings()) {
-      HeaderDataType.valueOf(((String) ObjectUtils.defaultIfNull(mapping.getDataType(), "String")).toUpperCase())
-          .setHeader(xmlMessage, mapping.getHeaderKey(), message.getMetadataValue(mapping.getMetadataKey()));
-    }
-  }
   
   AdaptrisMessageFactory messageFactory() {
     return ObjectUtils.defaultIfNull(this.getMessageFactory(), DefaultMessageFactory.getDefaultInstance());

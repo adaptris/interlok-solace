@@ -10,7 +10,6 @@ import org.mockito.Mock;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.DefaultMessageFactory;
 import com.adaptris.core.MockBaseTest;
-import com.adaptris.core.jcsmp.solace.SolaceJcsmpMetadataMapping;
 import com.adaptris.core.metadata.RegexMetadataFilter;
 import com.solacesystems.jcsmp.DeliveryMode;
 import com.solacesystems.jcsmp.JCSMPFactory;
@@ -129,32 +128,6 @@ public class SolaceJcsmpTextMessageTranslatorTest extends MockBaseTest {
   }
 
   @Test
-  public void testTranslateAdaptrisTextMessageWithMappings() throws Exception {
-    AdaptrisMessage adaptrisMessage = DefaultMessageFactory.getDefaultInstance().newMessage(MESSAGE_CONTENT);
-    adaptrisMessage.addMessageHeader("app-message-id", "123");
-    adaptrisMessage.addMessageHeader("sender-timestamp", Long.toString(timestamp));
-    adaptrisMessage.addMessageHeader("priority", "1");
-    adaptrisMessage.addMessageHeader("dmq-eligible", "true");
-
-    SolaceJcsmpMetadataMapping map1 = new SolaceJcsmpMetadataMapping("app-message-id", "ApplicationMessageId");
-    SolaceJcsmpMetadataMapping map2 = new SolaceJcsmpMetadataMapping("sender-timestamp", "SenderTimestamp", "Long");
-    SolaceJcsmpMetadataMapping map3 = new SolaceJcsmpMetadataMapping("priority", "Priority", "Integer");
-    SolaceJcsmpMetadataMapping map4 = new SolaceJcsmpMetadataMapping("dmq-eligible", "DMQEligible", "Boolean");
-
-    translator.getMappings().add(map1);
-    translator.getMappings().add(map2);
-    translator.getMappings().add(map3);
-    translator.getMappings().add(map4);
-
-    TextMessage translatedMessage = (TextMessage) translator.translate(adaptrisMessage);
-
-    assertEquals(MESSAGE_CONTENT, translatedMessage.getText());
-    assertEquals("123", translatedMessage.getApplicationMessageId());
-    assertEquals(1, translatedMessage.getPriority());
-    assertEquals(timestamp, translatedMessage.getSenderTimestamp());
-  }
-
-  @Test
   public void testTranslateSolaceTextMessage() throws Exception {
     AdaptrisMessage adaptrisMessage = translator.translate(mockTextMessage);
 
@@ -211,27 +184,6 @@ public class SolaceJcsmpTextMessageTranslatorTest extends MockBaseTest {
     assertEquals(true, Boolean.parseBoolean(secondTranslatedMessage.getMetadataValue("%message{dmq-eligible}")));
     assertEquals("56", secondTranslatedMessage.getMetadataValue("56"));
     assertEquals("reply-queue", secondTranslatedMessage.getMetadataValue("replyTo"));
-  }
-
-  @Test
-  public void testTranslateSolaceTextMessageWithMappings() throws Exception {
-    SolaceJcsmpMetadataMapping map1 = new SolaceJcsmpMetadataMapping("app-message-id", "ApplicationMessageId");
-    SolaceJcsmpMetadataMapping map2 = new SolaceJcsmpMetadataMapping("sender-timestamp", "SenderTimestamp", "Long");
-    SolaceJcsmpMetadataMapping map3 = new SolaceJcsmpMetadataMapping("priority", "Priority", "Integer");
-    SolaceJcsmpMetadataMapping map4 = new SolaceJcsmpMetadataMapping("discard-indication", "DiscardIndication", "Boolean");
-
-    translator.getMappings().add(map1);
-    translator.getMappings().add(map2);
-    translator.getMappings().add(map3);
-    translator.getMappings().add(map4);
-
-    AdaptrisMessage adaptrisMessage = translator.translate(mockTextMessage);
-
-    assertEquals(MESSAGE_CONTENT, adaptrisMessage.getContent());
-    assertEquals("xyz", adaptrisMessage.getMetadataValue("app-message-id"));
-    assertEquals("3", adaptrisMessage.getMetadataValue("priority"));
-    assertEquals(Long.toString(timestamp), adaptrisMessage.getMetadataValue("sender-timestamp"));
-    assertEquals("true", adaptrisMessage.getMetadataValue("discard-indication"));
   }
 
 }
