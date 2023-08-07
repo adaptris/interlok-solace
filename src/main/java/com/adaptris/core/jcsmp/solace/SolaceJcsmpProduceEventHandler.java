@@ -144,11 +144,17 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishCorr
 
   @SuppressWarnings("unchecked")
   public void addUnAckedMessage(AdaptrisMessage message) throws CoreException {
-    log.trace("Adding message to un'acked list with id {}", message.getUniqueId());
-    CallbackConsumers callbackConsumers = new CallbackConsumers(message,
-        (Consumer<AdaptrisMessage>) message.getObjectHeaders().get(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK),
-        (Consumer<AdaptrisMessage>) message.getObjectHeaders().get(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK));
-    this.getUnAckedMessages().put(message.getUniqueId(), callbackConsumers);
+    try {
+      getLock().lock();
+
+      log.trace("Adding message to un'acked list with id {}", message.getUniqueId());
+      CallbackConsumers callbackConsumers = new CallbackConsumers(message,
+          (Consumer<AdaptrisMessage>) message.getObjectHeaders().get(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK),
+          (Consumer<AdaptrisMessage>) message.getObjectHeaders().get(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK));
+      this.getUnAckedMessages().put(message.getUniqueId(), callbackConsumers);
+    } finally {
+      getLock().unlock();
+    }
   }
 
   private void logRemainingUnAckedMessages() throws CoreException {
