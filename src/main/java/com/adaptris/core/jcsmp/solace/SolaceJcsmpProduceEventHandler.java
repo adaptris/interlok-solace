@@ -3,6 +3,7 @@ package com.adaptris.core.jcsmp.solace;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
@@ -66,55 +67,78 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishCorr
   @Getter(AccessLevel.PACKAGE)
   @Setter(AccessLevel.PACKAGE)
   private volatile boolean acceptSuccessCallbacks;
+  
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
+  private ReentrantLock lock;
 
   public SolaceJcsmpProduceEventHandler(SolaceJcsmpAbstractProducer producer) {
     this.setProducer(producer);
+    this.setLock(new ReentrantLock(true));
   }
   
   @Override
   public void handleErrorEx(Object obj, JCSMPException ex, long arg2) {
-    String messageId = (String) obj;
+    getLock().lock();
     
-    setAcceptSuccessCallbacks(false);
-    log.error("Received failure callback from Solace for message id {}", messageId);
     try {
+      String messageId = (String) obj;
+    
+      setAcceptSuccessCallbacks(false);
+      log.error("Received failure callback from Solace for message id {}", messageId);
+    
       logRemainingUnAckedMessages();
       
       CallbackConsumers callbackConsumers = (CallbackConsumers) this.getUnAckedMessages().get(messageId);
       if(callbackConsumers == null) {
         log.warn("Received failure callback for an unknown message {}", messageId, ex);
       } else {
-        defaultIfNull(callbackConsumers.getOnFailure(), (msg) -> {   }).accept(callbackConsumers.getMessage());
+        if(callbackConsumers.getOnFailure() != null)
+          callbackConsumers.getOnFailure().accept(callbackConsumers.getMessage());
         getUnAckedMessages().remove(messageId);
       }
     } catch (CoreException cex) {
       log.warn("Attempting to handle failure callback.", cex);
+    } finally {
+      getProducer().retrieveConnection(SolaceJcsmpConnection.class).getConnectionErrorHandler().handleConnectionException();
+      getLock().unlock();
     }
-    getProducer().retrieveConnection(SolaceJcsmpConnection.class).getConnectionErrorHandler().handleConnectionException();
   }
 
   @Override
   public void responseReceivedEx(Object obj) {
     String messageId = (String) obj;
     
-    log.debug("Success callback received from Solace for message id {}", messageId);
-    if(this.getAcceptSuccessCallbacks()) {
-      try {
-        CallbackConsumers callbackConsumers = (CallbackConsumers) this.getUnAckedMessages().get(messageId);
-        if(callbackConsumers == null) {
-          log.warn("Received success callback for an unknown message {}", messageId);
-        } else {
-          defaultIfNull(callbackConsumers.getOnSuccess(), (msg) -> {   }).accept(callbackConsumers.getMessage());
-          getUnAckedMessages().remove(messageId);
+    getLock().lock();
+    try {
+      log.debug("Success callback received from Solace for message id {}", messageId);
+      if(this.getAcceptSuccessCallbacks()) {
+        try {
+          CallbackConsumers callbackConsumers = (CallbackConsumers) this.getUnAckedMessages().get(messageId);
+          if(callbackConsumers == null) {
+            log.warn("Received success callback for an unknown message {}", messageId);
+          } else {
+            
+            if(callbackConsumers.getOnSuccess() != null)
+              callbackConsumers.getOnSuccess().accept(callbackConsumers.getMessage());
+  
+            getUnAckedMessages().remove(messageId);
+          }
+          logRemainingUnAckedMessages();
+        } catch (CoreException cex) {
+          log.warn("Error trying to handle success callback.", cex);
+          getLock().unlock();
+          handleErrorEx(obj, new JCSMPException("", cex), 0l);
         }
-        logRemainingUnAckedMessages();
-      } catch (CoreException cex) {
-        log.warn("Error trying to handle success callback.", cex);
-        handleErrorEx(obj, new JCSMPException("", cex), 0l);
+      } else {
+        log.warn("Executing producer restart, not accepting further success callbacks until complete.");
+        getLock().unlock();
+        handleErrorEx(obj, new JCSMPException("Success callbacks not available at this moment."), 0l);
       }
-    } else {
-      log.warn("Executing producer restart, not accepting further success callbacks until complete.");
-      handleErrorEx(obj, new JCSMPException("Success callbacks not available at this moment."), 0l);
+    } finally {
+      if(getLock().isLocked())
+        getLock().unlock();
+    
     }
   }
 
