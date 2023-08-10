@@ -67,20 +67,13 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishCorr
   @Getter(AccessLevel.PACKAGE)
   @Setter(AccessLevel.PACKAGE)
   private volatile boolean acceptSuccessCallbacks;
-  
-  @Getter(AccessLevel.PACKAGE)
-  @Setter(AccessLevel.PACKAGE)
-  private ReentrantLock lock;
 
   public SolaceJcsmpProduceEventHandler(SolaceJcsmpAbstractProducer producer) {
     this.setProducer(producer);
-    this.setLock(new ReentrantLock(true));
   }
   
   @Override
-  public void handleErrorEx(Object obj, JCSMPException ex, long arg2) {
-    getLock().lock();
-    
+  public void handleErrorEx(Object obj, JCSMPException ex, long arg2) {    
     try {
       String messageId = (String) obj;
     
@@ -101,7 +94,6 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishCorr
       log.warn("Attempting to handle failure callback.", cex);
     } finally {
       getProducer().retrieveConnection(SolaceJcsmpConnection.class).getConnectionErrorHandler().handleConnectionException();
-      getLock().unlock();
     }
   }
 
@@ -109,52 +101,38 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishCorr
   public void responseReceivedEx(Object obj) {
     String messageId = (String) obj;
     
-    getLock().lock();
-    try {
-      log.debug("Success callback received from Solace for message id {}", messageId);
-      if(this.getAcceptSuccessCallbacks()) {
-        try {
-          CallbackConsumers callbackConsumers = (CallbackConsumers) this.getUnAckedMessages().get(messageId);
-          if(callbackConsumers == null) {
-            log.warn("Received success callback for an unknown message {}", messageId);
-          } else {
-            
-            if(callbackConsumers.getOnSuccess() != null)
-              callbackConsumers.getOnSuccess().accept(callbackConsumers.getMessage());
-  
-            getUnAckedMessages().remove(messageId);
-          }
-          logRemainingUnAckedMessages();
-        } catch (CoreException cex) {
-          log.warn("Error trying to handle success callback.", cex);
-          getLock().unlock();
-          handleErrorEx(obj, new JCSMPException("", cex), 0l);
+    log.debug("Success callback received from Solace for message id {}", messageId);
+    if(this.getAcceptSuccessCallbacks()) {
+      try {
+        CallbackConsumers callbackConsumers = (CallbackConsumers) this.getUnAckedMessages().get(messageId);
+        if(callbackConsumers == null) {
+          log.warn("Received success callback for an unknown message {}", messageId);
+        } else {
+          
+          if(callbackConsumers.getOnSuccess() != null)
+            callbackConsumers.getOnSuccess().accept(callbackConsumers.getMessage());
+
+          getUnAckedMessages().remove(messageId);
         }
-      } else {
-        log.warn("Executing producer restart, not accepting further success callbacks until complete.");
-        getLock().unlock();
-        handleErrorEx(obj, new JCSMPException("Success callbacks not available at this moment."), 0l);
+        logRemainingUnAckedMessages();
+      } catch (CoreException cex) {
+        log.warn("Error trying to handle success callback.", cex);
+        handleErrorEx(obj, new JCSMPException("", cex), 0l);
       }
-    } finally {
-      if(getLock().isLocked())
-        getLock().unlock();
-    
+    } else {
+      log.warn("Executing producer restart, not accepting further success callbacks until complete.");
+      handleErrorEx(obj, new JCSMPException("Success callbacks not available at this moment."), 0l);
     }
+
   }
 
   @SuppressWarnings("unchecked")
   public void addUnAckedMessage(AdaptrisMessage message) throws CoreException {
-    try {
-      getLock().lock();
-
-      log.trace("Adding message to un'acked list with id {}", message.getUniqueId());
-      CallbackConsumers callbackConsumers = new CallbackConsumers(message,
-          (Consumer<AdaptrisMessage>) message.getObjectHeaders().get(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK),
-          (Consumer<AdaptrisMessage>) message.getObjectHeaders().get(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK));
-      this.getUnAckedMessages().put(message.getUniqueId(), callbackConsumers);
-    } finally {
-      getLock().unlock();
-    }
+    log.trace("Adding message to un'acked list with id {}", message.getUniqueId());
+    CallbackConsumers callbackConsumers = new CallbackConsumers(message,
+        (Consumer<AdaptrisMessage>) message.getObjectHeaders().get(CoreConstants.OBJ_METADATA_ON_SUCCESS_CALLBACK),
+        (Consumer<AdaptrisMessage>) message.getObjectHeaders().get(CoreConstants.OBJ_METADATA_ON_FAILURE_CALLBACK));
+    this.getUnAckedMessages().put(message.getUniqueId(), callbackConsumers);
   }
 
   private void logRemainingUnAckedMessages() throws CoreException {
