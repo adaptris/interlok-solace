@@ -151,7 +151,7 @@ dependencies {
   api "com.solacesystems:sol-jms:$solaceVersion"
 
   implementation ("org.slf4j:slf4j-api:$slf4jVersion")
-  implementation ("net.jodah:expiringmap:0.5.10")
+  implementation ("net.jodah:expiringmap:0.5.11")
   annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") {changing= true}
   umlDoclet("nl.talsmasoftware:umldoclet:2.1.0")
 
