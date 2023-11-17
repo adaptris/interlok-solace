@@ -1,10 +1,10 @@
 package com.adaptris.core.jcsmp.solace.translator;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import com.adaptris.core.AdaptrisMessage;
@@ -20,19 +20,19 @@ public class SolaceJcsmpBytesMessageTranslatorTest extends MockBaseTest {
 
   private SolaceJcsmpBytesMessageTranslator translator;
 
-  @Mock private JCSMPFactory mockJcsmpFactory;
+  @Mock
+  private JCSMPFactory mockJcsmpFactory;
 
-  @Mock private BytesMessage mockBytesMessage;
+  @Mock
+  private BytesMessage mockBytesMessage;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     translator = new SolaceJcsmpBytesMessageTranslator();
     translator.setJcsmpFactory(mockJcsmpFactory);
 
-    when(mockJcsmpFactory.createMessage(BytesMessage.class))
-    .thenReturn(mockBytesMessage);
-    when(mockBytesMessage.getData())
-    .thenReturn(MESSAGE_CONTENT.getBytes());
+    when(mockJcsmpFactory.createMessage(BytesMessage.class)).thenReturn(mockBytesMessage);
+    when(mockBytesMessage.getData()).thenReturn(MESSAGE_CONTENT.getBytes());
   }
 
   @Test

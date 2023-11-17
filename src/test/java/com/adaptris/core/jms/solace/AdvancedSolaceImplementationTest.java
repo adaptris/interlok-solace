@@ -1,12 +1,12 @@
 package com.adaptris.core.jms.solace;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import javax.jms.JMSException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.adaptris.core.jms.solace.parameters.Client;
 import com.adaptris.core.jms.solace.parameters.ConnectionTuning;
@@ -100,4 +100,5 @@ public class AdvancedSolaceImplementationTest extends BasicSolaceImplementationT
     assertEquals(VALUE1, cf.getProperty(KEY1));
     assertEquals(VALUE2, cf.getProperty(KEY2));
   }
+
 }

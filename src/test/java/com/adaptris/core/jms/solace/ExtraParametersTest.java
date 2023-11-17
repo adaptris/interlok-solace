@@ -1,11 +1,14 @@
 package com.adaptris.core.jms.solace;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import javax.jms.JMSException;
-import org.junit.Before;
-import org.junit.Test;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import com.adaptris.core.jms.solace.parameters.Client;
 import com.adaptris.core.jms.solace.parameters.ConnectionTuning;
 import com.adaptris.core.jms.solace.parameters.Keepalive;
@@ -22,7 +25,7 @@ public class ExtraParametersTest {
 
   private SolConnectionFactory cf;
 
-  @Before
+  @BeforeEach
   public void setup() throws JMSException {
     BasicSolaceImplementation sol = new BasicSolaceImplementation();
     sol.setBrokerUrl("tcp://hostname:12345");
@@ -211,4 +214,5 @@ public class ExtraParametersTest {
     ks.setPassword(password);
     return ks;
   }
+
 }

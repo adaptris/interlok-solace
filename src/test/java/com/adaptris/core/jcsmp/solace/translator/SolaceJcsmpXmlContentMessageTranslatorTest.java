@@ -1,10 +1,10 @@
 package com.adaptris.core.jcsmp.solace.translator;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import com.adaptris.core.AdaptrisMessage;
@@ -20,19 +20,19 @@ public class SolaceJcsmpXmlContentMessageTranslatorTest extends MockBaseTest {
 
   private SolaceJcsmpXmlContentMessageTranslator translator;
 
-  @Mock private JCSMPFactory mockJcsmpFactory;
+  @Mock
+  private JCSMPFactory mockJcsmpFactory;
 
-  @Mock private XMLContentMessage mockXmlContentMessage;
+  @Mock
+  private XMLContentMessage mockXmlContentMessage;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     translator = new SolaceJcsmpXmlContentMessageTranslator();
     translator.setJcsmpFactory(mockJcsmpFactory);
 
-    when(mockJcsmpFactory.createMessage(XMLContentMessage.class))
-    .thenReturn(mockXmlContentMessage);
-    when(mockXmlContentMessage.getXMLContent())
-    .thenReturn(MESSAGE_CONTENT);
+    when(mockJcsmpFactory.createMessage(XMLContentMessage.class)).thenReturn(mockXmlContentMessage);
+    when(mockXmlContentMessage.getXMLContent()).thenReturn(MESSAGE_CONTENT);
   }
 
   @Test
@@ -68,4 +68,5 @@ public class SolaceJcsmpXmlContentMessageTranslatorTest extends MockBaseTest {
 
     assertEquals(MESSAGE_CONTENT, adaptrisMessage.getContent());
   }
+
 }

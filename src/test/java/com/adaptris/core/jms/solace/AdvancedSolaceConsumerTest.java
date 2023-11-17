@@ -51,4 +51,5 @@ public class AdvancedSolaceConsumerTest extends BasicSolaceConsumerTest {
     tuning.setDeliverToOne(true);
     return tuning;
   }
+
 }

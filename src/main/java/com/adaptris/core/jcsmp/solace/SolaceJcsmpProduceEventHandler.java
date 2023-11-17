@@ -3,6 +3,7 @@ package com.adaptris.core.jcsmp.solace;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
@@ -73,24 +74,27 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishCorr
   
   @Override
   public void handleErrorEx(Object obj, JCSMPException ex, long arg2) {
-    String messageId = (String) obj;
-    
-    setAcceptSuccessCallbacks(false);
-    log.error("Received failure callback from Solace for message id {}", messageId);
     try {
+      String messageId = (String) obj;
+    
+      setAcceptSuccessCallbacks(false);
+      log.error("Received failure callback from Solace for message id {}", messageId);
+    
       logRemainingUnAckedMessages();
       
       CallbackConsumers callbackConsumers = (CallbackConsumers) this.getUnAckedMessages().get(messageId);
       if(callbackConsumers == null) {
         log.warn("Received failure callback for an unknown message {}", messageId, ex);
       } else {
-        defaultIfNull(callbackConsumers.getOnFailure(), (msg) -> {   }).accept(callbackConsumers.getMessage());
+        if(callbackConsumers.getOnFailure() != null)
+          callbackConsumers.getOnFailure().accept(callbackConsumers.getMessage());
         getUnAckedMessages().remove(messageId);
       }
     } catch (CoreException cex) {
       log.warn("Attempting to handle failure callback.", cex);
+    } finally {
+      getProducer().retrieveConnection(SolaceJcsmpConnection.class).getConnectionErrorHandler().handleConnectionException();
     }
-    getProducer().retrieveConnection(SolaceJcsmpConnection.class).getConnectionErrorHandler().handleConnectionException();
   }
 
   @Override
@@ -104,7 +108,10 @@ public class SolaceJcsmpProduceEventHandler implements JCSMPStreamingPublishCorr
         if(callbackConsumers == null) {
           log.warn("Received success callback for an unknown message {}", messageId);
         } else {
-          defaultIfNull(callbackConsumers.getOnSuccess(), (msg) -> {   }).accept(callbackConsumers.getMessage());
+          
+          if(callbackConsumers.getOnSuccess() != null)
+            callbackConsumers.getOnSuccess().accept(callbackConsumers.getMessage());
+
           getUnAckedMessages().remove(messageId);
         }
         logRemainingUnAckedMessages();

@@ -7,9 +7,9 @@ import static org.mockito.Mockito.when;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import com.adaptris.core.Channel;
@@ -23,9 +23,10 @@ public class SolaceJcsmpConnectionErrorHandlerTest extends MockBaseTest {
 
   private Channel mockChannel;
 
-  @Mock private SolaceJcsmpConnection mockConnection;
+  @Mock
+  private SolaceJcsmpConnection mockConnection;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     mockChannel = new Channel();
     mockChannel.setConsumeConnection(mockConnection);
@@ -36,16 +37,14 @@ public class SolaceJcsmpConnectionErrorHandlerTest extends MockBaseTest {
     Set<StateManagedComponent> comps = new HashSet<>();
     comps.add(mockChannel);
 
-    when(mockConnection.retrieveExceptionListeners())
-    .thenReturn(comps);
-    when(mockConnection.getConnectionErrorHandler())
-    .thenReturn(connectionErrorhandler);
+    when(mockConnection.retrieveExceptionListeners()).thenReturn(comps);
+    when(mockConnection.getConnectionErrorHandler()).thenReturn(connectionErrorhandler);
 
     LifecycleHelper.prepare(mockChannel);
     LifecycleHelper.initAndStart(mockChannel);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     LifecycleHelper.stopAndClose(connectionErrorhandler);
   }
