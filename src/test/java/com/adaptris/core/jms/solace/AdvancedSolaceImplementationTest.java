@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import javax.jms.JMSException;
+import jakarta.jms.JMSException;
 
 import org.junit.jupiter.api.Test;
 

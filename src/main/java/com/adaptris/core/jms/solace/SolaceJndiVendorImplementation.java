@@ -1,7 +1,7 @@
 package com.adaptris.core.jms.solace;
 
-import javax.jms.JMSException;
-import javax.jms.MessageConsumer;
+import jakarta.jms.JMSException;
+import jakarta.jms.MessageConsumer;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;

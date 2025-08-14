@@ -1,8 +1,8 @@
 package com.adaptris.core.jms.solace;
 
-import javax.jms.JMSException;
-import javax.jms.MessageConsumer;
-import javax.validation.constraints.NotNull;
+import jakarta.jms.JMSException;
+import jakarta.jms.MessageConsumer;
+import jakarta.validation.constraints.NotNull;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import com.adaptris.annotation.AdvancedConfig;

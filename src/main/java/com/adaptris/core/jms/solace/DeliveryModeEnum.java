@@ -1,6 +1,6 @@
 package com.adaptris.core.jms.solace;
 
-import javax.jms.DeliveryMode;
+import jakarta.jms.DeliveryMode;
 
 public enum DeliveryModeEnum {
   PERSISTENT(DeliveryMode.PERSISTENT),
