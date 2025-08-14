@@ -3,7 +3,7 @@ package com.adaptris.core.jms.solace;
 import java.lang.reflect.Field;
 import java.util.Set;
 
-import javax.jms.JMSException;
+import jakarta.jms.JMSException;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;

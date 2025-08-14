@@ -2,12 +2,12 @@ package com.adaptris.core.jms.solace;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.MessageConsumer;
-import javax.jms.Queue;
-import javax.jms.Session;
-import javax.jms.Topic;
+import jakarta.jms.Destination;
+import jakarta.jms.JMSException;
+import jakarta.jms.MessageConsumer;
+import jakarta.jms.Queue;
+import jakarta.jms.Session;
+import jakarta.jms.Topic;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

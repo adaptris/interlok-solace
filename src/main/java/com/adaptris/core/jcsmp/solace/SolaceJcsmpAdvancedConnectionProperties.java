@@ -30,7 +30,7 @@ import static com.solacesystems.jcsmp.JCSMPProperties.SUPPORTED_ACK_EVENT_MODE_W
 import static com.solacesystems.jcsmp.JCSMPProperties.SUPPORTED_MESSAGE_ACK_AUTO;
 import static com.solacesystems.jcsmp.JCSMPProperties.SUPPORTED_MESSAGE_ACK_CLIENT;
 
-import javax.validation.constraints.Pattern;
+import jakarta.validation.constraints.Pattern;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
