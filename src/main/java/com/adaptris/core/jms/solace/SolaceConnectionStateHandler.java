@@ -28,10 +28,14 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 public class SolaceConnectionStateHandler extends ConnectionStateHandlerImp
     implements SolConnectionEventListener {
 
-  private transient Logger log = LoggerFactory.getLogger(this.getClass().getName());
+  private final transient Logger log = LoggerFactory.getLogger(this.getClass().getName());
 
   @Override
-  public void init() throws CoreException {}
+  public void init() throws CoreException {
+    /* No need for initialization logic here since we will attempt to register the listener in
+    start(), and if it fails, we'll log a warning and continue without connection-level event
+    handling. */
+  }
 
   @Override
   public void start() throws CoreException {
