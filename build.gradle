@@ -7,10 +7,10 @@ plugins {
   id "jacoco"
   // Manage optional dependencies in maven pom.
   id "nebula.optional-base" version "7.0.0"
-  id "com.github.spotbugs" version "6.0.27"
-  id "org.sonarqube" version "6.0.1.5171"
-  id "org.owasp.dependencycheck" version "11.1.1"
-  id "io.freefair.lombok" version "8.11"
+  id "com.github.spotbugs" version "6.5.4"
+  id "org.sonarqube" version "6.3.1.5724"
+  id "org.owasp.dependencycheck" version "12.2.2"
+  id "io.freefair.lombok" version "8.14.2"
 }
 
 ext {
@@ -32,9 +32,10 @@ ext {
   componentDesc='Using Solace as a Messaging Provider'
   organizationName = "Adaptris Ltd"
   organizationUrl = "http://interlok.adaptris.net"
-  slf4jVersion = '2.0.16'
+  slf4jVersion = '2.0.17'
   mockitoVersion = '5.2.0'
-  solaceVersion='10.25.1'
+  nettyVersion = '4.2.13.Final'
+  solaceVersion='10.30.0'
 }
 
 ext.hostname = { ->
@@ -158,16 +159,37 @@ dependencies {
   api ("com.adaptris:interlok-core:$interlokCoreVersion") { changing= true}
   api ("com.adaptris:interlok-common:$interlokCoreVersion") { changing= true}
 
-  api "com.solacesystems:sol-common:$solaceVersion"
-  api "com.solacesystems:sol-jcsmp:$solaceVersion"
-  api "com.solacesystems:sol-jms:$solaceVersion"
+  api ("com.solacesystems:sol-common:$solaceVersion") {
+    exclude group: "io.netty"
+  }
+  api ("com.solacesystems:sol-jcsmp:$solaceVersion") {
+    exclude group: "io.netty"
+  }
+  api ("com.solacesystems:sol-jms:$solaceVersion") {
+    exclude group: "io.netty"
+  }
+
+  implementation ("io.netty:netty-buffer:$nettyVersion")
+  implementation ("io.netty:netty-common:$nettyVersion")
+  implementation ("io.netty:netty-handler:$nettyVersion")
+  implementation ("io.netty:netty-transport:$nettyVersion")
+  implementation ("io.netty:netty-transport-native-epoll:$nettyVersion")
+  implementation ("io.netty:netty-transport-native-unix-common:$nettyVersion")
+  implementation ("io.netty:netty-codec:$nettyVersion")
+  implementation ("io.netty:netty-codec-http:$nettyVersion")
+  implementation ("io.netty:netty-codec-base:$nettyVersion")
+  implementation ("io.netty:netty-codec-compression:$nettyVersion")
+  implementation ("io.netty:netty-codec-socks:$nettyVersion")
+  implementation ("io.netty:netty-handler-proxy:$nettyVersion")
+  implementation ("io.netty:netty-resolver:$nettyVersion")
 
   implementation ("org.slf4j:slf4j-api:$slf4jVersion")
   implementation ("net.jodah:expiringmap:0.5.11")
   annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") {changing= true}
   umlDoclet("nl.talsmasoftware:umldoclet:2.1.0")
 
-  testImplementation ("org.junit.jupiter:junit-jupiter-engine:5.11.4")
+  testImplementation ("org.junit.jupiter:junit-jupiter-engine:5.13.4")
+    testImplementation ("org.junit.platform:junit-platform-launcher:1.13.3")
   testImplementation ("org.slf4j:slf4j-simple:$slf4jVersion")
   testImplementation ("com.adaptris:interlok-stubs:$interlokCoreVersion") { changing= true }
   testImplementation ("org.mockito:mockito-core:$mockitoVersion")
@@ -381,7 +403,11 @@ dependencyCheck  {
   }
   analyzers {
     assemblyEnabled=false
-    knownExploitedURL=project.findProperty('dependencyCheckKnownExploitedURL')
+    ossIndex {
+      username = System.getenv("OSS_INDEX_USERNAME")
+      password = System.getenv("OSS_INDEX_PASSWORD")
+      warnOnlyOnRemoteErrors = true
+    }
   }
 }
 
